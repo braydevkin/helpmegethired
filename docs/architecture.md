@@ -190,12 +190,24 @@ Docker Compose runs the whole monorepo. `docker compose up` brings up three long
 
 ## CI/CD
 
-GitHub Actions, following the Gitflow model in [workflow.md](workflow.md):
+GitHub Actions, following the Gitflow model in [workflow.md](workflow.md). Workflows live in `.github/workflows`; the steps they share (pinned Node and pnpm, `pnpm install --frozen-lockfile`, starting the compose `postgres`) are composite actions under `.github/actions`.
 
-- **On any pull request**: install, lint, typecheck, unit tests, integration tests, e2e tests.
-- **On pull request to `main`**: additionally verify that a release document exists under `docs/releases/` for the version being released.
-- **On merge to `develop`**: build images and deploy to the **test environment**.
-- **On merge to `main`**: build images, tag `vX.Y.Z`, publish a GitHub Release from the release document, and deploy to **production**. Deployment target is an open decision.
+- **`CI` on every pull request to `develop` or `main`**: five checks, one job each, so a failure names the level that broke.
+
+  | Check | Command | Needs |
+  | --- | --- | --- |
+  | `lint` | `pnpm lint` | |
+  | `typecheck` | `pnpm typecheck` | |
+  | `unit` | `pnpm test` | |
+  | `integration` | `pnpm db:migrate`, `pnpm db:migrate:down`, `pnpm db:migrate`, then `pnpm test:integration` | compose `postgres` started from `.env.example` |
+  | `e2e` | `pnpm --filter e2e test:e2e` with `E2E_BASE_URL` pointing at the stack | `docker compose up --build --wait` from `.env.example` |
+
+  `.env.example` is the configuration in CI, so it must stay complete and valid. A new run for the same pull request cancels the previous one.
+- **`Release document` on every pull request to `main`**: fails unless the pull request adds or changes a `docs/releases/vX.Y.Z.md`.
+- **`Board` on pull request and issue events**: keeps the project board in step with GitHub activity (see [workflow.md](workflow.md), "Task lifecycle"). A pull request that is opened, reopened, marked ready for review, or edited moves itself and every issue it closes (`Closes #n`) to **In review**; a merged pull request moves them to **Done**; a closed issue moves to **Done**. Draft pull requests and pull requests closed without merging move nothing. The logic is `.github/scripts/board.js`, run with `actions/github-script`. It needs a `PROJECT_TOKEN` repository secret: a personal access token of a collaborator with `project` scope (classic) or read and write access to the project (fine-grained), because the workflow token cannot edit a project board. The workflow runs on `pull_request_target`, so it always executes the script from the base branch and works for pull requests from forks.
+- **Branch protection**: `main` and `develop` require the five `CI` checks; `main` also requires `Release document`.
+- **On merge to `develop`**: build images and deploy to the **test environment**. Pending the deployment target decision.
+- **On merge to `main`**: build images, tag `vX.Y.Z`, publish a GitHub Release from the release document, and deploy to **production**. Pending the deployment target decision.
 
 ## Open decisions
 

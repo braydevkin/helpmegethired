@@ -1,0 +1,74 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [develop, main]
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-workspace
+      - run: pnpm lint
+
+  typecheck:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-workspace
+      - run: pnpm typecheck
+
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-workspace
+      - run: pnpm test
+
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-workspace
+      - uses: ./.github/actions/start-postgres
+
+      - name: Apply and revert the migrations
+        run: |
+          pnpm db:migrate
+          pnpm db:migrate:down
+          pnpm db:migrate
+
+      - run: pnpm test:integration
+
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/setup-workspace
+
+      - name: Start the whole stack
+        run: docker compose --env-file .env.example up --build --detach --wait
+
+      - run: pnpm --filter e2e exec playwright install --with-deps chromium
+
+      - name: Run Playwright against the stack
+        run: |
+          . ./.env.example
+          E2E_BASE_URL="http://localhost:${WEB_PORT}" pnpm --filter e2e test:e2e
+
+      - name: Show the stack logs
+        if: failure()
+        run: docker compose --env-file .env.example logs
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-test-results
+          path: e2e/test-results
+          if-no-files-found: ignore
