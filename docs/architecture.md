@@ -1,0 +1,157 @@
+# Architecture
+
+This document describes the intended architecture. Nothing here is implemented yet; each part becomes a task in the GitHub Project before any code is written. Decisions are justified in [ADRs](adr/README.md).
+
+## High-level view
+
+```
+┌───────────────────────────────────────────────────────────────────┐
+│                          Help Me Get Hired                        │
+│                                                                   │
+│   ┌──────────────┐   HTTP/JSON    ┌──────────────────────────┐    │
+│   │  apps/web    │ ─────────────▶ │  apps/api                │    │
+│   │  Next.js     │ ◀───────────── │  NestJS                  │    │
+│   └──────────────┘                │                          │    │
+│          │                        │  ┌────────────────────┐  │    │
+│          │  shared types/schemas  │  │ LangChain          │  │    │
+│          ▼                        │  │  tools → services  │  │    │
+│   ┌──────────────┐                │  └─────────┬──────────┘  │    │
+│   │ packages/    │ ◀──────────────┤            │             │    │
+│   │ shared       │                └────────────┼─────────────┘    │
+│   └──────────────┘                             │                  │
+│                                                ▼                  │
+│                                   ┌──────────────────────────┐    │
+│                                   │ PostgreSQL + pgvector    │    │
+│                                   │  relational data + RAG   │    │
+│                                   └──────────────────────────┘    │
+│                                                ▲                  │
+│                                   ┌────────────┴─────────────┐    │
+│                                   │ Queue (profile building) │    │
+│                                   └──────────────────────────┘    │
+└───────────────────────────────────────────────────────────────────┘
+```
+
+## Monorepo layout (planned)
+
+```
+helpmegethired/
+├── apps/
+│   ├── web/                # Next.js frontend
+│   └── api/                # NestJS backend
+├── packages/
+│   ├── shared/             # Types and validation schemas shared by web and api
+│   ├── eslint-config/      # Shared lint rules
+│   └── tsconfig/           # Shared TypeScript configs
+├── e2e/                    # Playwright end-to-end tests against the running stack
+├── docker/                 # Dockerfiles and compose support files
+├── docs/                   # This documentation
+├── arch/                   # Diagrams
+├── .github/                # Workflows, issue and PR templates
+├── docker-compose.yml
+├── turbo.json
+├── pnpm-workspace.yaml
+└── package.json
+```
+
+Rules:
+
+- Apps never import from each other. They share code only through `packages/*`.
+- `packages/shared` owns every type and schema that crosses the HTTP boundary. Both apps validate against the same schema.
+- Turborepo pipelines: `build`, `lint`, `typecheck`, `test`, `test:e2e`. CI runs the same pipelines as local.
+
+## Frontend (apps/web)
+
+- Next.js with the App Router and TypeScript.
+- Pages follow the application flow: sign in, upload resume, LinkedIn URL, profile page, job description, analysis, resume recommendations, study recommendations, mock interview, summary.
+- Because steps are sequential (TC-06), the UI exposes a step as available only when the backend reports the previous step complete. The UI never decides step order on its own.
+- Profile-building progress (TC-04) is shown as a percentage, driven by backend state.
+
+## Backend (apps/api)
+
+- NestJS modules mirror the domain:
+  - `auth` (Account, authorization)
+  - `profile` (Basic Profile, Experiences, Projects)
+  - `ingestion` (resume PDF parsing, LinkedIn reading, segment queue)
+  - `job-descriptions` (store, embed)
+  - `analysis` (the sequential AI pipeline)
+  - `learnings` (store, study plans)
+  - `interview` (mock interview)
+- Authorization is enforced at the module boundary. A user can only read and write their own entities.
+
+### Profile ingestion (TC-03, TC-04, TC-05)
+
+Ingestion is a queue-based pipeline that processes the profile **by segment**:
+
+```
+upload ──▶ enqueue segments ──▶ [read] ──▶ [recognize] ──▶ [save] ──▶ progress %
+                                   │                           │
+                                   └──── on failure: retry from the failed segment ────┘
+```
+
+- Each segment (for example: basic info, one experience, one project) is a unit of work with its own state.
+- State is persisted per segment, so a crash resumes from the first incomplete segment.
+- A user has at most one active ingestion. A new upload while one is active is rejected.
+
+### AI pipeline (TC-06, TC-07)
+
+LangChain orchestrates tool calls. Each tool wraps a NestJS service (the business logic). The pipeline for one job description:
+
+```
+Job Description
+   │
+   ▼  RAG: retrieve relevant profile chunks + JD chunks from pgvector
+Resume ATS Level ──── score 0–10
+   │
+   ▼  (only if score < 8)
+Resume Builder ─────── updated resume from experiences, projects, basic profile
+   │
+   ▼  RAG: previous applications
+Learning with job applications ── what to learn
+   │
+   ▼
+Learn with AI ──────── structured study plan
+   │
+   ▼
+Apply Helper ───────── cover letter + resume + study plan
+   │
+   ▼
+Mock Interview
+   │
+   ▼
+Preparation summary with success rates
+```
+
+- Each layer persists its output before the next starts. The pipeline state is what tells the frontend which step is available.
+- Every layer calls RAG first and passes only retrieved context to the LLM, never the full profile.
+- The LLM provider is configured behind LangChain and is not referenced directly by services.
+
+## Data (PostgreSQL + pgvector)
+
+One database serves both relational data and vector search.
+
+- Relational tables for Account, Basic Profile, Experiences, Projects, Job Descriptions, Learnings, ingestion segments, and pipeline runs.
+- Embeddings stored in pgvector columns alongside the rows they describe (profile chunks, job description chunks, learnings).
+- RAG queries are scoped by user id. Cross-user retrieval is never performed.
+
+## Testing
+
+| Level | Tool | Where |
+| --- | --- | --- |
+| Unit | Vitest | Next to the code in each app and package |
+| Integration | Vitest | `apps/api` against a real PostgreSQL in Docker |
+| End-to-end | Playwright | `e2e/`, against the full stack in Docker Compose |
+
+## Local runtime
+
+Docker Compose runs the whole monorepo: web, api, PostgreSQL with pgvector, and the queue backend. A single command brings the stack up. CI uses the same compose file for integration and end-to-end tests.
+
+## CI/CD
+
+GitHub Actions:
+
+- **On pull request**: install, lint, typecheck, unit tests, integration tests, e2e tests.
+- **On merge to main**: build images. Deployment target is an open decision.
+
+## Open decisions
+
+Tracked in [docs/adr/README.md](adr/README.md) under "Pending".

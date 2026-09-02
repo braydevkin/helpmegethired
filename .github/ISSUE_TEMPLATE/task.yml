@@ -1,0 +1,51 @@
+name: Task
+description: A unit of work to be refined and tracked in the GitHub Project.
+title: "[Task]: "
+labels: ["needs-refinement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Tasks are refined before they are built. See `docs/workflow.md` for the refinement checklist.
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - web
+        - api
+        - shared
+        - ai
+        - infra
+        - docs
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: What outcome does this produce? Link to the relevant doc, requirement (FR-xx / TC-xx), or ADR.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: What is in and what is explicitly out.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Testable statements. One per line.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies
+      description: Issues that must be done first.

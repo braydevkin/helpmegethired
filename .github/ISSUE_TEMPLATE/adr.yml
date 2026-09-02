@@ -1,0 +1,37 @@
+name: Decision proposal (ADR)
+description: Propose a change to the stack or architecture.
+title: "[ADR]: "
+labels: ["adr"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Accepted proposals become a file in `docs/adr/` using the template there.
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What forces make this decision necessary now?
+    validations:
+      required: true
+  - type: textarea
+    id: decision
+    attributes:
+      label: Proposed decision
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+    validations:
+      required: true
+  - type: textarea
+    id: consequences
+    attributes:
+      label: Consequences
+  - type: input
+    id: supersedes
+    attributes:
+      label: Supersedes
+      placeholder: ADR-000X (if any)

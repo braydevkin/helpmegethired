@@ -1,0 +1,66 @@
+# CLAUDE.md
+
+Instructions for Claude Code when working in this repository. Read this fully before doing anything.
+
+## What this project is
+
+Help Me Get Hired is a community platform that helps candidates prepare for selection processes with AI-assisted analysis while keeping the reasoning behind each step visible and teachable. Read `README.md` and `docs/product/vision.md` for the goal, and `docs/architecture.md` for the system design.
+
+## The single most important rule
+
+**Every change is driven by a task in the GitHub Project.** Do not write application code, scaffold packages, add dependencies, or change infrastructure unless the user points you at a refined task (issue) that asks for it. If no task exists, help create or refine one instead. The workflow is described in `docs/workflow.md`.
+
+When asked to do something that has no task, say so and offer to draft the issue.
+
+## Stack (do not deviate without an ADR)
+
+- Monorepo: Turborepo + pnpm workspaces. `apps/*` for deployables, `packages/*` for shared code.
+- Frontend: Next.js (App Router, TypeScript).
+- Backend: NestJS (TypeScript).
+- AI: LangChain. All AI analysis goes through RAG on PostgreSQL + pgvector before any LLM call.
+- Database: PostgreSQL + pgvector.
+- Tests: Vitest for unit and integration, Playwright for end-to-end.
+- Local runtime: Docker Compose runs the whole monorepo.
+- CI/CD: GitHub Actions.
+- Package manager: pnpm only. Never use npm or yarn commands.
+
+Every decision above has an ADR in `docs/adr/`. A change to any of them requires a new ADR that supersedes the old one.
+
+## Shared types and schemas
+
+Types and validation schemas that cross the frontend/backend boundary live in `packages/shared`, never duplicated in an app. When you touch an API contract, change the shared package first and let both apps consume it.
+
+## Product rules that must hold in code
+
+These come from the product definition and are not negotiable:
+
+1. The AI analysis layers run **sequentially**. The next layer starts only after the previous one has completed.
+2. **RAG before every AI analysis** to reduce token usage.
+3. Profile building is done **by segment** through a queue: read, recognize, save. It reports percentage progress.
+4. Profile building must be **resumable**: if it fails, it continues from where it stopped, never from zero.
+5. A user cannot run multiple uploads or analyse multiple profiles at the same time.
+6. The ATS score is a number from 0 to 10 for a specific job description. Resume rebuilding is triggered when the score is below 8.
+
+## Conventions
+
+- Language: English for code, comments, docs, commits, issues.
+- Commits: Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`, `ci:`). Reference the issue: `feat(api): add ATS scoring service (#42)`.
+- Branches: `<type>/<issue-number>-<short-slug>`, e.g. `feat/42-ats-scoring`.
+- One task per branch, one branch per PR.
+- Tests accompany the change. A feature without tests is not done.
+- Do not commit or push unless asked. Never push directly to `main`.
+- Never commit secrets. Use `.env.example` for documented variables.
+
+## Documentation is part of the work
+
+- A new architectural decision gets an ADR in `docs/adr/` using the template there.
+- A change in flow or behaviour updates `docs/product/requirements.md` or `docs/architecture.md`.
+- Keep the README's documentation map accurate when adding documents.
+
+## How to behave in this repo
+
+- Before implementing, read the linked issue and its acceptance criteria. Restate them briefly, then build.
+- Prefer small, reviewable changes over large ones.
+- When something in the task is ambiguous in a way that changes the outcome, ask. Otherwise decide and state the assumption in the PR.
+- Report test results faithfully. If something fails or was skipped, say it.
+- Do not introduce new tooling, libraries, or patterns that are not in the stack without flagging it and proposing an ADR.

@@ -1,0 +1,7 @@
+# Default owner for everything. Refine per area as the team grows.
+* @braydevkin
+
+# Decisions and Claude configuration need an owner review.
+/docs/adr/ @braydevkin
+/CLAUDE.md @braydevkin
+/.claude/ @braydevkin

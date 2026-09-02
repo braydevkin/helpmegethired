@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.next/
+out/
+.turbo/
+coverage/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Test artifacts
+playwright-report/
+test-results/
+
+# Editors / OS
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+*:Zone.Identifier
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Claude Code local overrides
+.claude/settings.local.json

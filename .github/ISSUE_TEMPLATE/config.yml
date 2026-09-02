@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Discussion
+    url: https://github.com/braydevkin/helpmegethired/discussions
+    about: Ideas, questions, and anything not yet ready to be a task.
