@@ -45,7 +45,7 @@ Each of these choices is recorded with its reasoning in [docs/adr](docs/adr/READ
 
 ## Project status
 
-**Foundation.** Branching follows Gitflow: `main` is production, `develop` is the test environment. The repository holds the product idea, the architecture, the way of working, the Claude Code configuration, the monorepo scaffold (Turborepo, pnpm workspaces, shared TypeScript and ESLint configurations), the shared schemas package, and the NestJS API scaffold with configuration validation and a health endpoint. Applications and shared packages grow task by task from the GitHub Project. See [docs/workflow.md](docs/workflow.md).
+**Foundation.** Branching follows Gitflow: `main` is production, `develop` is the test environment. The repository holds the product idea, the architecture, the way of working, the Claude Code configuration, the monorepo scaffold (Turborepo, pnpm workspaces, shared TypeScript and ESLint configurations), the shared schemas package, the NestJS API scaffold with configuration validation and a health endpoint, and the Next.js web scaffold with a placeholder home page, Vitest component tests, and a Playwright smoke test in `e2e/`. Applications and shared packages grow task by task from the GitHub Project. See [docs/workflow.md](docs/workflow.md).
 
 ## Documentation map
 

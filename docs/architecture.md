@@ -36,13 +36,13 @@ This document describes the intended architecture. Nothing here is implemented y
 ```
 helpmegethired/
 ├── apps/
-│   ├── web/                # Next.js frontend (#4)
+│   ├── web/                # Next.js frontend
 │   └── api/                # NestJS backend
 ├── packages/
 │   ├── shared/             # Zod schemas and inferred types shared by web and api
 │   ├── eslint-config/      # Shared lint rules
 │   └── tsconfig/           # Shared TypeScript configs
-├── e2e/                    # Playwright end-to-end tests against the running stack (#8)
+├── e2e/                    # Playwright end-to-end tests against the running stack
 ├── docker/                 # Dockerfiles and compose support files (#7)
 ├── docs/                   # This documentation
 ├── arch/                   # Diagrams
@@ -71,7 +71,10 @@ Workspace conventions:
 
 ## Frontend (apps/web)
 
-- Next.js with the App Router and TypeScript.
+- Next.js with the App Router and TypeScript strict mode, extending `packages/tsconfig/nextjs.json`. Pages live under `src/app`.
+- `pnpm --filter web dev` serves the app; `next build` produces the output that `next start` and the end-to-end tests run against.
+- Unit and component tests run on Vitest with a jsdom environment and Testing Library, next to the code as `*.test.tsx`.
+- Linting combines the shared configuration with the Next.js plugin (`core-web-vitals`) and the React Hooks plugin.
 - Pages follow the application flow: sign in, upload resume, LinkedIn URL, profile page, job description, analysis, resume recommendations, study recommendations, mock interview, summary.
 - Because steps are sequential (TC-06), the UI exposes a step as available only when the backend reports the previous step complete. The UI never decides step order on its own.
 - Profile-building progress (TC-04) is shown as a percentage, driven by backend state.
@@ -152,7 +155,9 @@ One database serves both relational data and vector search.
 | --- | --- | --- |
 | Unit | Vitest | Next to the code in each app and package |
 | Integration | Vitest | `apps/api` against a real PostgreSQL in Docker |
-| End-to-end | Playwright | `e2e/`, against the full stack in Docker Compose |
+| End-to-end | Playwright | `e2e/`, a workspace package; against the built web app locally, against the full stack in Docker Compose in CI |
+
+The `e2e` package depends on `@helpmegethired/web`, so `pnpm turbo run test:e2e` builds the web app first and Playwright starts it with `next start` on port 3100. Setting `E2E_BASE_URL` points the tests at an already running stack instead. Browsers are installed once with `pnpm --filter e2e exec playwright install chromium`.
 
 ## Local runtime
 
