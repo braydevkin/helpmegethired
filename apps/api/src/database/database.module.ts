@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 
 import type { EnvironmentConfig } from "../config/environment.module";
 import { DATABASE, createDatabase, type Database } from "./database";
+import { TransactionRunner } from "./transaction-runner";
 
 const databaseProvider = {
   provide: DATABASE,
@@ -12,8 +13,8 @@ const databaseProvider = {
 
 @Global()
 @Module({
-  providers: [databaseProvider],
-  exports: [DATABASE],
+  providers: [databaseProvider, TransactionRunner],
+  exports: [DATABASE, TransactionRunner],
 })
 export class DatabaseModule implements OnApplicationShutdown {
   constructor(@Inject(DATABASE) private readonly database: Database) {}

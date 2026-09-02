@@ -43,6 +43,24 @@ _Avoid_: Job, employment
 A personal or professional piece of work the Candidate can point to: name, description, link, skills. Not tied to an Experience.
 _Avoid_: Portfolio item
 
+### Profile building
+
+**Ingestion**:
+One run of profile building for an Account from one source (an Uploaded Resume or a LinkedIn profile). Made of ordered Segments, processed through a queue, resumable after a failure, and at most one active per Account.
+_Avoid_: Import, upload job, parsing
+
+**Segment**:
+The unit of work inside an Ingestion: one piece of the source that becomes one part of the Profile, for example the basic information, one Experience, or one Project. Goes through three Steps and keeps the state of the last one it completed.
+_Avoid_: Chunk, task, item
+
+**Step**:
+One of the three stages a Segment goes through, in order: read (extract the raw content), recognize (turn the content into structured Profile data), save (write it to the Profile). A Segment is done when its save Step is done.
+_Avoid_: Phase, stage
+
+**Progress**:
+The share of an Ingestion that is done, as a whole percentage derived from the persisted Steps of its Segments.
+_Avoid_: Status bar, completion
+
 ### Documents
 
 **Resume**:

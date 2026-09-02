@@ -5,6 +5,8 @@ import { validateDatabaseEnvironment } from "../config/validate-environment";
 import { createDatabase, type Database } from "./database";
 import { migrateDown, migrateToLatest } from "./migrator";
 
+const applicationTables = ["accounts", "sessions", "ingestions", "ingestion_segments"];
+
 interface ExtensionRow {
   extname: string;
 }
@@ -41,22 +43,21 @@ describe("migrations", () => {
     await database.destroy();
   });
 
-  it("enable the vector extension and create the accounts and sessions tables", async () => {
+  it("enable the vector extension and create every application table", async () => {
     expect(await installedExtensions(database)).toContain("vector");
-    expect(await tables(database)).toEqual(expect.arrayContaining(["accounts", "sessions"]));
+    expect(await tables(database)).toEqual(expect.arrayContaining(applicationTables));
   });
 
   it("revert every migration and apply them all again", async () => {
     await revertEveryMigration(database);
 
-    expect(await tables(database)).not.toContain("accounts");
-    expect(await tables(database)).not.toContain("sessions");
+    expect(await tables(database)).toEqual(expect.not.arrayContaining(applicationTables));
     expect(await installedExtensions(database)).not.toContain("vector");
 
     const reapplied = await migrateToLatest(database);
 
     expect(reapplied.error).toBeUndefined();
-    expect(await tables(database)).toEqual(expect.arrayContaining(["accounts", "sessions"]));
+    expect(await tables(database)).toEqual(expect.arrayContaining(applicationTables));
     expect(await installedExtensions(database)).toContain("vector");
   });
 });
