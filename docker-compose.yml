@@ -29,7 +29,7 @@ services:
     <<: *api-image
     environment:
       DATABASE_URL: *database-url
-    command: ["pnpm", "--filter", "api", "db:migrate"]
+    command: ["pnpm", "db:migrate"]
     depends_on:
       postgres:
         condition: service_healthy
