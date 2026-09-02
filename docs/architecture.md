@@ -37,7 +37,7 @@ This document describes the intended architecture. Nothing here is implemented y
 helpmegethired/
 ├── apps/
 │   ├── web/                # Next.js frontend (#4)
-│   └── api/                # NestJS backend (#5)
+│   └── api/                # NestJS backend
 ├── packages/
 │   ├── shared/             # Zod schemas and inferred types shared by web and api
 │   ├── eslint-config/      # Shared lint rules
@@ -87,6 +87,9 @@ Workspace conventions:
   - `learnings` (store, study plans)
   - `interview` (mock interview)
 - Authorization is enforced at the module boundary. A user can only read and write their own entities.
+- Configuration comes from environment variables, validated at startup by a Zod schema in `apps/api/src/config`. A missing or invalid variable stops the process with a message naming the variable. The variables and their defaults are listed in `apps/api/.env.example`.
+- `GET /health` reports the application status. Its response shape is `HealthStatusSchema` in `packages/shared`, so the web app and the end-to-end tests validate it against the same contract.
+- Tests live next to the code: `*.test.ts` files are unit tests, `*.integration.test.ts` files boot the application. `vitest run --project unit` or `--project integration` runs one level on its own.
 
 ### Profile ingestion (TC-03, TC-04, TC-05)
 
