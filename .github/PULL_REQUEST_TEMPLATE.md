@@ -1,9 +1,15 @@
 <!--
 Default template for feature/* and fix/* branches targeting `develop`.
-Write the description in English. Fill in every section.
+Write the description in English. Tag the people working on it; do not mention tooling. Fill in every section.
 For a release (develop → main) use ?template=release.md
 For a hotfix (hotfix/* → main) use ?template=hotfix.md
 -->
+
+## Working on this
+
+<!-- @handles of everyone working on this change. -->
+
+- @
 
 ## Issue
 

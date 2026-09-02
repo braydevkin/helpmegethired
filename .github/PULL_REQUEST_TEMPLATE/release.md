@@ -1,7 +1,13 @@
 <!--
 Release template: `develop` → `main`.
-Write the description in English. A release document is mandatory.
+Write the description in English. Tag the people working on it; do not mention tooling. A release document is mandatory.
 -->
+
+## Working on this
+
+<!-- @handles of everyone working on this change. -->
+
+- @
 
 ## Release
 

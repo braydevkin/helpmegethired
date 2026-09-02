@@ -8,4 +8,4 @@ Use [template.md](template.md). Name the file after the tag: `vX.Y.Z.md`. Write 
 
 | Version | Date | Type | Summary |
 | --- | --- | --- | --- |
-| _none yet_ | | | The project has not reached production. |
+| [v0.1.0](v0.1.0.md) | 2026-09-02 | Release | Foundation of the platform, Account sign up and sign in, and the profile ingestion design. |

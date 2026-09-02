@@ -10,14 +10,16 @@ All work is defined in the **GitHub Project** attached to this repository. Only 
 
 ## Task lifecycle
 
+Status changes are automated from GitHub activity wherever possible: a new issue lands in Backlog, a linked PR moves it to In Review, a merged PR or closed issue moves it to Done. Refined and Ready are set by a collaborator. The automation is the `Board` workflow described in [architecture.md](architecture.md#cicd); it links a PR to its issues through the `Closes #<n>` line of the PR description.
+
 ```
-Idea ──▶ Issue ──▶ Refined ──▶ Ready ──▶ In Progress ──▶ In Review ──▶ Done
+Idea ──▶ Backlog ──▶ Refined ──▶ Ready ──▶ In Progress ──▶ In Review ──▶ Done
 ```
 
 | Stage | Meaning | Who moves it |
 | --- | --- | --- |
 | Idea | Something worth considering. Might be a discussion or a rough issue. | Anyone opens; collaborator triages |
-| Issue | Accepted into the project with a type label. | Collaborator |
+| Backlog | Accepted into the project with a type label. Every new issue starts here. | Automatic on issue creation |
 | Refined | Has a clear description, acceptance criteria, scope, and dependencies. Small enough for one PR. | Collaborator, with discussion |
 | Ready | Refined and unblocked. Available to pick up. | Collaborator |
 | In Progress | Someone is assigned and a `feature/`, `fix/`, or `hotfix/` branch exists. | Assignee |
@@ -34,11 +36,12 @@ An issue is refined when all of these are true:
 - [ ] Scope is explicit: what is in, what is out.
 - [ ] Dependencies on other issues are linked.
 - [ ] It fits in a single PR that can be reviewed in one sitting.
-- [ ] Labels: type (`feat`, `fix`, `docs`, `chore`, `ci`, `test`) and area (`web`, `api`, `shared`, `infra`, `ai`).
+- [ ] Labels: exactly one type (`feature`, `fix`, `architecture`, `docs`, `chore`) and one or more areas (`frontend`, `backend`, `shared`, `infra`, `ai`).
+- [ ] Milestone set to one of: Foundation, Account and Profile, Job Analysis, Learning and Apply, Interview and Summary.
 
-## Suggested first milestones
+## Milestones
 
-Ordered so that each one is usable on its own. Create these as issues in the project when ready.
+A milestone is a slice of the candidate journey that is usable on its own once done. The five milestones exist in the repository; the numbered items below are the capabilities each one groups, in build order.
 
 1. **Repository foundation**: Turborepo + pnpm workspace, shared configs, `packages/shared`, Docker Compose with PostgreSQL + pgvector, CI running lint/typecheck/test.
 2. **Account**: sign up / sign in in `apps/api` and `apps/web`.
@@ -110,6 +113,7 @@ Common rules:
 
 - One issue per feature or fix PR. Link it with `Closes #<n>`.
 - Fill in every section of the template. Empty sections are a review blocker.
+- Tag the people working on the change in the "Working on this" section. PR descriptions describe the work, not the tools used to produce it.
 - CI must be green: lint, typecheck, unit, integration, e2e.
 - Reviewer checks the acceptance criteria from the issue, not just the diff.
 

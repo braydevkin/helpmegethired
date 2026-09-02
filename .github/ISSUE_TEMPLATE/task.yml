@@ -12,8 +12,8 @@ body:
     attributes:
       label: Area
       options:
-        - web
-        - api
+        - frontend
+        - backend
         - shared
         - ai
         - infra

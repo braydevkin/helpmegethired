@@ -1,0 +1,28 @@
+name: Release document
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  release-document:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Require a release document in this pull request
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          documents=$(git diff --name-only --diff-filter=AM "$BASE_SHA" "$HEAD_SHA" -- 'docs/releases/v*.md')
+
+          if [ -z "$documents" ]; then
+            echo "::error::A pull request to main must add or update docs/releases/vX.Y.Z.md (see docs/workflow.md, Releases)."
+            exit 1
+          fi
+
+          echo "Release document(s) in this pull request:"
+          echo "$documents"

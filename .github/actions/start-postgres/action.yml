@@ -1,0 +1,14 @@
+name: Start PostgreSQL
+description: Start the compose postgres service from .env.example and export DATABASE_URL for the host
+
+runs:
+  using: composite
+  steps:
+    - run: docker compose --env-file .env.example up --detach --wait postgres
+      shell: bash
+
+    - run: |
+        set -a
+        . ./.env.example
+        echo "DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}" >> "$GITHUB_ENV"
+      shell: bash

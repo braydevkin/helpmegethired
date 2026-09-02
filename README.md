@@ -45,7 +45,30 @@ Each of these choices is recorded with its reasoning in [docs/adr](docs/adr/READ
 
 ## Project status
 
-**Pre-code.** Branching follows Gitflow: `main` is production, `develop` is the test environment. The repository currently holds the product idea, the architecture, the way of working, and the Claude Code configuration. No application code is written until the corresponding task has been created and refined in the GitHub Project. See [docs/workflow.md](docs/workflow.md).
+**Foundation.** Branching follows Gitflow: `main` is production, `develop` is the test environment. The repository holds the product idea, the architecture, the way of working, the Claude Code configuration, the monorepo scaffold (Turborepo, pnpm workspaces, shared TypeScript and ESLint configurations), the shared schemas package, the NestJS API scaffold with configuration validation and a health endpoint, the Next.js web scaffold with a placeholder home page, Vitest component tests, and a Playwright smoke test in `e2e/`, a Docker Compose stack that runs web, api, and PostgreSQL with pgvector, and the database layer (Kysely, reversible migrations, the `accounts` table) with integration tests against an isolated database. Applications and shared packages grow task by task from the GitHub Project. See [docs/workflow.md](docs/workflow.md).
+
+## Running the stack
+
+Docker with Compose v2 is the only requirement. From a clean clone:
+
+```sh
+cp .env.example .env
+docker compose up
+```
+
+| Service | URL |
+| --- | --- |
+| Web | http://localhost:3000 |
+| API | http://localhost:3001/health |
+| PostgreSQL (pgvector) | `postgres://helpmegethired:helpmegethired@localhost:5432/helpmegethired` |
+
+- Edits under `apps/web/src` and `apps/api/src` reload inside the running containers. After changing dependencies, configuration files, or `packages/shared`, run `docker compose up --build`.
+- `docker compose up --wait` exits with zero only when every service reports healthy. Use it to check the stack before running tests against it.
+- Host ports and database credentials are the variables in `.env`. Change them there when a port is already taken on your machine.
+- `docker compose up` applies pending database migrations before the API starts. To run them by hand, set `DATABASE_URL` (or copy `apps/api/.env.example` to `apps/api/.env`) and use `pnpm db:migrate` or `pnpm db:migrate:down`.
+- `docker compose down` stops the stack and keeps the database volume; add `--volumes` to start from an empty database.
+
+To run the apps natively against your own tooling instead, see the local setup in [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Documentation map
 
@@ -57,6 +80,7 @@ Each of these choices is recorded with its reasoning in [docs/adr](docs/adr/READ
 | [docs/workflow.md](docs/workflow.md) | Gitflow branching, how tasks are created, refined, built, reviewed, and released |
 | [docs/releases/](docs/releases/README.md) | Release notes, one document per production release |
 | [docs/adr/](docs/adr/README.md) | Architecture Decision Records |
+| [CONTEXT.md](CONTEXT.md) | Glossary: the canonical words for the concepts in this project |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
 | [CLAUDE.md](CLAUDE.md) | Instructions for Claude Code when working in this repository |
 

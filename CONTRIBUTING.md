@@ -11,7 +11,7 @@ Thanks for wanting to help. This project is public and community-driven, and it 
 ## Ways to contribute
 
 - **Propose work**: open an issue using the templates. Explain the *why*, link to the relevant doc, and suggest acceptance criteria. A collaborator will triage it into the project.
-- **Refine work**: comment on issues in `Issue` or `Refined` state to sharpen scope and acceptance criteria.
+- **Refine work**: comment on issues in `Backlog` or `Refined` state to sharpen scope and acceptance criteria.
 - **Build work**: pick an issue in `Ready`, comment that you are taking it, and follow the branching rules below.
 - **Improve docs**: documentation PRs are welcome without an issue when they fix inaccuracies. New documents or changed decisions still need an issue or an ADR.
 
@@ -20,6 +20,20 @@ Only collaborators can edit the GitHub Project board. Everyone can open issues, 
 ## Stack
 
 The stack is fixed by ADRs: Next.js, NestJS, LangChain, PostgreSQL + pgvector, Turborepo + pnpm, Vitest, Playwright, Docker, GitHub Actions. If you think a decision should change, open an issue proposing a new ADR. Do not introduce new tooling in a feature PR.
+
+## Local setup
+
+The Node major is pinned in `.nvmrc` and the exact pnpm version in the `packageManager` field of `package.json`. Installs are refused on any other engine.
+
+```sh
+nvm use
+pnpm install
+pnpm turbo run lint typecheck test build
+```
+
+`pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` run the same pipelines individually across the whole workspace.
+
+Integration tests and database migrations need a running PostgreSQL: start the compose one with `docker compose up --wait postgres`, copy `apps/api/.env.example` to `apps/api/.env` (or export `DATABASE_URL`), then run `pnpm test:integration` or `pnpm db:migrate`.
 
 ## Branching, commits, PRs
 

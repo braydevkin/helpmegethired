@@ -18,6 +18,10 @@ Use [template.md](template.md). Number sequentially. Status is one of `Proposed`
 | [0008](0008-github-actions-and-projects.md) | GitHub Actions for CI/CD, GitHub Projects for tasks | Accepted |
 | [0009](0009-sequential-ai-pipeline-with-rag.md) | Sequential AI pipeline with RAG before every analysis | Accepted |
 | [0010](0010-gitflow-branching.md) | Gitflow branching with main as production and develop as test | Accepted |
+| [0011](0011-zod-shared-schemas.md) | Zod for shared schemas and inferred types | Accepted |
+| [0012](0012-kysely-query-layer-and-migrations.md) | Kysely as the query layer and migration tool | Accepted |
+| [0013](0013-own-credentials-with-database-sessions.md) | Own credentials with hashed passwords and database-backed sessions | Accepted |
+| [0014](0014-pg-boss-queue-on-postgresql.md) | pg-boss on PostgreSQL as the queue backend for profile ingestion | Accepted |
 
 ## Pending decisions
 
@@ -25,7 +29,5 @@ Not yet decided. Each becomes an ADR when resolved.
 
 - **License** for the repository.
 - **LLM provider(s)** behind LangChain.
-- **Queue backend** for profile ingestion (for example BullMQ on Redis, or PostgreSQL-backed).
 - **Deployment target** for `main` builds.
 - **LinkedIn data access** approach and fallback.
-- **ORM / query layer** for PostgreSQL in NestJS.
