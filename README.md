@@ -57,6 +57,7 @@ Each of these choices is recorded with its reasoning in [docs/adr](docs/adr/READ
 | [docs/workflow.md](docs/workflow.md) | Gitflow branching, how tasks are created, refined, built, reviewed, and released |
 | [docs/releases/](docs/releases/README.md) | Release notes, one document per production release |
 | [docs/adr/](docs/adr/README.md) | Architecture Decision Records |
+| [CONTEXT.md](CONTEXT.md) | Glossary: the canonical words for the concepts in this project |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
 | [CLAUDE.md](CLAUDE.md) | Instructions for Claude Code when working in this repository |
 

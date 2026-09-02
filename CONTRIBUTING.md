@@ -11,7 +11,7 @@ Thanks for wanting to help. This project is public and community-driven, and it 
 ## Ways to contribute
 
 - **Propose work**: open an issue using the templates. Explain the *why*, link to the relevant doc, and suggest acceptance criteria. A collaborator will triage it into the project.
-- **Refine work**: comment on issues in `Issue` or `Refined` state to sharpen scope and acceptance criteria.
+- **Refine work**: comment on issues in `Backlog` or `Refined` state to sharpen scope and acceptance criteria.
 - **Build work**: pick an issue in `Ready`, comment that you are taking it, and follow the branching rules below.
 - **Improve docs**: documentation PRs are welcome without an issue when they fix inaccuracies. New documents or changed decisions still need an issue or an ADR.
 
