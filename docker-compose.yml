@@ -64,10 +64,14 @@ services:
       target: development
     environment:
       NODE_ENV: development
+      API_URL: http://api:3001
     ports:
       - "${WEB_PORT:?}:3000"
     volumes:
       - ./apps/web/src:/workspace/apps/web/src
+    depends_on:
+      api:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "node", "--eval", "fetch('http://localhost:3000/').then((response) => process.exit(response.ok ? 0 : 1), () => process.exit(1))"]
       interval: 5s

@@ -74,9 +74,19 @@ Workspace conventions:
 - `pnpm --filter web dev` serves the app; `next build` produces the output that `next start` and the end-to-end tests run against.
 - Unit and component tests run on Vitest with a jsdom environment and Testing Library, next to the code as `*.test.tsx`.
 - Linting combines the shared configuration with the Next.js plugin (`core-web-vitals`) and the React Hooks plugin.
-- Pages follow the application flow: sign in, upload resume, LinkedIn URL, profile page, job description, analysis, resume recommendations, study recommendations, mock interview, summary.
+- Pages follow the application flow: sign up and sign in, then the journey (upload resume, LinkedIn URL, profile page, job description, analysis, resume recommendations, study recommendations, mock interview, summary).
 - Because steps are sequential (TC-06), the UI exposes a step as available only when the backend reports the previous step complete. The UI never decides step order on its own.
 - Profile-building progress (TC-04) is shown as a percentage, driven by backend state.
+
+### Account pages and the Session cookie (FR-01)
+
+The web app is the only client of the API, and it talks to it from the server side, so the browser never handles the Session token:
+
+- `/sign-up` and `/sign-in` render one `CredentialsForm`. The form parses the fields with `CredentialsSchema` from `packages/shared` before anything is sent and shows each issue next to its field; only an accepted body reaches the server action. The server action calls the API through `AuthClient` and answers the form with the API message (duplicate email, wrong password) or redirects to `/journey`.
+- On success the action stores the API Session token in a cookie named `session`: HTTP-only, `SameSite=Lax`, `Path=/`, `Secure` in production, expiring with the Session. Server components and actions read it with `readSessionToken()` and send it to the API as `Authorization: Bearer`.
+- `/journey` is the first authenticated page. It asks the API for the Account behind the cookie and redirects to `/sign-in` when the API no longer accepts the token. Sign out is a server action that revokes the Session at the API, clears the cookie, and redirects to `/sign-in`.
+- `src/proxy.ts` handles the redirects before a page renders: an authenticated path without the cookie goes to `/sign-in`; the forms with a cookie go to `/journey` when the API still accepts the token, and otherwise the stale cookie is cleared and the form is shown.
+- The API origin comes from `API_URL`, read on the server only, defaulting to `http://localhost:3001` for a native `next dev`. The compose stack sets it to `http://api:3001`.
 
 ## Backend (apps/api)
 
@@ -192,6 +202,7 @@ Docker Compose runs the whole monorepo. `docker compose up` brings up three long
 
 - Configuration comes from a root `.env`, copied from `.env.example`. Every variable is required: a missing one stops `docker compose` with a message naming it. Inside the network the services keep fixed ports (`api:3001`, `web:3000`, `postgres:5432`); the `.env` variables only choose the host ports.
 - The `api` and `migrate` containers receive `PORT`, `WEB_ORIGIN`, and `DATABASE_URL` from the compose file, so `apps/api/.env.example` is only needed when the API runs natively. Inside the network the database URL points at `postgres:5432`; from the host it points at `localhost:${POSTGRES_PORT}`.
+- The `web` container receives `API_URL=http://api:3001` and starts only after `api` is healthy. When the web app runs natively, `API_URL` defaults to `http://localhost:3001`.
 - Both Dockerfiles build from the repository root: they install the workspace with pnpm filtered to the app and its workspace dependencies, build those dependencies (`packages/shared`), and run the app's `dev` script as the unprivileged `node` user. The `development` target is the only one for now; production images are a separate task.
 - Hot reload: `apps/web/src` and `apps/api/src` are bind-mounted into the containers, so `next dev` and `nest start --watch` pick up edits without a rebuild. A change to dependencies, to a file outside `src`, or to `packages/shared` needs `docker compose up --build`.
 - `migrate` starts once `postgres` is healthy and applies the pending migrations; `api` starts only after `migrate` has exited successfully. `docker compose up --wait` returns zero once every health check passes, which makes it the smoke test of the stack.
