@@ -10,7 +10,7 @@ All work is defined in the **GitHub Project** attached to this repository. Only 
 
 ## Task lifecycle
 
-Status changes are automated from GitHub activity wherever possible: a new issue lands in Backlog, a linked PR moves it to In Review, a merged PR or closed issue moves it to Done. Refined and Ready are set by a collaborator.
+Status changes are automated from GitHub activity wherever possible: a new issue lands in Backlog, a linked PR moves it to In Review, a merged PR or closed issue moves it to Done. Refined and Ready are set by a collaborator. The automation is the `Board` workflow described in [architecture.md](architecture.md#cicd); it links a PR to its issues through the `Closes #<n>` line of the PR description.
 
 ```
 Idea ──▶ Backlog ──▶ Refined ──▶ Ready ──▶ In Progress ──▶ In Review ──▶ Done
