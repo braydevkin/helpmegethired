@@ -43,18 +43,17 @@ helpmegethired/
 │   ├── eslint-config/      # Shared lint rules
 │   └── tsconfig/           # Shared TypeScript configs
 ├── e2e/                    # Playwright end-to-end tests against the running stack
-├── docker/                 # Dockerfiles and compose support files (#7)
+├── docker/                 # Dockerfiles, one directory per service
 ├── docs/                   # This documentation
 ├── arch/                   # Diagrams
 ├── .github/                # Workflows, issue and PR templates
-├── docker-compose.yml      # (#7)
+├── docker-compose.yml      # The whole stack for local development and CI
+├── .env.example            # Variables read by docker-compose.yml
 ├── .nvmrc
 ├── turbo.json
 ├── pnpm-workspace.yaml
 └── package.json
 ```
-
-Entries marked with an issue number are added by that task; everything else exists.
 
 Rules:
 
@@ -161,7 +160,20 @@ The `e2e` package depends on `@helpmegethired/web`, so `pnpm turbo run test:e2e`
 
 ## Local runtime
 
-Docker Compose runs the whole monorepo: web, api, PostgreSQL with pgvector, and the queue backend. A single command brings the stack up. CI uses the same compose file for integration and end-to-end tests.
+Docker Compose runs the whole monorepo. `docker compose up` brings up three services from the root `docker-compose.yml`; the queue backend joins the stack once #12 decides it. CI uses the same compose file for integration and end-to-end tests.
+
+| Service | Image | Host port (default) | Health check |
+| --- | --- | --- | --- |
+| `web` | `docker/web/Dockerfile`, target `development` | `WEB_PORT` (3000) | `GET /` answers |
+| `api` | `docker/api/Dockerfile`, target `development` | `API_PORT` (3001) | `GET /health` answers |
+| `postgres` | `pgvector/pgvector:pg17` | `POSTGRES_PORT` (5432) | `pg_isready` |
+
+- Configuration comes from a root `.env`, copied from `.env.example`. Every variable is required: a missing one stops `docker compose` with a message naming it. Inside the network the services keep fixed ports (`api:3001`, `web:3000`, `postgres:5432`); the `.env` variables only choose the host ports.
+- The `api` container receives `PORT` and `WEB_ORIGIN` from the compose file, so `apps/api/.env.example` is only needed when the API runs natively.
+- Both Dockerfiles build from the repository root: they install the workspace with pnpm filtered to the app and its workspace dependencies, build those dependencies (`packages/shared`), and run the app's `dev` script as the unprivileged `node` user. The `development` target is the only one for now; production images are a separate task.
+- Hot reload: `apps/web/src` and `apps/api/src` are bind-mounted into the containers, so `next dev` and `nest start --watch` pick up edits without a rebuild. A change to dependencies, to a file outside `src`, or to `packages/shared` needs `docker compose up --build`.
+- `api` starts only after `postgres` is healthy. `docker compose up --wait` returns zero once every health check passes, which makes it the smoke test of the stack.
+- Data lives in the `postgres-data` volume and survives `docker compose down`; `docker compose down --volumes` resets it. The `vector` extension ships with the image and is enabled per database by the first migration (#9).
 
 ## CI/CD
 
