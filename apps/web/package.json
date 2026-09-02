@@ -1,0 +1,38 @@
+{
+  "name": "@helpmegethired/web",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Next.js frontend: the candidate journey",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "next build",
+    "dev": "next dev",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@helpmegethired/shared": "workspace:*",
+    "next": "^16.3.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8"
+  },
+  "devDependencies": {
+    "@helpmegethired/eslint-config": "workspace:*",
+    "@helpmegethired/tsconfig": "workspace:*",
+    "@next/eslint-plugin-next": "^16.3.4",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@types/node": "catalog:",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.5",
+    "@vitejs/plugin-react": "^6.1.1",
+    "eslint": "catalog:",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "jsdom": "^30.0.1",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

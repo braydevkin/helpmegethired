@@ -1,0 +1,5 @@
+{
+  "extends": "@helpmegethired/tsconfig/nextjs.json",
+  "include": ["next-env.d.ts", "src", "vitest.setup.ts", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
