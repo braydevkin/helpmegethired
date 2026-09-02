@@ -119,14 +119,15 @@ Common rules:
 
 ## Releases
 
-Every PR to `main` ships a release document. No release document, no merge.
+Every PR to `main` ships a release document. No release document, no merge. There is no `release/*` branch (ADR-0010): the release is the pull request from `develop` to `main`, and the release document reaches `develop` like any other change, through its own pull request.
 
 1. Decide the version (`vX.Y.Z`) following the versioning rules above.
-2. Copy `docs/releases/template.md` to `docs/releases/vX.Y.Z.md` on the release (or hotfix) branch and fill it in: summary, changes grouped by type with issue links, breaking changes, migration steps, rollback plan, and verification done in the test environment.
-3. Add the entry to `docs/releases/README.md`.
-4. Open the PR to `main` with the release or hotfix template. The PR body links to the release document.
-5. After merge, tag `main` with `vX.Y.Z` and create a GitHub Release whose notes are the release document.
-6. For a hotfix, merge `main` back into `develop` right away.
+2. Open a release issue ("Release vX.Y.Z", type `docs`, the milestone being shipped) so the release shows on the board.
+3. Open the release pull request from `develop` to `main` with the release template (`gh pr create --base main --head develop --template release.md`). Its `Release document` check fails until the document is on `develop`; that is expected at this point.
+4. On a `feature/<issue>-release-vX.Y.Z` branch from `develop`, copy `docs/releases/template.md` to `docs/releases/vX.Y.Z.md` and fill it in: summary, changes grouped by type with issue and PR links, breaking changes, migration steps, rollback plan, and the verification done in the test environment. Reference the release pull request in the document and add the entry to `docs/releases/README.md`. Open a pull request to `develop` that closes the release issue, and merge it.
+5. The release pull request follows the new head of `develop`, so the `Release document` check turns green on its own. Review and merge it. Nothing is merged back into `develop`: it already contains everything `main` received.
+6. After merge, tag `main` with `vX.Y.Z` and create a GitHub Release whose notes are the release document.
+7. For a hotfix, merge `main` back into `develop` right away.
 
 ## Definition of done
 

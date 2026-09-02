@@ -1,6 +1,6 @@
 <!--
 Release template: `develop` → `main`.
-Write the description in English. Tag the people working on it; do not mention tooling. A release document is mandatory.
+Write the description in English. Tag the people working on it; do not mention tooling. A release document is mandatory: it lands on `develop` through its own PR, and the `Release document` check on this PR turns green once it does.
 -->
 
 ## Working on this

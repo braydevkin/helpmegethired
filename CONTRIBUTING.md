@@ -41,7 +41,7 @@ We use **Gitflow**. `main` is production and `develop` is the test environment. 
 
 - New work: branch `feature/<issue>-<slug>` or `fix/<issue>-<slug>` from `develop`, open the PR against `develop`.
 - Production emergencies: branch `hotfix/<issue>-<slug>` from `main`, open the PR against `main` with the hotfix template, then merge back into `develop`.
-- Releases are PRs from `develop` to `main` and always carry a release document in `docs/releases/`.
+- Releases are PRs from `develop` to `main` and always carry a release document in `docs/releases/`. The document is added to `develop` through its own PR first; there is no `release/*` branch.
 - Conventional Commits with the issue number: `feat(api): add ATS scoring service (#42)`.
 - One issue per PR. Link it with `Closes #42`.
 - PR descriptions are written in English using the templates in `.github/`. Fill in every section.
