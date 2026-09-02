@@ -23,10 +23,14 @@ The stack is fixed by ADRs: Next.js, NestJS, LangChain, PostgreSQL + pgvector, T
 
 ## Branching, commits, PRs
 
-- Branch from `main`: `<type>/<issue-number>-<short-slug>`.
+We use **Gitflow**. `main` is production and `develop` is the test environment. Full rules in [docs/workflow.md](docs/workflow.md).
+
+- New work: branch `feature/<issue>-<slug>` or `fix/<issue>-<slug>` from `develop`, open the PR against `develop`.
+- Production emergencies: branch `hotfix/<issue>-<slug>` from `main`, open the PR against `main` with the hotfix template, then merge back into `develop`.
+- Releases are PRs from `develop` to `main` and always carry a release document in `docs/releases/`.
 - Conventional Commits with the issue number: `feat(api): add ATS scoring service (#42)`.
 - One issue per PR. Link it with `Closes #42`.
-- Fill in the PR template completely.
+- PR descriptions are written in English using the templates in `.github/`. Fill in every section.
 - CI must pass. Add tests at the right level (Vitest for unit/integration, Playwright for e2e).
 - Update docs affected by your change. Add an ADR if you made a decision.
 

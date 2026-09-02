@@ -45,7 +45,7 @@ Each of these choices is recorded with its reasoning in [docs/adr](docs/adr/READ
 
 ## Project status
 
-**Pre-code.** The repository currently holds the product idea, the architecture, the way of working, and the Claude Code configuration. No application code is written until the corresponding task has been created and refined in the GitHub Project. See [docs/workflow.md](docs/workflow.md).
+**Pre-code.** Branching follows Gitflow: `main` is production, `develop` is the test environment. The repository currently holds the product idea, the architecture, the way of working, and the Claude Code configuration. No application code is written until the corresponding task has been created and refined in the GitHub Project. See [docs/workflow.md](docs/workflow.md).
 
 ## Documentation map
 
@@ -54,7 +54,8 @@ Each of these choices is recorded with its reasoning in [docs/adr](docs/adr/READ
 | [docs/product/vision.md](docs/product/vision.md) | Why the project exists, who it serves, what success looks like |
 | [docs/product/requirements.md](docs/product/requirements.md) | Functional requirements, application flow, technical constraints |
 | [docs/architecture.md](docs/architecture.md) | System architecture, monorepo layout, AI pipeline, data model |
-| [docs/workflow.md](docs/workflow.md) | How tasks are created, refined, built, reviewed, and shipped |
+| [docs/workflow.md](docs/workflow.md) | Gitflow branching, how tasks are created, refined, built, reviewed, and released |
+| [docs/releases/](docs/releases/README.md) | Release notes, one document per production release |
 | [docs/adr/](docs/adr/README.md) | Architecture Decision Records |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | How to contribute |
 | [CLAUDE.md](CLAUDE.md) | Instructions for Claude Code when working in this repository |

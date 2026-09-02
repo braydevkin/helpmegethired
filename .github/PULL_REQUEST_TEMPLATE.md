@@ -1,14 +1,26 @@
+<!--
+Default template for feature/* and fix/* branches targeting `develop`.
+Write the description in English. Fill in every section.
+For a release (develop → main) use ?template=release.md
+For a hotfix (hotfix/* → main) use ?template=hotfix.md
+-->
+
 ## Issue
 
 Closes #
 
+## Type
+
+- [ ] Feature (`feature/*` → `develop`)
+- [ ] Fix (`fix/*` → `develop`)
+
 ## What changed
 
-<!-- Short description of the change. -->
+<!-- Short description of the change, in English. -->
 
 ## Why
 
-<!-- Link to the relevant doc or ADR if this implements a decision. -->
+<!-- The outcome this produces. Link the relevant doc, requirement (FR-xx / TC-xx), or ADR. -->
 
 ## How it was tested
 
@@ -26,6 +38,8 @@ Closes #
 
 ## Checklist
 
-- [ ] Branch follows `<type>/<issue>-<slug>`
+- [ ] Branched from `develop` and targets `develop`
+- [ ] Branch follows `feature/<issue>-<slug>` or `fix/<issue>-<slug>`
 - [ ] Commits follow Conventional Commits and reference the issue
 - [ ] Acceptance criteria from the issue are met
+- [ ] Rebased on `develop`, no merge commits from `develop`

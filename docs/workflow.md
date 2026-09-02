@@ -20,9 +20,9 @@ Idea ──▶ Issue ──▶ Refined ──▶ Ready ──▶ In Progress ─
 | Issue | Accepted into the project with a type label. | Collaborator |
 | Refined | Has a clear description, acceptance criteria, scope, and dependencies. Small enough for one PR. | Collaborator, with discussion |
 | Ready | Refined and unblocked. Available to pick up. | Collaborator |
-| In Progress | Someone is assigned and a branch exists. | Assignee |
+| In Progress | Someone is assigned and a `feature/`, `fix/`, or `hotfix/` branch exists. | Assignee |
 | In Review | PR open, CI green, review requested. | Assignee |
-| Done | PR merged, docs updated, issue closed. | Reviewer |
+| Done | PR merged into `develop`, docs updated, issue closed. Reaches production with the next release. | Reviewer |
 
 ## Refinement checklist
 
@@ -53,19 +53,76 @@ Ordered so that each one is usable on its own. Create these as issues in the pro
 11. **Mock interview**.
 12. **Preparation summary**.
 
-## Branching and commits
+## Branching model: Gitflow
 
-- Branch from `main`: `<type>/<issue-number>-<short-slug>`, for example `feat/12-profile-ingestion-queue`.
-- Conventional Commits, referencing the issue: `feat(api): add segment queue for profile ingestion (#12)`.
-- Rebase on `main` before opening the PR. No merge commits from `main` into feature branches.
-- `main` is protected: PR required, CI required, at least one review.
+Two long-lived branches, three kinds of short-lived branches.
+
+| Branch | Role | Deploys to | Protected |
+| --- | --- | --- | --- |
+| `main` | Production. Only receives release and hotfix PRs. Every merge is a tagged release. | Production environment | Yes |
+| `develop` | Integration. Default branch. Receives feature and fix PRs. | Test environment | Yes |
+| `feature/<issue>-<slug>` | New capability. Branched from `develop`, merged back into `develop`. | Preview (optional) | No |
+| `fix/<issue>-<slug>` | Bug fix found in `develop` or in the test environment. Branched from `develop`, merged into `develop`. | Preview (optional) | No |
+| `hotfix/<issue>-<slug>` | Urgent fix for production. Branched from `main`, merged into `main` **and** back into `develop`. | Production after merge | No |
+
+```
+main     ──●────────────────────────●──────────●──▶   (v1.0.0)      (v1.0.1)   (v1.1.0)
+            \                      / \        /
+hotfix       \           hotfix/──●   \      /
+              \                        \    /
+develop  ──────●───●───●───●───●────────●──●──────▶
+                \     /     \   /
+feature/         ●───●       ●─●  fix/
+```
+
+Rules:
+
+- `feature/*` and `fix/*` branch from `develop` and target `develop`.
+- `hotfix/*` branches from `main`, targets `main`, and is merged back into `develop` immediately after (open a second PR `main → develop` or cherry-pick; never leave `develop` behind `main`).
+- A **release** is a PR from `develop` to `main`. It must include a release document (see below). On merge, `main` is tagged `vX.Y.Z`.
+- Nobody commits directly to `main` or `develop`. Both require a PR, a green CI, and a review.
+- Keep branches short-lived. Rebase on the target branch before opening the PR; no merge commits from the target into the branch.
+- Delete the branch after merge.
+
+### Commits
+
+Conventional Commits, referencing the issue: `feat(api): add ATS scoring service (#42)`. Types: `feat`, `fix`, `docs`, `chore`, `test`, `refactor`, `ci`, `hotfix`.
+
+### Versioning
+
+Semantic versioning on `main` tags:
+
+- **MAJOR**: breaking change to the API contract or the candidate journey.
+- **MINOR**: new capability (a release from `develop` that adds features).
+- **PATCH**: fixes only, including hotfixes.
 
 ## Pull requests
 
-- One issue per PR. Link it with `Closes #<n>`.
-- Fill in the PR template. It asks what changed, why, how it was tested, and which docs were updated.
+All PR descriptions are written in **English** and use the templates in `.github/`. GitHub applies the default template automatically; the release and hotfix templates are selected with a query parameter when opening the PR.
+
+| PR | Template | How to use it |
+| --- | --- | --- |
+| `feature/*` or `fix/*` → `develop` | `.github/PULL_REQUEST_TEMPLATE.md` | Applied automatically. |
+| `develop` → `main` (release) | `.github/PULL_REQUEST_TEMPLATE/release.md` | Append `?template=release.md` to the compare URL, or run `gh pr create --template release.md`. |
+| `hotfix/*` → `main` | `.github/PULL_REQUEST_TEMPLATE/hotfix.md` | Append `?template=hotfix.md` to the compare URL, or run `gh pr create --template hotfix.md`. |
+
+Common rules:
+
+- One issue per feature or fix PR. Link it with `Closes #<n>`.
+- Fill in every section of the template. Empty sections are a review blocker.
 - CI must be green: lint, typecheck, unit, integration, e2e.
 - Reviewer checks the acceptance criteria from the issue, not just the diff.
+
+## Releases
+
+Every PR to `main` ships a release document. No release document, no merge.
+
+1. Decide the version (`vX.Y.Z`) following the versioning rules above.
+2. Copy `docs/releases/template.md` to `docs/releases/vX.Y.Z.md` on the release (or hotfix) branch and fill it in: summary, changes grouped by type with issue links, breaking changes, migration steps, rollback plan, and verification done in the test environment.
+3. Add the entry to `docs/releases/README.md`.
+4. Open the PR to `main` with the release or hotfix template. The PR body links to the release document.
+5. After merge, tag `main` with `vX.Y.Z` and create a GitHub Release whose notes are the release document.
+6. For a hotfix, merge `main` back into `develop` right away.
 
 ## Definition of done
 
@@ -80,5 +137,6 @@ Ordered so that each one is usable on its own. Create these as issues in the pro
 Claude Code follows `CLAUDE.md`. In practice:
 
 - Point it at the issue number. It reads the issue, restates the acceptance criteria, then works.
+- It branches from `develop` (or from `main` for a hotfix) and never targets `main` with a feature or fix.
 - It does not commit or push unless asked.
 - If it proposes something outside the stack, it must propose an ADR first.

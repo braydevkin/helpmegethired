@@ -44,11 +44,15 @@ These come from the product definition and are not negotiable:
 ## Conventions
 
 - Language: English for code, comments, docs, commits, issues.
-- Commits: Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`, `ci:`). Reference the issue: `feat(api): add ATS scoring service (#42)`.
-- Branches: `<type>/<issue-number>-<short-slug>`, e.g. `feat/42-ats-scoring`.
+- Commits: Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`, `ci:`, `hotfix:`). Reference the issue: `feat(api): add ATS scoring service (#42)`.
+- Branching is **Gitflow**. `main` is production, `develop` is the test environment and the default branch.
+  - `feature/<issue>-<slug>` and `fix/<issue>-<slug>` branch from `develop` and target `develop`.
+  - `hotfix/<issue>-<slug>` branches from `main`, targets `main`, and is merged back into `develop`.
+  - A release is a PR from `develop` to `main` and must include `docs/releases/vX.Y.Z.md`.
 - One task per branch, one branch per PR.
+- PR descriptions are in English and follow the templates in `.github/`. Use `release.md` for `develop → main` and `hotfix.md` for `hotfix/* → main`.
 - Tests accompany the change. A feature without tests is not done.
-- Do not commit or push unless asked. Never push directly to `main`.
+- Do not commit or push unless asked. Never push directly to `main` or `develop`, and never open a feature or fix PR against `main`.
 - Never commit secrets. Use `.env.example` for documented variables.
 
 ## Documentation is part of the work

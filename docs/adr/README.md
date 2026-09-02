@@ -17,6 +17,7 @@ Use [template.md](template.md). Number sequentially. Status is one of `Proposed`
 | [0007](0007-docker-local-runtime.md) | Docker Compose runs the whole monorepo | Accepted |
 | [0008](0008-github-actions-and-projects.md) | GitHub Actions for CI/CD, GitHub Projects for tasks | Accepted |
 | [0009](0009-sequential-ai-pipeline-with-rag.md) | Sequential AI pipeline with RAG before every analysis | Accepted |
+| [0010](0010-gitflow-branching.md) | Gitflow branching with main as production and develop as test | Accepted |
 
 ## Pending decisions
 

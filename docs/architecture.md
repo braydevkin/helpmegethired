@@ -147,10 +147,12 @@ Docker Compose runs the whole monorepo: web, api, PostgreSQL with pgvector, and 
 
 ## CI/CD
 
-GitHub Actions:
+GitHub Actions, following the Gitflow model in [workflow.md](workflow.md):
 
-- **On pull request**: install, lint, typecheck, unit tests, integration tests, e2e tests.
-- **On merge to main**: build images. Deployment target is an open decision.
+- **On any pull request**: install, lint, typecheck, unit tests, integration tests, e2e tests.
+- **On pull request to `main`**: additionally verify that a release document exists under `docs/releases/` for the version being released.
+- **On merge to `develop`**: build images and deploy to the **test environment**.
+- **On merge to `main`**: build images, tag `vX.Y.Z`, publish a GitHub Release from the release document, and deploy to **production**. Deployment target is an open decision.
 
 ## Open decisions
 
