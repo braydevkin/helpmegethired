@@ -26,7 +26,7 @@ This document describes the intended architecture. Nothing here is implemented y
 │                                   └──────────────────────────┘    │
 │                                                ▲                  │
 │                                   ┌────────────┴─────────────┐    │
-│                                   │ Queue (profile building) │    │
+│                                   │ pg-boss queue (in api)   │    │
 │                                   └──────────────────────────┘    │
 └───────────────────────────────────────────────────────────────────┘
 ```
@@ -119,21 +119,38 @@ The database layer lives in `apps/api/src/database` and follows ADR-0012:
 - `database.schema.ts` declares every table as a Kysely interface. Table and column names follow [CONTEXT.md](../CONTEXT.md) in `snake_case`.
 - `DatabaseModule` is global. It builds one `Kysely` instance from `DATABASE_URL`, exposes it through the `DATABASE` token, and closes the pool on shutdown.
 - Repositories (for example `AccountRepository` in `auth`) are the only classes that query. They map rows to the types from `packages/shared`, so services and controllers never see column names.
-- `migrations/` holds one TypeScript module per migration with `up` and `down`, registered in `migrations/index.ts`. `migrator.ts` wraps Kysely's `Migrator`; `migrate.cli.ts` is the command behind `pnpm db:migrate` and `pnpm db:migrate:down`, which Turbo runs after building the API and its workspace dependencies. The first migration enables the `vector` extension and creates `accounts`; the second adds the password hash and creates `sessions`.
+- `migrations/` holds one TypeScript module per migration with `up` and `down`, registered in `migrations/index.ts`. `migrator.ts` wraps Kysely's `Migrator`; `migrate.cli.ts` is the command behind `pnpm db:migrate` and `pnpm db:migrate:down`, which Turbo runs after building the API and its workspace dependencies. The first migration enables the `vector` extension and creates `accounts`; the second adds the password hash and creates `sessions`; the third creates `ingestions` and `ingestion_segments`.
 
 ### Profile ingestion (TC-03, TC-04, TC-05)
 
-Ingestion is a queue-based pipeline that processes the profile **by segment**:
+Profile building is an **Ingestion**: one run for one Account from one source, split into ordered **Segments**, each of which goes through three **Steps**. The vocabulary is in [CONTEXT.md](../CONTEXT.md); the queue decision is ADR-0014. The `ingestion` module holds the state machine and its persistence; the first real segment processors (Resume PDF, LinkedIn) arrive with their own tasks.
 
 ```
-upload ──▶ enqueue segments ──▶ [read] ──▶ [recognize] ──▶ [save] ──▶ progress %
-                                   │                           │
-                                   └──── on failure: retry from the failed segment ────┘
+start ──▶ ingestions (queued) + ingestion_segments (pending) + pg-boss job, one transaction
+                                                                    │
+                          worker: run(ingestionId) ◀────────────────┘
+                                   │
+                  for each Segment not yet saved, from its last completed Step:
+                     read ──▶ recognize ──▶ save        (each Step persisted as it completes)
+                                   │
+                  all saved ──▶ completed
+                  a Step throws ──▶ Segment keeps its last completed Step + error
+                                    Ingestion: attempts < max ? queued (pg-boss retries) : failed
 ```
 
-- Each segment (for example: basic info, one experience, one project) is a unit of work with its own state.
-- State is persisted per segment, so a crash resumes from the first incomplete segment.
-- A user has at most one active ingestion. A new upload while one is active is rejected.
+**Ingestion states.** `queued` (waiting for a worker, on the first attempt or after a failed one), `running` (a worker is processing it), `failed` (every attempt used; the Candidate may start a new Ingestion), `completed`. Every attempt increments `attempts`; `max_attempts` (3) is stored on the row and sent to pg-boss as its retry limit, so the queue and the row agree.
+
+**Segment states.** A Segment's status is the last Step it completed: `pending`, `read`, `recognized`, `saved`. The output of `read` and `recognize` is persisted on the Segment (`content`, `recognized`) so a retry continues with the next Step instead of recomputing. A Step that throws records the message on the Segment (`last_error`) and stops the run; the Segment's status does not move.
+
+**Resuming.** A retry calls the same `run(ingestionId)`. The runner walks the Segments in `position` order, skips the ones already `saved`, and for the others executes only the Steps after the persisted status. Nothing already completed is redone.
+
+**Progress.** `progressOf(ingestionId)` reads the Ingestion status and the status of every Segment and answers `IngestionProgressSchema`: the percentage is `floor(100 × completed Steps ÷ (3 × Segments))`, plus the total and saved Segment counts. Nothing in memory contributes; a fresh process answers the same number.
+
+**One active Ingestion per Account.** The partial unique index `ingestions_one_active_per_account_idx` on `account_id where status in ('queued', 'running')` enforces it in the database. `start` inserts the Ingestion, its Segments, and the pg-boss job in one transaction and maps the unique violation to `IngestionAlreadyActiveError`; if the job cannot be sent, nothing is kept and the Account stays free. A `completed` or `failed` Ingestion frees the Account. A worker that dies leaves the row `running` until pg-boss expires the job and re-delivers it; a heartbeat for long attempts is a follow-up in ADR-0014.
+
+**Processors.** A `SegmentProcessor` implements `read`, `recognize`, and `save` for one Segment `kind`; the `SegmentProcessorRegistry` resolves the processor by kind. No real processor is registered yet; the tests use a scripted one.
+
+**Queue.** `IngestionQueue` is the abstraction (`enqueue`, `work`); `PgBossIngestionQueue` implements it on the `profile-ingestion` queue with a one-second polling interval and exponential backoff between retries. The `QueueModule` provides the `PgBoss` instance on the Kysely connection, starts it with the module, and stops it gracefully on shutdown. pg-boss keeps its tables in the `pgboss` schema, which it migrates on start.
 
 ### AI pipeline (TC-06, TC-07)
 
@@ -172,7 +189,7 @@ Preparation summary with success rates
 
 One database serves both relational data and vector search.
 
-- Relational tables for Account, Session, Basic Profile, Experiences, Projects, Job Descriptions, Learnings, ingestion segments, and pipeline runs. Tables arrive with the task that needs them, each through a migration; `accounts` and `sessions` are the first.
+- Relational tables for Account, Session, Ingestion, Segment, Basic Profile, Experiences, Projects, Job Descriptions, Learnings, and pipeline runs. Tables arrive with the task that needs them, each through a migration; `accounts`, `sessions`, `ingestions`, and `ingestion_segments` are the first. The `pgboss` schema holds the job queue and is managed by pg-boss (ADR-0014).
 - The `vector` extension is enabled by the first migration, so every later migration can declare embedding columns.
 - Embeddings stored in pgvector columns alongside the rows they describe (profile chunks, job description chunks, learnings).
 - RAG queries are scoped by Account id. Retrieval across Accounts is never performed.
@@ -191,7 +208,7 @@ The `e2e` package depends on `@helpmegethired/web`, so `pnpm turbo run test:e2e`
 
 ## Local runtime
 
-Docker Compose runs the whole monorepo. `docker compose up` brings up three long-running services and one migration step from the root `docker-compose.yml`; the queue backend joins the stack once #12 decides it. CI uses the same compose file for integration and end-to-end tests.
+Docker Compose runs the whole monorepo. `docker compose up` brings up three long-running services and one migration step from the root `docker-compose.yml`. The job queue runs inside `api` on PostgreSQL (ADR-0014), so no queue service is needed. CI uses the same compose file for integration and end-to-end tests.
 
 | Service | Image | Host port (default) | Health check |
 | --- | --- | --- | --- |
