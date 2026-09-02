@@ -45,7 +45,7 @@ Each of these choices is recorded with its reasoning in [docs/adr](docs/adr/READ
 
 ## Project status
 
-**Foundation.** Branching follows Gitflow: `main` is production, `develop` is the test environment. The repository holds the product idea, the architecture, the way of working, the Claude Code configuration, the monorepo scaffold (Turborepo, pnpm workspaces, shared TypeScript and ESLint configurations), the shared schemas package, the NestJS API scaffold with configuration validation and a health endpoint, the Next.js web scaffold with a placeholder home page, Vitest component tests, and a Playwright smoke test in `e2e/`, and a Docker Compose stack that runs web, api, and PostgreSQL with pgvector. Applications and shared packages grow task by task from the GitHub Project. See [docs/workflow.md](docs/workflow.md).
+**Foundation.** Branching follows Gitflow: `main` is production, `develop` is the test environment. The repository holds the product idea, the architecture, the way of working, the Claude Code configuration, the monorepo scaffold (Turborepo, pnpm workspaces, shared TypeScript and ESLint configurations), the shared schemas package, the NestJS API scaffold with configuration validation and a health endpoint, the Next.js web scaffold with a placeholder home page, Vitest component tests, and a Playwright smoke test in `e2e/`, a Docker Compose stack that runs web, api, and PostgreSQL with pgvector, and the database layer (Kysely, reversible migrations, the `accounts` table) with integration tests against an isolated database. Applications and shared packages grow task by task from the GitHub Project. See [docs/workflow.md](docs/workflow.md).
 
 ## Running the stack
 
@@ -65,6 +65,7 @@ docker compose up
 - Edits under `apps/web/src` and `apps/api/src` reload inside the running containers. After changing dependencies, configuration files, or `packages/shared`, run `docker compose up --build`.
 - `docker compose up --wait` exits with zero only when every service reports healthy. Use it to check the stack before running tests against it.
 - Host ports and database credentials are the variables in `.env`. Change them there when a port is already taken on your machine.
+- `docker compose up` applies pending database migrations before the API starts. To run them by hand, set `DATABASE_URL` (or copy `apps/api/.env.example` to `apps/api/.env`) and use `pnpm db:migrate` or `pnpm db:migrate:down`.
 - `docker compose down` stops the stack and keeps the database volume; add `--volumes` to start from an empty database.
 
 To run the apps natively against your own tooling instead, see the local setup in [CONTRIBUTING.md](CONTRIBUTING.md).
