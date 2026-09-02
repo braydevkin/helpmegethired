@@ -39,7 +39,7 @@ helpmegethired/
 │   ├── web/                # Next.js frontend (#4)
 │   └── api/                # NestJS backend (#5)
 ├── packages/
-│   ├── shared/             # Types and validation schemas shared by web and api (#6)
+│   ├── shared/             # Zod schemas and inferred types shared by web and api
 │   ├── eslint-config/      # Shared lint rules
 │   └── tsconfig/           # Shared TypeScript configs
 ├── e2e/                    # Playwright end-to-end tests against the running stack (#8)
@@ -59,7 +59,7 @@ Entries marked with an issue number are added by that task; everything else exis
 Rules:
 
 - Apps never import from each other. They share code only through `packages/*`. The shared ESLint configuration enforces this with the `helpmegethired/no-cross-app-imports` rule, which resolves each import to its target directory, so both `@helpmegethired/api` and a relative path like `../../api/src` are rejected from inside `apps/web`. Package code cannot import from an app either.
-- `packages/shared` owns every type and schema that crosses the HTTP boundary. Both apps validate against the same schema.
+- `packages/shared` owns every type and schema that crosses the HTTP boundary. Schemas are written with Zod (ADR-0011) and each one exports its inferred type, so both apps validate against the same schema and share the same type. Vocabulary follows [CONTEXT.md](../CONTEXT.md).
 - Turborepo pipelines: `build`, `lint`, `typecheck`, `test`, `test:e2e`. CI runs the same pipelines as local. `lint`, `typecheck` and `test` run after the `build` of the workspace dependencies so consumers see fresh outputs.
 
 Workspace conventions:
