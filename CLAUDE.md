@@ -19,6 +19,7 @@ When asked to do something that has no task, say so and offer to draft the issue
 - Backend: NestJS (TypeScript).
 - AI: LangChain. All AI analysis goes through RAG on PostgreSQL + pgvector before any LLM call.
 - Database: PostgreSQL + pgvector.
+- Schemas: Zod in `packages/shared`. Every schema exports its inferred type; apps never hand-write a type that a schema already defines.
 - Tests: Vitest for unit and integration, Playwright for end-to-end.
 - Local runtime: Docker Compose runs the whole monorepo.
 - CI/CD: GitHub Actions.
@@ -43,6 +44,7 @@ These come from the product definition and are not negotiable:
 
 ## Conventions
 
+- Vocabulary: use the terms in `CONTEXT.md` (Candidate, Account, Profile, Resume). Do not say "user" for a Candidate.
 - Language: English for code, comments, docs, commits, issues.
 - Commits: Conventional Commits (`feat:`, `fix:`, `docs:`, `chore:`, `test:`, `refactor:`, `ci:`, `hotfix:`). Reference the issue: `feat(api): add ATS scoring service (#42)`.
 - Branching is **Gitflow**. `main` is production, `develop` is the test environment and the default branch.
