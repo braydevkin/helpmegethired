@@ -14,6 +14,13 @@ _Avoid_: User
 The login identity of a Candidate: email, credentials, session.
 _Avoid_: User account, login
 
+**Profile**:
+The structured picture of a Candidate built from their Resume and LinkedIn data: basic profile, experiences, projects.
+_Avoid_: CV, resume data
+
+**Resume**:
+A document. Either the PDF a Candidate uploads, or a rebuilt document targeted at one Job Description. An input to or output of the Profile, never the Profile itself.
+_Avoid_: CV
 ### Profile
 
 **Profile**:
