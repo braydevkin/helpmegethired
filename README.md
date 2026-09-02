@@ -45,7 +45,7 @@ Each of these choices is recorded with its reasoning in [docs/adr](docs/adr/READ
 
 ## Project status
 
-**Pre-code.** Branching follows Gitflow: `main` is production, `develop` is the test environment. The repository currently holds the product idea, the architecture, the way of working, and the Claude Code configuration. No application code is written until the corresponding task has been created and refined in the GitHub Project. See [docs/workflow.md](docs/workflow.md).
+**Foundation.** Branching follows Gitflow: `main` is production, `develop` is the test environment. The repository holds the product idea, the architecture, the way of working, the Claude Code configuration, and the monorepo scaffold (Turborepo, pnpm workspaces, shared TypeScript and ESLint configurations). Applications and shared packages are added task by task from the GitHub Project. See [docs/workflow.md](docs/workflow.md).
 
 ## Documentation map
 

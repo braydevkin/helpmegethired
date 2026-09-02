@@ -19,6 +19,7 @@ When asked to do something that has no task, say so and offer to draft the issue
 - Backend: NestJS (TypeScript).
 - AI: LangChain. All AI analysis goes through RAG on PostgreSQL + pgvector before any LLM call.
 - Database: PostgreSQL + pgvector.
+- Schemas: Zod in `packages/shared`. Every schema exports its inferred type; apps never hand-write a type that a schema already defines.
 - Tests: Vitest for unit and integration, Playwright for end-to-end.
 - Local runtime: Docker Compose runs the whole monorepo.
 - CI/CD: GitHub Actions.
