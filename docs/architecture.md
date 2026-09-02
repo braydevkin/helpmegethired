@@ -31,33 +31,43 @@ This document describes the intended architecture. Nothing here is implemented y
 └───────────────────────────────────────────────────────────────────┘
 ```
 
-## Monorepo layout (planned)
+## Monorepo layout
 
 ```
 helpmegethired/
 ├── apps/
-│   ├── web/                # Next.js frontend
-│   └── api/                # NestJS backend
+│   ├── web/                # Next.js frontend (#4)
+│   └── api/                # NestJS backend (#5)
 ├── packages/
-│   ├── shared/             # Types and validation schemas shared by web and api
+│   ├── shared/             # Types and validation schemas shared by web and api (#6)
 │   ├── eslint-config/      # Shared lint rules
 │   └── tsconfig/           # Shared TypeScript configs
-├── e2e/                    # Playwright end-to-end tests against the running stack
-├── docker/                 # Dockerfiles and compose support files
+├── e2e/                    # Playwright end-to-end tests against the running stack (#8)
+├── docker/                 # Dockerfiles and compose support files (#7)
 ├── docs/                   # This documentation
 ├── arch/                   # Diagrams
 ├── .github/                # Workflows, issue and PR templates
-├── docker-compose.yml
+├── docker-compose.yml      # (#7)
+├── .nvmrc
 ├── turbo.json
 ├── pnpm-workspace.yaml
 └── package.json
 ```
 
+Entries marked with an issue number are added by that task; everything else exists.
+
 Rules:
 
-- Apps never import from each other. They share code only through `packages/*`.
+- Apps never import from each other. They share code only through `packages/*`. The shared ESLint configuration enforces this with the `helpmegethired/no-cross-app-imports` rule, which resolves each import to its target directory, so both `@helpmegethired/api` and a relative path like `../../api/src` are rejected from inside `apps/web`. Package code cannot import from an app either.
 - `packages/shared` owns every type and schema that crosses the HTTP boundary. Both apps validate against the same schema.
-- Turborepo pipelines: `build`, `lint`, `typecheck`, `test`, `test:e2e`. CI runs the same pipelines as local.
+- Turborepo pipelines: `build`, `lint`, `typecheck`, `test`, `test:e2e`. CI runs the same pipelines as local. `lint`, `typecheck` and `test` run after the `build` of the workspace dependencies so consumers see fresh outputs.
+
+Workspace conventions:
+
+- Every workspace package is named `@helpmegethired/<directory>`. Apps are `@helpmegethired/web` and `@helpmegethired/api`; the list of app directories lives in `packages/eslint-config` and is the only place to update when an app is added.
+- Node and pnpm are pinned: `.nvmrc` selects the Node major, `packageManager` in the root `package.json` selects the exact pnpm version, and pnpm refuses to install with an engine outside `engines`.
+- Versions of tooling shared by several packages (TypeScript, ESLint, Vitest) are declared once in the `catalog` of `pnpm-workspace.yaml` and referenced as `catalog:` from each package.
+- Apps and packages extend a configuration from `packages/tsconfig`: `library.json` for packages, `nextjs.json` for the frontend, `nestjs.json` for the backend. All of them build on `base.json`, which turns on strict mode.
 
 ## Frontend (apps/web)
 

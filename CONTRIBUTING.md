@@ -21,6 +21,18 @@ Only collaborators can edit the GitHub Project board. Everyone can open issues, 
 
 The stack is fixed by ADRs: Next.js, NestJS, LangChain, PostgreSQL + pgvector, Turborepo + pnpm, Vitest, Playwright, Docker, GitHub Actions. If you think a decision should change, open an issue proposing a new ADR. Do not introduce new tooling in a feature PR.
 
+## Local setup
+
+The Node major is pinned in `.nvmrc` and the exact pnpm version in the `packageManager` field of `package.json`. Installs are refused on any other engine.
+
+```sh
+nvm use
+pnpm install
+pnpm turbo run lint typecheck test build
+```
+
+`pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` run the same pipelines individually across the whole workspace.
+
 ## Branching, commits, PRs
 
 We use **Gitflow**. `main` is production and `develop` is the test environment. Full rules in [docs/workflow.md](docs/workflow.md).
