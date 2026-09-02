@@ -33,6 +33,8 @@ pnpm turbo run lint typecheck test build
 
 `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` run the same pipelines individually across the whole workspace.
 
+Integration tests and database migrations need a running PostgreSQL: start the compose one with `docker compose up --wait postgres`, copy `apps/api/.env.example` to `apps/api/.env` (or export `DATABASE_URL`), then run `pnpm test:integration` or `pnpm db:migrate`.
+
 ## Branching, commits, PRs
 
 We use **Gitflow**. `main` is production and `develop` is the test environment. Full rules in [docs/workflow.md](docs/workflow.md).

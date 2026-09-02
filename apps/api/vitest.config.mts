@@ -28,6 +28,9 @@ export default defineConfig({
         test: {
           name: "integration",
           include: [integrationTests],
+          fileParallelism: false,
+          globalSetup: ["./vitest.integration.global-setup.ts"],
+          setupFiles: ["./vitest.integration.setup.ts"],
           env: {
             NODE_ENV: "test",
             WEB_ORIGIN: "http://localhost:3000",

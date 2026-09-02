@@ -91,7 +91,16 @@ Workspace conventions:
 - Authorization is enforced at the module boundary. A user can only read and write their own entities.
 - Configuration comes from environment variables, validated at startup by a Zod schema in `apps/api/src/config`. A missing or invalid variable stops the process with a message naming the variable. The variables and their defaults are listed in `apps/api/.env.example`.
 - `GET /health` reports the application status. Its response shape is `HealthStatusSchema` in `packages/shared`, so the web app and the end-to-end tests validate it against the same contract.
-- Tests live next to the code: `*.test.ts` files are unit tests, `*.integration.test.ts` files boot the application. `vitest run --project unit` or `--project integration` runs one level on its own.
+- Tests live next to the code: `*.test.ts` files are unit tests (`pnpm test`), `*.integration.test.ts` files boot the application against a real database (`pnpm test:integration`, see [Testing](#testing)).
+
+### Database access
+
+The database layer lives in `apps/api/src/database` and follows ADR-0012:
+
+- `database.schema.ts` declares every table as a Kysely interface. Table and column names follow [CONTEXT.md](../CONTEXT.md) in `snake_case`.
+- `DatabaseModule` is global. It builds one `Kysely` instance from `DATABASE_URL`, exposes it through the `DATABASE` token, and closes the pool on shutdown.
+- Repositories (for example `AccountRepository` in `auth`) are the only classes that query. They map rows to the types from `packages/shared`, so services and controllers never see column names.
+- `migrations/` holds one TypeScript module per migration with `up` and `down`, registered in `migrations/index.ts`. `migrator.ts` wraps Kysely's `Migrator`; `migrate.cli.ts` is the command behind `pnpm db:migrate` and `pnpm db:migrate:down`, which Turbo runs after building the API and its workspace dependencies. The first migration enables the `vector` extension and creates `accounts`.
 
 ### Profile ingestion (TC-03, TC-04, TC-05)
 
@@ -144,7 +153,8 @@ Preparation summary with success rates
 
 One database serves both relational data and vector search.
 
-- Relational tables for Account, Basic Profile, Experiences, Projects, Job Descriptions, Learnings, ingestion segments, and pipeline runs.
+- Relational tables for Account, Basic Profile, Experiences, Projects, Job Descriptions, Learnings, ingestion segments, and pipeline runs. Tables arrive with the task that needs them, each through a migration; `accounts` is the first.
+- The `vector` extension is enabled by the first migration, so every later migration can declare embedding columns.
 - Embeddings stored in pgvector columns alongside the rows they describe (profile chunks, job description chunks, learnings).
 - RAG queries are scoped by user id. Cross-user retrieval is never performed.
 
@@ -153,27 +163,30 @@ One database serves both relational data and vector search.
 | Level | Tool | Where |
 | --- | --- | --- |
 | Unit | Vitest | Next to the code in each app and package |
-| Integration | Vitest | `apps/api` against a real PostgreSQL in Docker |
+| Integration | Vitest | `apps/api` against a real PostgreSQL in Docker, one isolated database per run |
 | End-to-end | Playwright | `e2e/`, a workspace package; against the built web app locally, against the full stack in Docker Compose in CI |
+
+Integration tests need the compose `postgres` service and the `DATABASE_URL` of the API: `pnpm test:integration` reads it from the environment or from `apps/api/.env`. The Vitest global setup creates a database named `helpmegethired_test_<id>` on that server, migrates it to the latest version, hands its URL to the test workers, and drops it when the run ends. Test files run one at a time because they share that database. The migration test reverts and reapplies the last migration, so every migration must have a working `down`.
 
 The `e2e` package depends on `@helpmegethired/web`, so `pnpm turbo run test:e2e` builds the web app first and Playwright starts it with `next start` on port 3100. Setting `E2E_BASE_URL` points the tests at an already running stack instead. Browsers are installed once with `pnpm --filter e2e exec playwright install chromium`.
 
 ## Local runtime
 
-Docker Compose runs the whole monorepo. `docker compose up` brings up three services from the root `docker-compose.yml`; the queue backend joins the stack once #12 decides it. CI uses the same compose file for integration and end-to-end tests.
+Docker Compose runs the whole monorepo. `docker compose up` brings up three long-running services and one migration step from the root `docker-compose.yml`; the queue backend joins the stack once #12 decides it. CI uses the same compose file for integration and end-to-end tests.
 
 | Service | Image | Host port (default) | Health check |
 | --- | --- | --- | --- |
 | `web` | `docker/web/Dockerfile`, target `development` | `WEB_PORT` (3000) | `GET /` answers |
 | `api` | `docker/api/Dockerfile`, target `development` | `API_PORT` (3001) | `GET /health` answers |
+| `migrate` | same image as `api`, runs `pnpm db:migrate` and exits | none | exit code 0 |
 | `postgres` | `pgvector/pgvector:pg17` | `POSTGRES_PORT` (5432) | `pg_isready` |
 
 - Configuration comes from a root `.env`, copied from `.env.example`. Every variable is required: a missing one stops `docker compose` with a message naming it. Inside the network the services keep fixed ports (`api:3001`, `web:3000`, `postgres:5432`); the `.env` variables only choose the host ports.
-- The `api` container receives `PORT` and `WEB_ORIGIN` from the compose file, so `apps/api/.env.example` is only needed when the API runs natively.
+- The `api` and `migrate` containers receive `PORT`, `WEB_ORIGIN`, and `DATABASE_URL` from the compose file, so `apps/api/.env.example` is only needed when the API runs natively. Inside the network the database URL points at `postgres:5432`; from the host it points at `localhost:${POSTGRES_PORT}`.
 - Both Dockerfiles build from the repository root: they install the workspace with pnpm filtered to the app and its workspace dependencies, build those dependencies (`packages/shared`), and run the app's `dev` script as the unprivileged `node` user. The `development` target is the only one for now; production images are a separate task.
 - Hot reload: `apps/web/src` and `apps/api/src` are bind-mounted into the containers, so `next dev` and `nest start --watch` pick up edits without a rebuild. A change to dependencies, to a file outside `src`, or to `packages/shared` needs `docker compose up --build`.
-- `api` starts only after `postgres` is healthy. `docker compose up --wait` returns zero once every health check passes, which makes it the smoke test of the stack.
-- Data lives in the `postgres-data` volume and survives `docker compose down`; `docker compose down --volumes` resets it. The `vector` extension ships with the image and is enabled per database by the first migration (#9).
+- `migrate` starts once `postgres` is healthy and applies the pending migrations; `api` starts only after `migrate` has exited successfully. `docker compose up --wait` returns zero once every health check passes, which makes it the smoke test of the stack.
+- Data lives in the `postgres-data` volume and survives `docker compose down`; `docker compose down --volumes` resets it. The `vector` extension ships with the image and is enabled per database by the first migration.
 
 ## CI/CD
 

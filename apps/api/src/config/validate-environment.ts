@@ -1,6 +1,11 @@
-import type { ZodError } from "zod";
+import type { ZodError, ZodObject } from "zod";
 
-import { EnvironmentSchema, type Environment } from "./environment.schema";
+import {
+  DatabaseEnvironmentSchema,
+  EnvironmentSchema,
+  type DatabaseEnvironment,
+  type Environment,
+} from "./environment.schema";
 
 export class EnvironmentValidationError extends Error {
   constructor(error: ZodError) {
@@ -10,7 +15,15 @@ export class EnvironmentValidationError extends Error {
 }
 
 export function validateEnvironment(variables: Record<string, unknown>): Environment {
-  const result = EnvironmentSchema.safeParse(variables);
+  return parseWith(EnvironmentSchema, variables);
+}
+
+export function validateDatabaseEnvironment(variables: Record<string, unknown>): DatabaseEnvironment {
+  return parseWith(DatabaseEnvironmentSchema, variables);
+}
+
+function parseWith<Schema extends ZodObject>(schema: Schema, variables: Record<string, unknown>) {
+  const result = schema.safeParse(variables);
 
   if (!result.success) {
     throw new EnvironmentValidationError(result.error);
