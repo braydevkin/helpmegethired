@@ -20,6 +20,7 @@ Use [template.md](template.md). Number sequentially. Status is one of `Proposed`
 | [0010](0010-gitflow-branching.md) | Gitflow branching with main as production and develop as test | Accepted |
 | [0011](0011-zod-shared-schemas.md) | Zod for shared schemas and inferred types | Accepted |
 | [0012](0012-kysely-query-layer-and-migrations.md) | Kysely as the query layer and migration tool | Accepted |
+| [0013](0013-own-credentials-with-database-sessions.md) | Own credentials with hashed passwords and database-backed sessions | Accepted |
 
 ## Pending decisions
 

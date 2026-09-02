@@ -88,10 +88,19 @@ Workspace conventions:
   - `analysis` (the sequential AI pipeline)
   - `learnings` (store, study plans)
   - `interview` (mock interview)
-- Authorization is enforced at the module boundary. A user can only read and write their own entities.
+- Authorization is enforced at the module boundary. A Candidate can only read and write their own entities.
 - Configuration comes from environment variables, validated at startup by a Zod schema in `apps/api/src/config`. A missing or invalid variable stops the process with a message naming the variable. The variables and their defaults are listed in `apps/api/.env.example`.
 - `GET /health` reports the application status. Its response shape is `HealthStatusSchema` in `packages/shared`, so the web app and the end-to-end tests validate it against the same contract.
 - Tests live next to the code: `*.test.ts` files are unit tests (`pnpm test`), `*.integration.test.ts` files boot the application against a real database (`pnpm test:integration`, see [Testing](#testing)).
+
+### Authentication (FR-01)
+
+The `auth` module owns Accounts and Sessions, following ADR-0013:
+
+- `POST /auth/sign-up` and `POST /auth/sign-in` take `CredentialsSchema` and answer with `AuthenticatedAccountSchema`: the Account plus a Session `{ token, expiresAt }`. Sign up rejects an email that already has an Account with `409`; sign in rejects a wrong password or an unknown email with the same `401`.
+- Passwords are hashed with scrypt behind the `PasswordHasher` abstraction. The Session token is random, stored only as a SHA-256 hash, and lasts 30 days.
+- `SessionGuard` is registered globally, so every route requires `Authorization: Bearer <token>` unless its handler or controller carries `@Public()`. Handlers receive the signed-in Account through `@CurrentAccount()`. `POST /auth/sign-out` deletes the Session; `GET /auth/account` returns the Account behind the token.
+- Request bodies are validated with the shared Zod schemas through `ZodValidationPipe`. A failed validation answers `400` with `ApiErrorSchema`, whose `issues` name the fields without echoing the values.
 
 ### Database access
 
@@ -100,7 +109,7 @@ The database layer lives in `apps/api/src/database` and follows ADR-0012:
 - `database.schema.ts` declares every table as a Kysely interface. Table and column names follow [CONTEXT.md](../CONTEXT.md) in `snake_case`.
 - `DatabaseModule` is global. It builds one `Kysely` instance from `DATABASE_URL`, exposes it through the `DATABASE` token, and closes the pool on shutdown.
 - Repositories (for example `AccountRepository` in `auth`) are the only classes that query. They map rows to the types from `packages/shared`, so services and controllers never see column names.
-- `migrations/` holds one TypeScript module per migration with `up` and `down`, registered in `migrations/index.ts`. `migrator.ts` wraps Kysely's `Migrator`; `migrate.cli.ts` is the command behind `pnpm db:migrate` and `pnpm db:migrate:down`, which Turbo runs after building the API and its workspace dependencies. The first migration enables the `vector` extension and creates `accounts`.
+- `migrations/` holds one TypeScript module per migration with `up` and `down`, registered in `migrations/index.ts`. `migrator.ts` wraps Kysely's `Migrator`; `migrate.cli.ts` is the command behind `pnpm db:migrate` and `pnpm db:migrate:down`, which Turbo runs after building the API and its workspace dependencies. The first migration enables the `vector` extension and creates `accounts`; the second adds the password hash and creates `sessions`.
 
 ### Profile ingestion (TC-03, TC-04, TC-05)
 
@@ -153,10 +162,10 @@ Preparation summary with success rates
 
 One database serves both relational data and vector search.
 
-- Relational tables for Account, Basic Profile, Experiences, Projects, Job Descriptions, Learnings, ingestion segments, and pipeline runs. Tables arrive with the task that needs them, each through a migration; `accounts` is the first.
+- Relational tables for Account, Session, Basic Profile, Experiences, Projects, Job Descriptions, Learnings, ingestion segments, and pipeline runs. Tables arrive with the task that needs them, each through a migration; `accounts` and `sessions` are the first.
 - The `vector` extension is enabled by the first migration, so every later migration can declare embedding columns.
 - Embeddings stored in pgvector columns alongside the rows they describe (profile chunks, job description chunks, learnings).
-- RAG queries are scoped by user id. Cross-user retrieval is never performed.
+- RAG queries are scoped by Account id. Retrieval across Accounts is never performed.
 
 ## Testing
 

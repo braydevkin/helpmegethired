@@ -21,6 +21,15 @@ async function tables(database: Database): Promise<string[]> {
   return found.map((table) => table.name);
 }
 
+async function revertEveryMigration(database: Database): Promise<void> {
+  let reverted = await migrateDown(database);
+
+  while (reverted.results?.length) {
+    expect(reverted.error).toBeUndefined();
+    reverted = await migrateDown(database);
+  }
+}
+
 describe("migrations", () => {
   let database: Database;
 
@@ -32,22 +41,22 @@ describe("migrations", () => {
     await database.destroy();
   });
 
-  it("enable the vector extension and create the accounts table", async () => {
+  it("enable the vector extension and create the accounts and sessions tables", async () => {
     expect(await installedExtensions(database)).toContain("vector");
-    expect(await tables(database)).toContain("accounts");
+    expect(await tables(database)).toEqual(expect.arrayContaining(["accounts", "sessions"]));
   });
 
-  it("revert the last migration and apply it again", async () => {
-    const reverted = await migrateDown(database);
+  it("revert every migration and apply them all again", async () => {
+    await revertEveryMigration(database);
 
-    expect(reverted.error).toBeUndefined();
     expect(await tables(database)).not.toContain("accounts");
+    expect(await tables(database)).not.toContain("sessions");
     expect(await installedExtensions(database)).not.toContain("vector");
 
     const reapplied = await migrateToLatest(database);
 
     expect(reapplied.error).toBeUndefined();
-    expect(await tables(database)).toContain("accounts");
+    expect(await tables(database)).toEqual(expect.arrayContaining(["accounts", "sessions"]));
     expect(await installedExtensions(database)).toContain("vector");
   });
 });

@@ -14,6 +14,10 @@ _Avoid_: User
 The login identity of a Candidate: email, credentials, session.
 _Avoid_: User account, login
 
+**Session**:
+A signed-in period of an Account. Opened by sign up or sign in as an opaque token, presented on every request, closed by sign out or by expiry.
+_Avoid_: Login session, auth token, JWT
+
 **Profile**:
 The structured picture of a Candidate built from their Resume and LinkedIn data: basic profile, experiences, projects.
 _Avoid_: CV, resume data
