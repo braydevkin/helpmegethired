@@ -13,8 +13,8 @@
     "test": "turbo run test",
     "test:integration": "turbo run test:integration",
     "test:e2e": "turbo run test:e2e",
-    "db:migrate": "pnpm --filter api db:migrate",
-    "db:migrate:down": "pnpm --filter api db:migrate:down"
+    "db:migrate": "turbo run db:migrate --filter=@helpmegethired/api",
+    "db:migrate:down": "turbo run db:migrate:down --filter=@helpmegethired/api"
   },
   "devDependencies": {
     "turbo": "^2.10.12"
