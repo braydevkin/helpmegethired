@@ -110,6 +110,7 @@ Common rules:
 
 - One issue per feature or fix PR. Link it with `Closes #<n>`.
 - Fill in every section of the template. Empty sections are a review blocker.
+- Tag the people working on the change in the "Working on this" section. PR descriptions describe the work, not the tools used to produce it.
 - CI must be green: lint, typecheck, unit, integration, e2e.
 - Reviewer checks the acceptance criteria from the issue, not just the diff.
 
