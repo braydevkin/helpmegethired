@@ -6,7 +6,7 @@ Derived from `arch/helpmegethired-architecture.drawio`. When the diagram and thi
 
 | ID | Requirement |
 | --- | --- |
-| FR-01 | Account register (sign up / sign in). |
+| FR-01 | Account sign up and sign in with an email and a one-time code sent by email; no passwords. Sign up adds the Account information: name, last name, phone with country code, optional address. |
 | FR-02 | Upload a resume as PDF. |
 | FR-03 | Read a LinkedIn profile from a pasted profile URL. |
 | FR-04 | Build a candidate profile from the resume and LinkedIn data: basic profile, experiences, projects. |

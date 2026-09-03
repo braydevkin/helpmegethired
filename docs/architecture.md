@@ -100,13 +100,15 @@ apps/web/src/
 
 ### Account pages and the Session cookie (FR-01)
 
-The web app is the only client of the API, and it talks to it from the server side, so the browser never handles the Session token:
+Sign in and sign up are passwordless (ADR-0016). Auth.js runs the one-time code flow inside the web app, and the web app is the only client of the API, talking to it from the server side, so the browser never handles the Session token:
 
-- `/sign-up` and `/sign-in` render one `CredentialsForm`. The form parses the fields with `CredentialsSchema` from `packages/shared` before anything is sent and shows each issue next to its field; only an accepted body reaches the server action. The server action calls the API through `AuthClient` and answers the form with the API message (duplicate email, wrong password) or redirects to `/journey`.
-- On success the action stores the API Session token in a cookie named `session`: HTTP-only, `SameSite=Lax`, `Path=/`, `Secure` in production, expiring with the Session. Server components and actions read it with `readSessionToken()` and send it to the API as `Authorization: Bearer`.
-- `/journey` is the first authenticated page. It asks the API for the Account behind the cookie and redirects to `/sign-in` when the API no longer accepts the token. Sign out is a server action that revokes the Session at the API, clears the cookie, and redirects to `/sign-in`.
+- `/sign-up` and `/sign-in` render one `OneTimeCodeForm` with two steps. The email step parses the field with `SendCodeSchema` from `packages/shared` before anything is sent; the server action asks Auth.js to send a code to that email. The code step parses `VerifyCodeSchema`; the server action verifies the code in-process and either redirects to `/journey` or answers the form with one message for a wrong, expired, or used code. "Change email" returns to the first step.
+- `src/auth` holds the Auth.js setup: `authRuntime()` builds the configuration on first use from `AUTH_SECRET` and `DATABASE_URL` (validated by `readAuthEnvironment`), the `email-code` provider generates 6-digit codes with a 10 minute expiry, `AccountAdapter` maps Auth.js onto `accounts`, `sessions`, and `verification_tokens` through Kysely, and `one-time-code.ts` exposes `sendCode` and `verifyCode`. There is no `/api/auth/*` route: both steps are server actions.
+- Delivery goes through the `CodeSender` abstraction. Without a real sender the `DevelopmentCodeSender` logs the code and keeps the last one per email, readable at `GET /development/verification-code?email=` outside production so the end-to-end tests can finish the flow; production refuses to start without a sender (the Resend sender is #31).
+- A verified code opens a database Session of 12 hours whose token Auth.js stores in the cookie named `session`: HTTP-only, `SameSite=Lax`, `Path=/`, `Secure` in production, expiring with the Session. The adapter stores only the SHA-256 hash of the token in `sessions.token_hash`, which is what the API validates. Server components and actions read the cookie with `readSessionToken()` and send it to the API as `Authorization: Bearer`.
+- `/journey` is the first authenticated page. It asks the API for the Account behind the cookie and redirects to `/sign-in` when the API no longer accepts the token. Sign out is a server action that deletes the Session at the API, clears the cookie, and redirects to `/sign-in`.
 - `src/proxy.ts` handles the redirects before a page renders: an authenticated path without the cookie goes to `/sign-in`; the forms with a cookie go to `/journey` when the API still accepts the token, and otherwise the stale cookie is cleared and the form is shown.
-- The API origin comes from `API_URL`, read on the server only, defaulting to `http://localhost:3001` for a native `next dev`. The compose stack sets it to `http://api:3001`.
+- The API origin comes from `API_URL`, read on the server only, defaulting to `http://localhost:3001` for a native `next dev`. The compose stack sets it to `http://api:3001` and gives the web app the same `DATABASE_URL` as the API. The variables are listed in `apps/web/.env.example`.
 
 ## Backend (apps/api)
 
@@ -125,11 +127,11 @@ The web app is the only client of the API, and it talks to it from the server si
 
 ### Authentication (FR-01)
 
-The `auth` module owns Accounts and Sessions, following ADR-0013:
+The `auth` module guards the API with the Session that Auth.js opens in the web app (ADR-0016) and owns the Account information:
 
-- `POST /auth/sign-up` and `POST /auth/sign-in` take `CredentialsSchema` and answer with `AuthenticatedAccountSchema`: the Account plus a Session `{ token, expiresAt }`. Sign up rejects an email that already has an Account with `409`; sign in rejects a wrong password or an unknown email with the same `401`.
-- Passwords are hashed with scrypt behind the `PasswordHasher` abstraction. The Session token is random, stored only as a SHA-256 hash, and lasts 30 days.
-- `SessionGuard` is registered globally, so every route requires `Authorization: Bearer <token>` unless its handler or controller carries `@Public()`. Handlers receive the signed-in Account through `@CurrentAccount()`. `POST /auth/sign-out` deletes the Session; `GET /auth/account` returns the Account behind the token.
+- `SessionGuard` is registered globally, so every route requires `Authorization: Bearer <token>` unless its handler or controller carries `@Public()`. The guard hashes the token with SHA-256 and looks it up in `sessions.token_hash` with its expiry, the same row the web app's adapter wrote, so nothing is issued twice. Handlers receive the signed-in Account through `@CurrentAccount()`.
+- `GET /auth/account` returns the Account behind the token: email, name, last name, phone, address, and creation time, with `null` for information not yet given. `PATCH /auth/account` takes `AccountInformationSchema` and stores name, last name, phone with its dial code, and the optional address, answering the updated Account. `POST /auth/sign-out` deletes the Session row.
+- The API sends no codes and creates no Accounts: Auth.js creates the Account on the first verified code. The API's `AccountRepository` creates Accounts only for its own tests.
 - Request bodies are validated with the shared Zod schemas through `ZodValidationPipe`. A failed validation answers `400` with `ApiErrorSchema`, whose `issues` name the fields without echoing the values.
 
 ### Database access
@@ -139,7 +141,7 @@ The database layer lives in `apps/api/src/database` and follows ADR-0012:
 - `database.schema.ts` declares every table as a Kysely interface. Table and column names follow [CONTEXT.md](../CONTEXT.md) in `snake_case`.
 - `DatabaseModule` is global. It builds one `Kysely` instance from `DATABASE_URL`, exposes it through the `DATABASE` token, and closes the pool on shutdown.
 - Repositories (for example `AccountRepository` in `auth`) are the only classes that query. They map rows to the types from `packages/shared`, so services and controllers never see column names.
-- `migrations/` holds one TypeScript module per migration with `up` and `down`, registered in `migrations/index.ts`. `migrator.ts` wraps Kysely's `Migrator`; `migrate.cli.ts` is the command behind `pnpm db:migrate` and `pnpm db:migrate:down`, which Turbo runs after building the API and its workspace dependencies. The first migration enables the `vector` extension and creates `accounts`; the second adds the password hash and creates `sessions`; the third creates `ingestions` and `ingestion_segments`.
+- `migrations/` holds one TypeScript module per migration with `up` and `down`, registered in `migrations/index.ts`. `migrator.ts` wraps Kysely's `Migrator`; `migrate.cli.ts` is the command behind `pnpm db:migrate` and `pnpm db:migrate:down`, which Turbo runs after building the API and its workspace dependencies. The first migration enables the `vector` extension and creates `accounts`; the second adds the password hash and creates `sessions`; the third creates `ingestions` and `ingestion_segments`; the fourth drops the password hash, adds the Account information and the email verification time to `accounts`, and creates `verification_tokens` for the one-time codes.
 
 ### Profile ingestion (TC-03, TC-04, TC-05)
 
@@ -209,7 +211,7 @@ Preparation summary with success rates
 
 One database serves both relational data and vector search.
 
-- Relational tables for Account, Session, Ingestion, Segment, Basic Profile, Experiences, Projects, Job Descriptions, Learnings, and pipeline runs. Tables arrive with the task that needs them, each through a migration; `accounts`, `sessions`, `ingestions`, and `ingestion_segments` are the first. The `pgboss` schema holds the job queue and is managed by pg-boss (ADR-0014).
+- Relational tables for Account, Session, One-Time Code, Ingestion, Segment, Basic Profile, Experiences, Projects, Job Descriptions, Learnings, and pipeline runs. Tables arrive with the task that needs them, each through a migration; `accounts`, `sessions`, `verification_tokens`, `ingestions`, and `ingestion_segments` are the first. The `pgboss` schema holds the job queue and is managed by pg-boss (ADR-0014).
 - The `vector` extension is enabled by the first migration, so every later migration can declare embedding columns.
 - Embeddings stored in pgvector columns alongside the rows they describe (profile chunks, job description chunks, learnings).
 - RAG queries are scoped by Account id. Retrieval across Accounts is never performed.
@@ -219,10 +221,10 @@ One database serves both relational data and vector search.
 | Level | Tool | Where |
 | --- | --- | --- |
 | Unit | Vitest | Next to the code in each app and package |
-| Integration | Vitest | `apps/api` against a real PostgreSQL in Docker, one isolated database per run |
+| Integration | Vitest | `apps/api` against a real PostgreSQL in Docker, one isolated database per run; `apps/web` for the Auth.js adapter against the migrated database in `DATABASE_URL` |
 | End-to-end | Playwright | `e2e/`, a workspace package; against the built web app locally, against the full stack in Docker Compose in CI |
 
-Integration tests need the compose `postgres` service and the `DATABASE_URL` of the API: `pnpm test:integration` reads it from the environment or from `apps/api/.env`. The Vitest global setup creates a database named `helpmegethired_test_<id>` on that server, migrates it to the latest version, hands its URL to the test workers, and drops it when the run ends. Test files run one at a time because they share that database. The migration test reverts and reapplies the last migration, so every migration must have a working `down`.
+Integration tests need the compose `postgres` service and the `DATABASE_URL` of the API: `pnpm test:integration` reads it from the environment or from `apps/api/.env`. The API's Vitest global setup creates a database named `helpmegethired_test_<id>` on that server, migrates it to the latest version, hands its URL to the test workers, and drops it when the run ends. Test files run one at a time because they share that database. The migration test reverts and reapplies the last migration, so every migration must have a working `down`. The web app's integration project runs the Auth.js adapter against the database `DATABASE_URL` names, which must already be migrated (`pnpm db:migrate`), as CI does before the integration job.
 
 The `e2e` package depends on `@helpmegethired/web`, so `pnpm turbo run test:e2e` builds the web app first and Playwright starts it with `next start` on port 3100. Setting `E2E_BASE_URL` points the tests at an already running stack instead. Browsers are installed once with `pnpm --filter e2e exec playwright install chromium`.
 

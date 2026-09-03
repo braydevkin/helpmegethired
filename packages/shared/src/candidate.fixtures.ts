@@ -18,6 +18,10 @@ export const JOB_DESCRIPTION_ID = "9b2c1f34-5d6e-4a7b-8c9d-0e1f2a3b4c5d";
 export const account: Account = {
   id: ACCOUNT_ID,
   email: "ada@example.com",
+  name: null,
+  lastName: null,
+  phone: null,
+  address: null,
   createdAt: "2026-09-02T10:00:00.000Z",
 };
 

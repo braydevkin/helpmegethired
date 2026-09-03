@@ -1,6 +1,6 @@
 # ADR-0013: Own credentials with hashed passwords and database-backed sessions
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0016
 - **Date:** 2026-09-02
 - **Deciders:** @braydevkin
 

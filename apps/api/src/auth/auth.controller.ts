@@ -1,29 +1,13 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post } from "@nestjs/common";
-import { CredentialsSchema, type Account, type AuthenticatedAccount, type Credentials } from "@helpmegethired/shared";
+import { Body, Controller, Get, HttpCode, HttpStatus, Patch, Post } from "@nestjs/common";
+import { AccountInformationSchema, type Account, type AccountInformation } from "@helpmegethired/shared";
 
 import { ZodValidationPipe } from "../common/zod-validation.pipe";
 import { AuthService } from "./auth.service";
 import { CurrentAccount, CurrentSessionToken } from "./current-account.decorator";
-import { Public } from "./public.decorator";
-
-const credentialsBody = new ZodValidationPipe(CredentialsSchema);
 
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
-
-  @Public()
-  @Post("sign-up")
-  signUp(@Body(credentialsBody) credentials: Credentials): Promise<AuthenticatedAccount> {
-    return this.authService.signUp(credentials);
-  }
-
-  @Public()
-  @Post("sign-in")
-  @HttpCode(HttpStatus.OK)
-  signIn(@Body(credentialsBody) credentials: Credentials): Promise<AuthenticatedAccount> {
-    return this.authService.signIn(credentials);
-  }
 
   @Post("sign-out")
   @HttpCode(HttpStatus.NO_CONTENT)
@@ -34,5 +18,13 @@ export class AuthController {
   @Get("account")
   account(@CurrentAccount() account: Account): Account {
     return account;
+  }
+
+  @Patch("account")
+  updateAccount(
+    @CurrentAccount() account: Account,
+    @Body(new ZodValidationPipe(AccountInformationSchema)) information: AccountInformation,
+  ): Promise<Account> {
+    return this.authService.updateInformation(account, information);
   }
 }

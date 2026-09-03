@@ -1,37 +1,49 @@
 import type { INestApplication } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { AccountSchema, ApiErrorSchema, AuthenticatedAccountSchema } from "@helpmegethired/shared";
+import { AccountSchema, ApiErrorSchema, SESSION_LIFETIME_SECONDS, type Account } from "@helpmegethired/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { AppModule } from "../app.module";
-
-const password = "correct horse battery";
+import { AccountRepository } from "./account.repository";
+import { SessionRepository } from "./session.repository";
+import { hashSessionToken } from "./session-token";
 
 const freshEmail = () => `${crypto.randomUUID()}@candidate.example`;
+
+const information = {
+  name: "Ada",
+  lastName: "Lovelace",
+  phone: { countryCode: "+44", number: "7700 900 123" },
+  address: "London, UK",
+};
 
 describe("auth endpoints", () => {
   let app: INestApplication;
   let baseUrl: string;
+  let accounts: AccountRepository;
+  let sessions: SessionRepository;
 
-  const post = (path: string, body: unknown, token?: string) =>
+  const request = (method: string, path: string, token?: string, body?: unknown) =>
     fetch(`${baseUrl}${path}`, {
-      method: "POST",
+      method,
       headers: {
-        "content-type": "application/json",
+        ...(body === undefined ? {} : { "content-type": "application/json" }),
         ...(token ? { authorization: `Bearer ${token}` } : {}),
       },
-      body: JSON.stringify(body),
+      body: body === undefined ? undefined : JSON.stringify(body),
     });
 
-  const get = (path: string, token?: string) =>
-    fetch(`${baseUrl}${path}`, { headers: token ? { authorization: `Bearer ${token}` } : {} });
+  const openSession = async (secondsUntilExpiry = SESSION_LIFETIME_SECONDS): Promise<{ account: Account; token: string }> => {
+    const account = await accounts.create({ email: freshEmail() });
+    const token = crypto.randomUUID();
 
-  const signUp = async (email = freshEmail()) => {
-    const response = await post("/auth/sign-up", { email, password });
+    await sessions.create({
+      accountId: account.id,
+      tokenHash: hashSessionToken(token),
+      expiresAt: new Date(Date.now() + secondsUntilExpiry * 1000),
+    });
 
-    expect(response.status).toBe(201);
-
-    return AuthenticatedAccountSchema.parse(await response.json());
+    return { account, token };
   };
 
   beforeAll(async () => {
@@ -40,111 +52,104 @@ describe("auth endpoints", () => {
     app = moduleRef.createNestApplication();
     await app.listen(0);
     baseUrl = await app.getUrl();
+    accounts = app.get(AccountRepository);
+    sessions = app.get(SessionRepository);
   });
 
   afterAll(async () => {
     await app.close();
   });
 
-  describe("POST /auth/sign-up", () => {
-    it("creates an Account and answers with it and a Session", async () => {
-      const email = freshEmail();
-
-      const { account, session } = await signUp(email);
-
-      expect(account.email).toBe(email);
-      expect(session.token).not.toBe("");
-    });
-
-    it("rejects a second sign up with the same email", async () => {
-      const email = freshEmail();
-
-      await signUp(email);
-      const response = await post("/auth/sign-up", { email, password });
-
-      expect(response.status).toBe(409);
-      expect(ApiErrorSchema.parse(await response.json()).message).toContain("already exists");
-    });
-
-    it("rejects an invalid body naming the fields without echoing the values", async () => {
-      const response = await post("/auth/sign-up", { email: "ada", password: "s3cret" });
-      const text = await response.text();
-
-      expect(response.status).toBe(400);
-      expect(ApiErrorSchema.parse(JSON.parse(text)).issues).toEqual([
-        { path: "email", message: expect.any(String) },
-        { path: "password", message: expect.any(String) },
-      ]);
-      expect(text).not.toContain("s3cret");
-    });
-  });
-
-  describe("POST /auth/sign-in", () => {
-    it("answers with a new Session for the right password", async () => {
-      const email = freshEmail();
-      const signedUp = await signUp(email);
-
-      const response = await post("/auth/sign-in", { email, password });
-
-      expect(response.status).toBe(200);
-
-      const signedIn = AuthenticatedAccountSchema.parse(await response.json());
-
-      expect(signedIn.account).toEqual(signedUp.account);
-      expect(signedIn.session.token).not.toBe(signedUp.session.token);
-    });
-
-    it("rejects a wrong password", async () => {
-      const email = freshEmail();
-
-      await signUp(email);
-      const response = await post("/auth/sign-in", { email, password: "wrong password" });
-
-      expect(response.status).toBe(401);
-    });
-
-    it("rejects an unknown email the same way", async () => {
-      const response = await post("/auth/sign-in", { email: freshEmail(), password });
-
-      expect(response.status).toBe(401);
-    });
-  });
-
   describe("GET /auth/account", () => {
     it("answers 401 without credentials", async () => {
-      expect((await get("/auth/account")).status).toBe(401);
+      expect((await request("GET", "/auth/account")).status).toBe(401);
     });
 
     it("answers 401 for a token that has no Session", async () => {
-      expect((await get("/auth/account", "not-a-session")).status).toBe(401);
+      expect((await request("GET", "/auth/account", "not-a-session")).status).toBe(401);
     });
 
-    it("answers the Account behind the Session", async () => {
-      const { account, session } = await signUp();
+    it("answers the Account behind a Session stored by its token hash", async () => {
+      const { account, token } = await openSession();
 
-      const response = await get("/auth/account", session.token);
+      const response = await request("GET", "/auth/account", token);
 
       expect(response.status).toBe(200);
       expect(AccountSchema.parse(await response.json())).toEqual(account);
     });
+
+    it("stops accepting a Session once it has expired", async () => {
+      const { token } = await openSession(-1);
+
+      expect((await request("GET", "/auth/account", token)).status).toBe(401);
+    });
   });
 
-  describe("POST /auth/sign-out", () => {
-    it("revokes the Session so the token stops working", async () => {
-      const { session } = await signUp();
+  describe("PATCH /auth/account", () => {
+    it("stores the identity information and answers the updated Account", async () => {
+      const { account, token } = await openSession();
 
-      const signedOut = await post("/auth/sign-out", {}, session.token);
+      const response = await request("PATCH", "/auth/account", token, information);
 
-      expect(signedOut.status).toBe(204);
-      expect((await get("/auth/account", session.token)).status).toBe(401);
+      expect(response.status).toBe(200);
+      expect(AccountSchema.parse(await response.json())).toEqual({
+        ...account,
+        ...information,
+        phone: { countryCode: "+44", number: "7700900123" },
+      });
+    });
+
+    it("stores an omitted address as null", async () => {
+      const { token } = await openSession();
+      const { name, lastName, phone } = information;
+
+      const response = await request("PATCH", "/auth/account", token, { name, lastName, phone });
+
+      expect(response.status).toBe(200);
+      expect(AccountSchema.parse(await response.json()).address).toBeNull();
+    });
+
+    it("rejects an empty name or last name naming the fields without echoing the values", async () => {
+      const { token } = await openSession();
+
+      const response = await request("PATCH", "/auth/account", token, {
+        ...information,
+        name: "  ",
+        lastName: "",
+        phone: { countryCode: "+44", number: "s3cret" },
+      });
+      const text = await response.text();
+
+      expect(response.status).toBe(400);
+      expect(ApiErrorSchema.parse(JSON.parse(text)).issues).toEqual([
+        { path: "name", message: "Name is required" },
+        { path: "lastName", message: "Last name is required" },
+        { path: "phone.number", message: expect.any(String) },
+      ]);
+      expect(text).not.toContain("s3cret");
     });
 
     it("answers 401 without a Session", async () => {
-      expect((await post("/auth/sign-out", {})).status).toBe(401);
+      expect((await request("PATCH", "/auth/account", undefined, information)).status).toBe(401);
+    });
+  });
+
+  describe("POST /auth/sign-out", () => {
+    it("deletes the Session so the token stops working", async () => {
+      const { token } = await openSession();
+
+      const signedOut = await request("POST", "/auth/sign-out", token);
+
+      expect(signedOut.status).toBe(204);
+      expect((await request("GET", "/auth/account", token)).status).toBe(401);
+    });
+
+    it("answers 401 without a Session", async () => {
+      expect((await request("POST", "/auth/sign-out")).status).toBe(401);
     });
   });
 
   it("keeps GET /health public", async () => {
-    expect((await get("/health")).status).toBe(200);
+    expect((await request("GET", "/health")).status).toBe(200);
   });
 });

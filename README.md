@@ -66,6 +66,7 @@ docker compose up
 - `docker compose up --wait` exits with zero only when every service reports healthy. Use it to check the stack before running tests against it.
 - Host ports and database credentials are the variables in `.env`. Change them there when a port is already taken on your machine.
 - `docker compose up` applies pending database migrations before the API starts. To run them by hand, set `DATABASE_URL` (or copy `apps/api/.env.example` to `apps/api/.env`) and use `pnpm db:migrate` or `pnpm db:migrate:down`.
+- Sign in sends a one-time code by email. The local stack has no email provider: the code is printed in the `web` service logs and readable at `http://localhost:3000/development/verification-code?email=<the email>`. The web app's own variables (`API_URL`, `DATABASE_URL`, `AUTH_SECRET`) are listed in `apps/web/.env.example` for running it natively.
 - `docker compose down` stops the stack and keeps the database volume; add `--volumes` to start from an empty database.
 
 To run the apps natively against your own tooling instead, see the local setup in [CONTRIBUTING.md](CONTRIBUTING.md).
