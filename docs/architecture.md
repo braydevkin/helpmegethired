@@ -249,6 +249,8 @@ Docker Compose runs the whole monorepo. `docker compose up` brings up three long
 
 GitHub Actions, following the Gitflow model in [workflow.md](workflow.md). Workflows live in `.github/workflows`; the steps they share (pinned Node and pnpm, `pnpm install --frozen-lockfile`, starting the compose `postgres`) are composite actions under `.github/actions`.
 
+Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow level, and no more: `CI` and `Release document` only read the repository (`contents: read`), and `Board` grants the workflow token nothing (`permissions: {}`) because it acts through `PROJECT_TOKEN`. CodeQL flags a workflow that leaves the default permissions in place.
+
 - **`CI` on every pull request to `develop` or `main`**: five checks, one job each, so a failure names the level that broke.
 
   | Check | Command | Needs |
