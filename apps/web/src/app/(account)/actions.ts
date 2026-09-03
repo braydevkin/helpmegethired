@@ -1,26 +1,29 @@
 "use server";
 
-import { SendCodeSchema, VerifyCodeSchema, type SendCodeRequest, type VerifyCodeRequest } from "@helpmegethired/shared";
+import {
+  AccountInformationSchema,
+  SendCodeSchema,
+  VerifyCodeSchema,
+  type SendCodeRequest,
+  type VerifyCodeRequest,
+} from "@helpmegethired/shared";
 import { redirect } from "next/navigation";
+import type { z } from "zod";
 
 import { sendCode, verifyCode } from "../../auth/one-time-code";
 import { authClient } from "../../lib/auth-client";
+import { forgetPendingEmail, rememberPendingEmail } from "../../lib/pending-email-cookie";
 import { clearSession, readSessionToken } from "../../lib/session-cookie";
-import { JOURNEY_PATH, SIGN_IN_PATH } from "../paths";
-
-export type OneTimeCodeFormInput =
-  | { kind: "send"; request: SendCodeRequest }
-  | { kind: "verify"; request: VerifyCodeRequest }
-  | { kind: "change-email" };
-
-export type OneTimeCodeFormState =
-  | { step: "email"; message?: string }
-  | { step: "code"; email: string; message?: string };
+import { JOURNEY_PATH, SIGN_IN_PATH, SIGN_UP_PATH } from "../paths";
 
 export type ActionResult = { ok: true } | { ok: false; message: string };
 
+export type AccountInformationRequest = z.input<typeof AccountInformationSchema>;
+
 const CODE_NOT_SENT_MESSAGE = "We could not send your code. Try again in a moment.";
 const CODE_REJECTED_MESSAGE = "That code is not valid or has expired. Request a new one.";
+const SESSION_EXPIRED_MESSAGE = "Your session has expired. Sign in again to continue.";
+const INFORMATION_NOT_SAVED_MESSAGE = "We could not save your details. Check them and try again.";
 
 const firstMessage = (issues: { message: string }[]) => issues[0]?.message ?? "Check the form and try again.";
 
@@ -39,65 +42,65 @@ export async function sendCodeAction(request: SendCodeRequest): Promise<ActionRe
     return failure(CODE_NOT_SENT_MESSAGE);
   }
 
+  await rememberPendingEmail(parsed.data.email);
+
   return { ok: true };
 }
 
-export async function signInWithCodeAction(request: VerifyCodeRequest): Promise<ActionResult> {
+async function verifyParsedCode(request: VerifyCodeRequest): Promise<{ token: string } | { message: string }> {
   const parsed = VerifyCodeSchema.safeParse(request);
+
+  if (!parsed.success) {
+    return { message: firstMessage(parsed.error.issues) };
+  }
+
+  const token = await verifyCode(parsed.data);
+
+  if (!token) {
+    return { message: CODE_REJECTED_MESSAGE };
+  }
+
+  await forgetPendingEmail();
+
+  return { token };
+}
+
+export async function verifyCodeAction(request: VerifyCodeRequest): Promise<ActionResult> {
+  const outcome = await verifyParsedCode(request);
+
+  return "token" in outcome ? { ok: true } : failure(outcome.message);
+}
+
+// A verified code is the sign in. An Account that has not given its name yet
+// continues to the account information step instead of the journey (design open point 8).
+export async function signInWithCodeAction(request: VerifyCodeRequest): Promise<ActionResult> {
+  const outcome = await verifyParsedCode(request);
+
+  if ("message" in outcome) {
+    return failure(outcome.message);
+  }
+
+  const account = await authClient.currentAccount(outcome.token);
+
+  redirect(account?.name ? JOURNEY_PATH : SIGN_UP_PATH);
+}
+
+export async function saveAccountInformationAction(request: AccountInformationRequest): Promise<ActionResult> {
+  const parsed = AccountInformationSchema.safeParse(request);
 
   if (!parsed.success) {
     return failure(firstMessage(parsed.error.issues));
   }
 
-  if (!(await verifyCode(parsed.data))) {
-    return failure(CODE_REJECTED_MESSAGE);
+  const token = await readSessionToken();
+
+  if (!token) {
+    return failure(SESSION_EXPIRED_MESSAGE);
   }
 
-  redirect(JOURNEY_PATH);
-}
+  const account = await authClient.updateAccount(token, parsed.data);
 
-async function send(request: SendCodeRequest): Promise<OneTimeCodeFormState> {
-  const parsed = SendCodeSchema.safeParse(request);
-
-  if (!parsed.success) {
-    return { step: "email", message: firstMessage(parsed.error.issues) };
-  }
-
-  try {
-    await sendCode(parsed.data.email);
-  } catch {
-    return { step: "email", message: CODE_NOT_SENT_MESSAGE };
-  }
-
-  return { step: "code", email: parsed.data.email };
-}
-
-async function verify(request: VerifyCodeRequest): Promise<OneTimeCodeFormState> {
-  const parsed = VerifyCodeSchema.safeParse(request);
-
-  if (!parsed.success) {
-    return { step: "code", email: request.email, message: firstMessage(parsed.error.issues) };
-  }
-
-  if (!(await verifyCode(parsed.data))) {
-    return { step: "code", email: parsed.data.email, message: CODE_REJECTED_MESSAGE };
-  }
-
-  redirect(JOURNEY_PATH);
-}
-
-export async function oneTimeCodeAction(
-  _previous: OneTimeCodeFormState,
-  input: OneTimeCodeFormInput,
-): Promise<OneTimeCodeFormState> {
-  switch (input.kind) {
-    case "send":
-      return send(input.request);
-    case "verify":
-      return verify(input.request);
-    case "change-email":
-      return { step: "email" };
-  }
+  return account ? { ok: true } : failure(INFORMATION_NOT_SAVED_MESSAGE);
 }
 
 export async function signOutAction(): Promise<void> {
