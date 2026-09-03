@@ -83,6 +83,25 @@ describe("CodeInput", () => {
     expect(boxes[0]).toHaveValue("");
   });
 
+  it("overwrites a filled box when a digit is typed into it", () => {
+    const { boxes, hidden } = renderCodeInput();
+
+    fireEvent.paste(boxes[0]!, { clipboardData: { getData: () => "000000" } });
+    fireEvent.keyDown(boxes[0]!, { key: "4" });
+
+    expect(hidden).toHaveValue("400000");
+    expect(boxes[1]).toHaveFocus();
+  });
+
+  it("ignores a non-digit key", () => {
+    const { boxes, hidden } = renderCodeInput();
+
+    fireEvent.keyDown(boxes[0]!, { key: "a" });
+
+    expect(hidden).toHaveValue("");
+    expect(boxes[0]).toHaveFocus();
+  });
+
   it("moves focus with the arrow keys without changing the digits", () => {
     const { boxes, hidden } = renderCodeInput();
 

@@ -1,6 +1,14 @@
 "use client";
 
-import { useId, useRef, useState, type ChangeEvent, type ClipboardEvent, type KeyboardEvent } from "react";
+import {
+  useId,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type ClipboardEvent,
+  type FocusEvent,
+  type KeyboardEvent,
+} from "react";
 
 import { CodeBox } from "../../atoms/code-box/code-box";
 import { ErrorMessage } from "../../atoms/error-message/error-message";
@@ -17,6 +25,9 @@ export interface CodeInputProps {
 
 const DEFAULT_LENGTH = 6;
 const NON_DIGITS = /\D/g;
+const SINGLE_DIGIT = /^\d$/;
+
+const selectContent = (event: FocusEvent<HTMLInputElement>) => event.target.select();
 
 export function CodeInput({
   name,
@@ -71,8 +82,13 @@ export function CodeInput({
     fillFrom(index, event.clipboardData.getData("text"));
   };
 
+  // A box holds one character, so the browser refuses a second one; handling the
+  // digit key here lets a Candidate overwrite a box without deleting it first.
   const handleKeyDown = (index: number) => (event: KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "Backspace" && !digits[index] && index > 0) {
+    if (SINGLE_DIGIT.test(event.key)) {
+      event.preventDefault();
+      fillFrom(index, event.key);
+    } else if (event.key === "Backspace" && !digits[index] && index > 0) {
       event.preventDefault();
       const next = [...digits];
       next[index - 1] = "";
@@ -109,6 +125,7 @@ export function CodeInput({
             onChange={handleChange(index)}
             onPaste={handlePaste(index)}
             onKeyDown={handleKeyDown(index)}
+            onFocus={selectContent}
           />
         ))}
       </div>

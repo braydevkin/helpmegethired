@@ -20,7 +20,14 @@ async function lastCodeFor(page: Page, email: string): Promise<string> {
 }
 
 async function submitCode(page: Page, code: string) {
-  await page.getByLabel("Verification code").fill(code);
+  const digitBoxes = page.getByLabel("Verification digit");
+
+  if (await digitBoxes.count()) {
+    await digitBoxes.first().pressSequentially(code);
+  } else {
+    await page.getByLabel("Verification code").fill(code);
+  }
+
   await page.getByRole("button", { name: "Verify and continue" }).click();
 }
 
@@ -60,6 +67,23 @@ test("sign in with an email that has no Account goes through the same screens", 
 
   await expect(page).toHaveURL(/\/journey$/);
   await expect(page.getByTestId("account-email")).toHaveText(email);
+});
+
+test("the sign in screens follow the Account design", async ({ page }) => {
+  const email = freshEmail();
+
+  await page.goto("/sign-in");
+
+  await expect(page.getByText("Welcome back")).toBeVisible();
+  await expect(page.getByRole("link", { name: "Create an account" })).toHaveAttribute("href", "/sign-up");
+  await expect(page.getByRole("progressbar")).toHaveCount(0);
+
+  await requestCode(page, "/sign-in", email);
+
+  await expect(page.getByText(`We sent a 6-digit code to ${email}. It expires in 10 minutes.`)).toBeVisible();
+  await expect(page.getByLabel("Verification digit")).toHaveCount(6);
+  await expect(page.getByText(/Resend in 0:\d\d/)).toBeVisible();
+  await expect(page.getByRole("button", { name: "Resend code" })).toHaveCount(0);
 });
 
 test("the journey redirects to sign in without a Session", async ({ page }) => {
@@ -124,7 +148,7 @@ test("a new code replaces the previous one", async ({ page }) => {
   const firstCode = await lastCodeFor(page, email);
 
   await page.getByRole("button", { name: "Change email" }).click();
-  await page.getByLabel("Email address").fill(email);
+  await expect(page.getByLabel("Email address")).toHaveValue(email);
   await page.getByRole("button", { name: "Send my code" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Check your inbox");
 

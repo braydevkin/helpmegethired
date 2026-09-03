@@ -49,3 +49,16 @@
   border-color: var(--color-brand);
   box-shadow: var(--focus-ring);
 }
+
+a.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+a.secondary:hover {
+  border-color: var(--color-brand);
+  background: var(--color-surface-tint);
+  color: var(--color-ink);
+}

@@ -40,4 +40,18 @@ describe("Button", () => {
 
     expect(onClick).not.toHaveBeenCalled();
   });
+
+  it("renders a link with the button look when given a href", () => {
+    render(
+      <Button variant="secondary" href="/sign-up">
+        Create an account
+      </Button>,
+    );
+
+    const link = screen.getByRole("link", { name: "Create an account" });
+
+    expect(link).toHaveAttribute("href", "/sign-up");
+    expect(link).toHaveClass("button");
+    expect(link).toHaveClass("secondary");
+  });
 });
