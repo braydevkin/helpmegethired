@@ -69,7 +69,8 @@ These come from the product definition and are not negotiable:
 
 - A new architectural decision gets an ADR in `docs/adr/` using the template there.
 - A change in flow or behaviour updates `docs/product/requirements.md` or `docs/architecture.md`.
-- Keep the README's documentation map accurate when adding documents.
+- Design definitions, screenshots, and guides live in the GitHub Wiki, never under `docs/`. The boundary, the naming, and the rule that nothing sensitive goes to the wiki are in the "Where documentation lives" section of `docs/workflow.md`.
+- Keep the README's documentation map accurate when adding documents or wiki pages.
 
 ## How to behave in this repo
 

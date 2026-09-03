@@ -22,6 +22,7 @@ Use [template.md](template.md). Number sequentially. Status is one of `Proposed`
 | [0012](0012-kysely-query-layer-and-migrations.md) | Kysely as the query layer and migration tool | Accepted |
 | [0013](0013-own-credentials-with-database-sessions.md) | Own credentials with hashed passwords and database-backed sessions | Accepted |
 | [0014](0014-pg-boss-queue-on-postgresql.md) | pg-boss on PostgreSQL as the queue backend for profile ingestion | Accepted |
+| [0015](0015-atomic-design-frontend-components.md) | Atomic design for frontend components | Accepted |
 
 ## Pending decisions
 

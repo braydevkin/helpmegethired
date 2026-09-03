@@ -78,6 +78,8 @@ To run the apps natively against your own tooling instead, see the local setup i
 | [docs/product/requirements.md](docs/product/requirements.md) | Functional requirements, application flow, technical constraints |
 | [docs/architecture.md](docs/architecture.md) | System architecture, monorepo layout, AI pipeline, data model |
 | [docs/workflow.md](docs/workflow.md) | Gitflow branching, how tasks are created, refined, built, reviewed, and released |
+| [Wiki](https://github.com/braydevkin/helpmegethired/wiki) | Design definitions, screenshots, and guides; the repository keeps what the code is held to |
+| [Wiki: Design: Account](https://github.com/braydevkin/helpmegethired/wiki/Design-Account) | The sign in and sign up design: screens, copy, tokens, components by stage, and open points |
 | [docs/releases/](docs/releases/README.md) | Release notes, one document per production release |
 | [docs/adr/](docs/adr/README.md) | Architecture Decision Records |
 | [CONTEXT.md](CONTEXT.md) | Glossary: the canonical words for the concepts in this project |

@@ -78,6 +78,26 @@ Workspace conventions:
 - Because steps are sequential (TC-06), the UI exposes a step as available only when the backend reports the previous step complete. The UI never decides step order on its own.
 - Profile-building progress (TC-04) is shown as a percentage, driven by backend state.
 
+### Components follow atomic design (ADR-0015)
+
+Shared components live under `src/components`, in one folder per stage of [atomic design](https://atomicdesign.bradfrost.com/chapter-2/); pages are the `page.tsx` files under `src/app`:
+
+```
+apps/web/src/
+├── app/                      pages: page.tsx with real content, route groups and layout.tsx
+└── components/
+    ├── atoms/                button, text input, label, eyebrow, error message, progress bar
+    ├── molecules/            field with label, hint and error; code input; phone field
+    ├── organisms/            email form, code form, identity form, brand panel
+    └── templates/            account template: brand panel beside the centred form column
+```
+
+- A stage imports only from the stages below it: atoms import nothing under `components/`, molecules import atoms, organisms import molecules and atoms, templates import organisms and below. Only pages touch the API client, the Session, and server actions; components receive what they need as props. An ESLint rule in `apps/web` enforces the direction (#32).
+- A route group `layout.tsx` renders a template from `components/templates/`, so the template is a plain component that Vitest renders without the router. Frost's template is not the App Router's reserved `template.tsx`.
+- One folder per component, kebab-case, with the component and its test inside: `components/molecules/code-input/code-input.tsx` and `code-input.test.tsx`. Imports use the full path to the file; there are no barrel `index.ts` files.
+- `"use client"` sits on the lowest stage that needs browser state. Design tokens are CSS custom properties in `globals.css`, not components.
+- The design pages in the [GitHub Wiki](https://github.com/braydevkin/helpmegethired/wiki) list the components of each screen by stage, and the review checks the tree against that list.
+
 ### Account pages and the Session cookie (FR-01)
 
 The web app is the only client of the API, and it talks to it from the server side, so the browser never handles the Session token:

@@ -129,11 +129,28 @@ Every PR to `main` ships a release document. No release document, no merge. Ther
 6. After merge, tag `main` with `vX.Y.Z` and create a GitHub Release whose notes are the release document.
 7. For a hotfix, merge `main` back into `develop` right away.
 
+## Where documentation lives
+
+Two places, split by what the document is for:
+
+| Place | Holds | Changed through |
+| --- | --- | --- |
+| The repository, under `docs/` and the root | What the code is held to and how it is built: `CONTEXT.md`, product vision and requirements, architecture, ADRs, this workflow, release notes | Pull request, reviewed with the code it concerns |
+| The [GitHub Wiki](https://github.com/braydevkin/helpmegethired/wiki) | Design definitions (screens, copy, tokens, components by stage, screenshots) and guides for contributors and Candidates | A push to the wiki repository, announced on the issue that drives it |
+
+Wiki pages are named `Design-<Feature>`, with screenshots under `design/<feature>/` in the wiki repository, or `Guide-<Topic>`. The README documentation map keeps one link per wiki page.
+
+The wiki is public and has no pull request review. Because of that:
+
+- Nothing sensitive goes there: no secrets, credentials, non-public URLs or hostnames, Candidate data, or details of infrastructure, security, or performance. Those documents stay in the repository or are not written.
+- A wiki change is driven by an issue like any other change. Announce it on the issue, clone `git@github.com:braydevkin/helpmegethired.wiki.git`, edit, and push with a Conventional Commit message that references the issue (`docs(design): update the done screen copy (#34)`). Editing the wiki is restricted to collaborators.
+- A design change that affects open tasks updates those tasks in the same move.
+
 ## Definition of done
 
 - Acceptance criteria met and demonstrated (tests, screenshots, or recording).
 - Tests added at the appropriate level.
-- Docs updated: `docs/`, ADR if a decision was made, README map if a document was added.
+- Docs updated: `docs/` or the wiki page, ADR if a decision was made, README map if a document or wiki page was added.
 - No new dependency or tooling without an ADR.
 - Issue closed by the merged PR.
 
