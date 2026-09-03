@@ -24,6 +24,7 @@ Use [template.md](template.md). Number sequentially. Status is one of `Proposed`
 | [0014](0014-pg-boss-queue-on-postgresql.md) | pg-boss on PostgreSQL as the queue backend for profile ingestion | Accepted |
 | [0015](0015-atomic-design-frontend-components.md) | Atomic design for frontend components | Accepted |
 | [0016](0016-passwordless-sign-in-with-auth-js-one-time-codes.md) | Passwordless sign in with Auth.js one-time email codes | Accepted |
+| [0017](0017-resend-transactional-email-with-logging-fallback.md) | Resend delivers transactional email, the logging sender is the local fallback | Accepted |
 
 ## Pending decisions
 

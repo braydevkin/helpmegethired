@@ -67,6 +67,8 @@ services:
       API_URL: http://api:3001
       DATABASE_URL: *database-url
       AUTH_SECRET: ${AUTH_SECRET:?}
+      AUTH_RESEND_KEY: ${AUTH_RESEND_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
     ports:
       - "${WEB_PORT:?}:3000"
     volumes:
