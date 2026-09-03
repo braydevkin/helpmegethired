@@ -1,0 +1,41 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--color-surface);
+}
+
+.layout .panel {
+  flex: 0 0 var(--brand-panel-width);
+  max-width: var(--brand-panel-max-width);
+}
+
+.column {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--form-column-padding);
+}
+
+.card {
+  width: 100%;
+  max-width: var(--form-card-max-width);
+  animation: var(--rise-in);
+}
+
+/* Below 900px the brand panel would break the tagline one word per line (design open point 10). */
+@media (max-width: 899px) {
+  .layout .panel {
+    display: none;
+  }
+
+  .column {
+    padding: var(--form-column-padding-narrow);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    animation: none;
+  }
+}

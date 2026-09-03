@@ -1,0 +1,39 @@
+.input {
+  width: 100%;
+  min-width: 0;
+  border: var(--control-border-width) solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  line-height: var(--leading-control);
+  outline: none;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.regular {
+  height: var(--control-height);
+  padding: 0 var(--control-padding-inline);
+  font-size: var(--text-control);
+}
+
+.compact {
+  height: var(--control-height-compact);
+  padding: 0 var(--control-padding-inline-compact);
+  font-size: var(--text-control-compact);
+}
+
+.input:focus {
+  border-color: var(--color-brand);
+  box-shadow: var(--focus-ring);
+}
+
+.input[aria-invalid="true"] {
+  border-color: var(--color-error);
+}
+
+.input:read-only {
+  background: var(--color-field-readonly);
+  color: var(--color-text-label);
+}

@@ -1,0 +1,25 @@
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-heading-gap);
+  margin-bottom: var(--space-lead-gap);
+}
+
+.title {
+  font-size: var(--text-screen-title);
+  line-height: var(--leading-screen-title);
+  font-weight: 800;
+  letter-spacing: var(--tracking-screen-title);
+  color: var(--color-ink);
+}
+
+.lead {
+  font-size: var(--text-lead);
+  line-height: var(--leading-lead);
+  color: var(--color-text-muted);
+}
+
+.lead strong {
+  color: var(--color-ink);
+  font-weight: 700;
+}
