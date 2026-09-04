@@ -1,0 +1,27 @@
+.box {
+  flex: 1;
+  min-width: 0;
+  height: var(--code-box-height);
+  padding: 0;
+  border: var(--control-border-width) solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  text-align: center;
+  font-size: var(--text-code-digit);
+  line-height: var(--leading-control);
+  font-weight: 700;
+  outline: none;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.box:focus {
+  border-color: var(--color-brand);
+  box-shadow: var(--focus-ring);
+}
+
+.box[aria-invalid="true"] {
+  border-color: var(--color-error);
+}

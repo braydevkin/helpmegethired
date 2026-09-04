@@ -72,8 +72,9 @@ Workspace conventions:
 
 - Next.js with the App Router and TypeScript strict mode, extending `packages/tsconfig/nextjs.json`. Pages live under `src/app`.
 - `pnpm --filter web dev` serves the app; `next build` produces the output that `next start` and the end-to-end tests run against.
-- Unit and component tests run on Vitest with a jsdom environment and Testing Library, next to the code as `*.test.tsx`.
-- Linting combines the shared configuration with the Next.js plugin (`core-web-vitals`) and the React Hooks plugin.
+- Unit and component tests run on Vitest with a jsdom environment and Testing Library, next to the code as `*.test.tsx`. CSS Modules keep their authored class names under Vitest (`classNameStrategy: "non-scoped"`), so a test can assert on them.
+- Linting combines the shared configuration with the Next.js plugin (`core-web-vitals`), the React Hooks plugin, and the app's own `atomic-design/no-upward-stage-imports` rule under `apps/web/eslint/`.
+- Manrope is loaded once with `next/font/google` (weights 400 to 800) in the root layout and exposed as `--font-manrope`; the design tokens from the Account design (palette, type scale, spacing, radii, focus ring, transitions, layout widths) are CSS custom properties in `globals.css`, declared once and read by every component.
 - Pages follow the application flow: sign up and sign in, then the journey (upload resume, LinkedIn URL, profile page, job description, analysis, resume recommendations, study recommendations, mock interview, summary).
 - Because steps are sequential (TC-06), the UI exposes a step as available only when the backend reports the previous step complete. The UI never decides step order on its own.
 - Profile-building progress (TC-04) is shown as a percentage, driven by backend state.
@@ -85,15 +86,18 @@ Shared components live under `src/components`, in one folder per stage of [atomi
 ```
 apps/web/src/
 ├── app/                      pages: page.tsx with real content, route groups and layout.tsx
+│   ├── layout.tsx            root: the Manrope font variable and globals.css, nothing visible
+│   ├── (site)/               home and journey under the site header
+│   └── (account)/            sign in and sign up inside the account template
 └── components/
-    ├── atoms/                button, text input, label, eyebrow, error message, progress bar
-    ├── molecules/            field with label, hint and error; code input; phone field
-    ├── organisms/            email form, code form, identity form, brand panel
-    └── templates/            account template: brand panel beside the centred form column
+    ├── atoms/                button, text input, select, label, eyebrow, hint, error message, progress bar, badge, logo mark, code box
+    ├── molecules/            field; code input; phone field; verified email field; labelled divider; screen heading; resend countdown
+    ├── organisms/            brand panel; email form, code form, identity form, done card (#33, #34)
+    └── templates/            account template: brand panel beside the centred form column, panel hidden below 900px
 ```
 
-- A stage imports only from the stages below it: atoms import nothing under `components/`, molecules import atoms, organisms import molecules and atoms, templates import organisms and below. Only pages touch the API client, the Session, and server actions; components receive what they need as props. An ESLint rule in `apps/web` enforces the direction (#32).
-- A route group `layout.tsx` renders a template from `components/templates/`, so the template is a plain component that Vitest renders without the router. Frost's template is not the App Router's reserved `template.tsx`.
+- A stage imports only from the stages below it: atoms import nothing under `components/`, molecules import atoms, organisms import molecules and atoms, templates import organisms and below. Only pages touch the API client, the Session, and server actions; components receive what they need as props. The `atomic-design/no-upward-stage-imports` rule in `apps/web/eslint/` fails the lint on an import that goes up a stage, sideways to another component of the same stage, or into `src/app`; a component may still import its own folder, `src/lib`, packages, and libraries.
+- A route group `layout.tsx` renders a template from `components/templates/`, so the template is a plain component that Vitest renders without the router. Frost's template is not the App Router's reserved `template.tsx`. The `(account)` layout renders `AccountTemplate`; the `(site)` layout renders the header for the home and journey pages, so the root layout stays empty and the brand panel can fill the viewport.
 - One folder per component, kebab-case, with the component and its test inside: `components/molecules/code-input/code-input.tsx` and `code-input.test.tsx`. Imports use the full path to the file; there are no barrel `index.ts` files.
 - `"use client"` sits on the lowest stage that needs browser state. Design tokens are CSS custom properties in `globals.css`, not components.
 - The design pages in the [GitHub Wiki](https://github.com/braydevkin/helpmegethired/wiki) list the components of each screen by stage, and the review checks the tree against that list.
@@ -102,7 +106,7 @@ apps/web/src/
 
 Sign in and sign up are passwordless (ADR-0017). Auth.js runs the one-time code flow inside the web app, and the web app is the only client of the API, talking to it from the server side, so the browser never handles the Session token:
 
-- `/sign-up` and `/sign-in` render one `OneTimeCodeForm` with two steps. The email step parses the field with `SendCodeSchema` from `packages/shared` before anything is sent; the server action asks Auth.js to send a code to that email. The code step parses `VerifyCodeSchema`; the server action verifies the code in-process and either redirects to `/journey` or answers the form with one message for a wrong, expired, or used code. "Change email" returns to the first step.
+- `/sign-up` and `/sign-in` render inside the account template and, until #33 and #34 replace it, one `OneTimeCodeForm` with two steps. The email step parses the field with `SendCodeSchema` from `packages/shared` before anything is sent; the server action asks Auth.js to send a code to that email. The code step parses `VerifyCodeSchema`; the server action verifies the code in-process and either redirects to `/journey` or answers the form with one message for a wrong, expired, or used code. "Change email" returns to the first step.
 - `src/auth` holds the Auth.js setup: `authRuntime()` builds the configuration on first use from `AUTH_SECRET` and `DATABASE_URL` (validated by `readAuthEnvironment`), the `email-code` provider generates 6-digit codes with a 10 minute expiry, `AccountAdapter` maps Auth.js onto `accounts`, `sessions`, and `verification_tokens` through Kysely, and `one-time-code.ts` exposes `sendCode` and `verifyCode`. There is no `/api/auth/*` route: both steps are server actions.
 - Delivery goes through the `CodeSender` abstraction (ADR-0018). With `AUTH_RESEND_KEY` set, `ResendCodeSender` posts the email rendered by `renderCodeEmail` (plain text and HTML, the design tokens inlined, no embedded font) to Resend's HTTP API from the address in `EMAIL_FROM`. Without the key the `DevelopmentCodeSender` logs the code and keeps the last one per email, readable at `GET /development/verification-code?email=` outside production so the end-to-end tests can finish the flow; a production configuration without the key refuses to start with a message naming the two variables.
 - A verified code opens a database Session of 12 hours whose token Auth.js stores in the cookie named `session`: HTTP-only, `SameSite=Lax`, `Path=/`, `Secure` in production, expiring with the Session. The adapter stores only the SHA-256 hash of the token in `sessions.token_hash`, which is what the API validates. Server components and actions read the cookie with `readSessionToken()` and send it to the API as `Authorization: Bearer`.

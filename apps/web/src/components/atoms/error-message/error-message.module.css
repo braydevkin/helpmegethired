@@ -1,0 +1,6 @@
+.error {
+  font-size: var(--text-error);
+  line-height: var(--leading-control);
+  font-weight: 600;
+  color: var(--color-error);
+}
