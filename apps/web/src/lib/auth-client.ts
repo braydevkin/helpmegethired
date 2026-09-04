@@ -1,4 +1,4 @@
-import { AccountSchema, type Account } from "@helpmegethired/shared";
+import { AccountSchema, type Account, type AccountInformation } from "@helpmegethired/shared";
 
 import { apiUrl } from "../config/api-url";
 
@@ -18,11 +18,21 @@ export class AuthClient {
     return response.ok ? AccountSchema.parse(await response.json()) : undefined;
   }
 
+  async updateAccount(token: string, information: AccountInformation): Promise<Account | undefined> {
+    const response = await this.request("/auth/account", {
+      method: "PATCH",
+      headers: { ...this.bearer(token), "content-type": "application/json" },
+      body: JSON.stringify(information),
+    });
+
+    return response.ok ? AccountSchema.parse(await response.json()) : undefined;
+  }
+
   private request(path: string, init: RequestInit): Promise<Response> {
     return this.fetchImplementation(`${this.baseUrl}${path}`, { ...init, cache: "no-store" });
   }
 
-  private bearer(token: string): HeadersInit {
+  private bearer(token: string): Record<string, string> {
     return { authorization: `Bearer ${token}` };
   }
 }

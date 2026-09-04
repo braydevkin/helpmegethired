@@ -39,3 +39,7 @@
     animation: none;
   }
 }
+
+.card:has([data-card-width="wide"]) {
+  max-width: var(--form-card-max-width-wide);
+}

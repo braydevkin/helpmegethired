@@ -43,8 +43,10 @@ export function ResendCountdown({ sentAt, onResend, seconds = DEFAULT_SECONDS, d
   }, [sentAt, seconds]);
 
   if (remaining > 0) {
+    // The code step can be server-rendered from the pending email cookie, and the
+    // seconds left differ between that render and hydration by design.
     return (
-      <span className={styles.countdown} aria-live="off">
+      <span className={styles.countdown} aria-live="off" suppressHydrationWarning>
         Resend in {formatClock(remaining)}
       </span>
     );
