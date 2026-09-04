@@ -2,7 +2,7 @@
 
 import { SendCodeSchema, VERIFICATION_CODE_LENGTH, VerifyCodeSchema } from "@helpmegethired/shared";
 import Link from "next/link";
-import { startTransition, useActionState, useState, type FormEvent } from "react";
+import { startTransition, useActionState, useState, type FormEvent, type ReactNode } from "react";
 
 import type { OneTimeCodeFormInput, OneTimeCodeFormState } from "./actions";
 
@@ -11,6 +11,13 @@ export interface OneTimeCodeFormProps {
   lead: string;
   action: (previous: OneTimeCodeFormState, input: OneTimeCodeFormInput) => Promise<OneTimeCodeFormState>;
   alternative: { prompt: string; href: string; label: string };
+}
+
+interface StepProps {
+  pending: boolean;
+  fieldMessage?: string;
+  message?: string;
+  onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 }
 
 const initialState: OneTimeCodeFormState = { step: "email" };
@@ -29,12 +36,11 @@ export function OneTimeCodeForm({ title, lead, action, alternative }: OneTimeCod
 
     const parsed = SendCodeSchema.safeParse({ email: new FormData(event.currentTarget).get("email") });
 
-    if (!parsed.success) {
+    if (parsed.success) {
+      dispatch({ kind: "send", request: parsed.data });
+    } else {
       setFieldMessage(parsed.error.issues[0]?.message);
-      return;
     }
-
-    dispatch({ kind: "send", request: parsed.data });
   }
 
   function handleVerifyCode(event: FormEvent<HTMLFormElement>, email: string) {
@@ -42,60 +48,41 @@ export function OneTimeCodeForm({ title, lead, action, alternative }: OneTimeCod
 
     const parsed = VerifyCodeSchema.safeParse({ email, code: new FormData(event.currentTarget).get("code") });
 
-    if (!parsed.success) {
+    if (parsed.success) {
+      dispatch({ kind: "verify", request: parsed.data });
+    } else {
       setFieldMessage(parsed.error.issues[0]?.message);
-      return;
     }
-
-    dispatch({ kind: "verify", request: parsed.data });
   }
+
+  const stepProps = { pending, fieldMessage, message: state.message };
 
   if (state.step === "code") {
     return (
-      <article className="account-form">
-        <h1>Check your inbox</h1>
-        <p className="lead">
-          We sent a {VERIFICATION_CODE_LENGTH}-digit code to <strong>{state.email}</strong>. It expires in 10
-          minutes.
-        </p>
-        <form onSubmit={(event) => handleVerifyCode(event, state.email)} noValidate aria-busy={pending}>
-          <label htmlFor="code">Verification code</label>
-          <input
-            id="code"
-            name="code"
-            inputMode="numeric"
-            autoComplete="one-time-code"
-            maxLength={VERIFICATION_CODE_LENGTH}
-            autoFocus
-            aria-invalid={Boolean(fieldMessage)}
-            aria-describedby={fieldMessage ? "code-message" : undefined}
-          />
-          {fieldMessage && (
-            <p id="code-message" className="field-message" role="alert">
-              {fieldMessage}
-            </p>
-          )}
-          {state.message && (
-            <p className="form-message" role="alert">
-              {state.message}
-            </p>
-          )}
-          <button type="submit" disabled={pending}>
-            Verify and continue
-          </button>
-        </form>
-        <button type="button" className="link" onClick={() => dispatch({ kind: "change-email" })} disabled={pending}>
-          Change email
-        </button>
-      </article>
+      <CodeStep
+        {...stepProps}
+        email={state.email}
+        onSubmit={(event) => handleVerifyCode(event, state.email)}
+        onChangeEmail={() => dispatch({ kind: "change-email" })}
+      />
     );
   }
 
+  return <EmailStep {...stepProps} title={title} lead={lead} alternative={alternative} onSubmit={handleSendCode} />;
+}
+
+interface EmailStepProps extends StepProps {
+  title: string;
+  lead: string;
+  alternative: OneTimeCodeFormProps["alternative"];
+}
+
+function EmailStep({ title, lead, alternative, pending, fieldMessage, message, onSubmit }: EmailStepProps) {
   return (
     <article className="account-form">
       <h1>{title}</h1>
       <p className="lead">{lead}</p>
-      <form onSubmit={handleSendCode} noValidate aria-busy={pending}>
+      <form onSubmit={onSubmit} noValidate aria-busy={pending}>
         <label htmlFor="email">Email address</label>
         <input
           id="email"
@@ -106,16 +93,7 @@ export function OneTimeCodeForm({ title, lead, action, alternative }: OneTimeCod
           aria-invalid={Boolean(fieldMessage)}
           aria-describedby={fieldMessage ? "email-message" : undefined}
         />
-        {fieldMessage && (
-          <p id="email-message" className="field-message" role="alert">
-            {fieldMessage}
-          </p>
-        )}
-        {state.message && (
-          <p className="form-message" role="alert">
-            {state.message}
-          </p>
-        )}
+        <StepMessages fieldId="email" fieldMessage={fieldMessage} message={message} />
         <button type="submit" disabled={pending}>
           Send my code
         </button>
@@ -124,5 +102,64 @@ export function OneTimeCodeForm({ title, lead, action, alternative }: OneTimeCod
         {alternative.prompt} <Link href={alternative.href}>{alternative.label}</Link>
       </p>
     </article>
+  );
+}
+
+interface CodeStepProps extends StepProps {
+  email: string;
+  onChangeEmail: () => void;
+}
+
+function CodeStep({ email, pending, fieldMessage, message, onSubmit, onChangeEmail }: CodeStepProps) {
+  return (
+    <article className="account-form">
+      <h1>Check your inbox</h1>
+      <p className="lead">
+        We sent a {VERIFICATION_CODE_LENGTH}-digit code to <strong>{email}</strong>. It expires in 10 minutes.
+      </p>
+      <form onSubmit={onSubmit} noValidate aria-busy={pending}>
+        <label htmlFor="code">Verification code</label>
+        <input
+          id="code"
+          name="code"
+          inputMode="numeric"
+          autoComplete="one-time-code"
+          maxLength={VERIFICATION_CODE_LENGTH}
+          autoFocus
+          aria-invalid={Boolean(fieldMessage)}
+          aria-describedby={fieldMessage ? "code-message" : undefined}
+        />
+        <StepMessages fieldId="code" fieldMessage={fieldMessage} message={message} />
+        <button type="submit" disabled={pending}>
+          Verify and continue
+        </button>
+      </form>
+      <button type="button" className="link" onClick={onChangeEmail} disabled={pending}>
+        Change email
+      </button>
+    </article>
+  );
+}
+
+interface StepMessagesProps {
+  fieldId: string;
+  fieldMessage?: string;
+  message?: string;
+}
+
+function StepMessages({ fieldId, fieldMessage, message }: StepMessagesProps): ReactNode {
+  return (
+    <>
+      {fieldMessage && (
+        <p id={`${fieldId}-message`} className="field-message" role="alert">
+          {fieldMessage}
+        </p>
+      )}
+      {message && (
+        <p className="form-message" role="alert">
+          {message}
+        </p>
+      )}
+    </>
   );
 }
