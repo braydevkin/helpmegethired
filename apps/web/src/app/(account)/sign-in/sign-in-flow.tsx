@@ -47,9 +47,8 @@ export function SignInFlow() {
   if (state.step === "code") {
     return (
       <CodeForm
-        email={state.email}
-        eyebrow={EYEBROW}
-        sentAt={state.sentAt}
+        delivery={{ email: state.email, sentAt: state.sentAt }}
+        step={{ eyebrow: EYEBROW }}
         message={message}
         pending={pending}
         onVerify={(code) => verify(state.email, code)}
@@ -61,10 +60,12 @@ export function SignInFlow() {
 
   return (
     <EmailForm
-      eyebrow={EYEBROW}
-      title="Sign in to keep going"
-      lead="Enter the email you signed up with and we'll get you straight back in."
-      submitLabel="Send my code"
+      step={{ eyebrow: EYEBROW }}
+      copy={{
+        title: "Sign in to keep going",
+        lead: "Enter the email you signed up with and we'll get you straight back in.",
+        submitLabel: "Send my code",
+      }}
       alternative={{ presentation: "button", prompt: "New here?", label: "Create an account", href: SIGN_UP_PATH }}
       defaultEmail={state.email}
       message={message}

@@ -1,22 +1,24 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CodeForm } from "./code-form";
+import { CodeForm, type CodeFormProps } from "./code-form";
 
 const email = "ada@example.com";
+const digitBoxes = () => screen.getAllByLabelText(/^Verification digit \d$/);
 
-function renderCodeForm(props: Partial<Parameters<typeof CodeForm>[0]> = {}) {
+function codeForm(handlers: Pick<CodeFormProps, "onVerify" | "onChangeEmail" | "onResend">, props: Partial<CodeFormProps>) {
+  return <CodeForm delivery={{ email, sentAt: Date.now() }} step={{ eyebrow: "Welcome back" }} {...handlers} {...props} />;
+}
+
+function renderCodeForm(props: Partial<CodeFormProps> = {}) {
   const handlers = { onVerify: vi.fn(), onChangeEmail: vi.fn(), onResend: vi.fn() };
+  const { rerender } = render(codeForm(handlers, props));
 
-  render(<CodeForm email={email} eyebrow="Welcome back" sentAt={Date.now()} {...handlers} {...props} />);
-
-  return handlers;
+  return { ...handlers, rerender: (next: Partial<CodeFormProps>) => rerender(codeForm(handlers, { ...props, ...next })) };
 }
 
 function typeCode(code: string) {
-  const boxes = screen.getAllByLabelText("Verification digit");
-
-  fireEvent.paste(boxes[0]!, { clipboardData: { getData: () => code } });
+  fireEvent.paste(digitBoxes()[0]!, { clipboardData: { getData: () => code } });
 }
 
 describe("CodeForm", () => {
@@ -36,11 +38,11 @@ describe("CodeForm", () => {
     expect(screen.getByText(email).tagName).toBe("STRONG");
     expect(screen.getByText(/It expires in 10 minutes/)).toBeInTheDocument();
     expect(screen.getByText("Resend in 1:00")).toBeInTheDocument();
-    expect(screen.getAllByLabelText("Verification digit")[0]).toHaveFocus();
+    expect(digitBoxes()[0]).toHaveFocus();
   });
 
   it("shows the progress bar only when asked", () => {
-    renderCodeForm({ progress: { steps: 3, completed: 2 }, eyebrow: "Step 2 of 3" });
+    renderCodeForm({ step: { eyebrow: "Step 2 of 3", progress: { steps: 3, completed: 2 } } });
 
     expect(screen.getByRole("progressbar", { name: "Step 2 of 3" })).toBeInTheDocument();
   });
@@ -68,7 +70,21 @@ describe("CodeForm", () => {
     renderCodeForm({ message: "That code is not valid or has expired. Request a new one." });
 
     expect(screen.getByRole("alert")).toHaveTextContent("That code is not valid or has expired");
-    expect(screen.getAllByLabelText("Verification digit")[0]).toHaveAttribute("aria-invalid", "true");
+    expect(digitBoxes()[0]).toHaveAttribute("aria-invalid", "true");
+  });
+
+  it("clears the digits when a code is rejected and when a new code is sent", () => {
+    const { rerender } = renderCodeForm();
+
+    typeCode("482913");
+    expect(digitBoxes()[0]).toHaveValue("4");
+
+    rerender({ message: "That code is not valid or has expired. Request a new one." });
+    expect(digitBoxes()[0]).toHaveValue("");
+
+    typeCode("482914");
+    rerender({ message: "That code is not valid or has expired. Request a new one.", delivery: { email, sentAt: Date.now() + 1 } });
+    expect(digitBoxes()[0]).toHaveValue("");
   });
 
   it("goes back to the email step", () => {
@@ -98,6 +114,6 @@ describe("CodeForm", () => {
 
     expect(screen.getByRole("button", { name: "Verify and continue" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Change email" })).toBeDisabled();
-    expect(screen.getAllByLabelText("Verification digit")[0]).toHaveFocus();
+    expect(digitBoxes()[0]).toHaveFocus();
   });
 });

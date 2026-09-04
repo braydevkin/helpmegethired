@@ -27,7 +27,7 @@ async function reachCodeStep() {
 }
 
 function submitCode(code: string) {
-  fireEvent.paste(screen.getAllByLabelText("Verification digit")[0]!, { clipboardData: { getData: () => code } });
+  fireEvent.paste(screen.getAllByLabelText(/^Verification digit \d$/)[0]!, { clipboardData: { getData: () => code } });
   fireEvent.click(screen.getByRole("button", { name: "Verify and continue" }));
 }
 
@@ -76,7 +76,7 @@ describe("SignInFlow", () => {
     submitCode("000000");
 
     expect(await screen.findByRole("alert")).toHaveTextContent("That code is not valid or has expired");
-    expect(screen.getAllByLabelText("Verification digit")[0]).toHaveValue("");
+    expect(screen.getAllByLabelText(/^Verification digit \d$/)[0]).toHaveValue("");
   });
 
   it("goes back to the email screen keeping the email", async () => {

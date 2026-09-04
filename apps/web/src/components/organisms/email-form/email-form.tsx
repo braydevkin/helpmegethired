@@ -17,18 +17,26 @@ export interface StepProgress {
   completed: number;
 }
 
+export interface EmailFormStep {
+  eyebrow: string;
+  progress?: StepProgress;
+}
+
+export interface EmailFormCopy {
+  title: string;
+  lead: string;
+  submitLabel: string;
+}
+
 export type EmailFormAlternative =
   | { presentation: "button"; prompt: string; label: string; href: string }
   | { presentation: "line"; prompt: string; label: string; href: string };
 
 export interface EmailFormProps {
-  eyebrow: string;
-  title: string;
-  lead: string;
-  submitLabel: string;
+  step: EmailFormStep;
+  copy: EmailFormCopy;
   alternative: EmailFormAlternative;
   onSubmit: (email: string) => void;
-  progress?: StepProgress;
   defaultEmail?: string;
   message?: string;
   pending?: boolean;
@@ -36,18 +44,7 @@ export interface EmailFormProps {
 
 const EMAIL_FIELD_ID = "email";
 
-export function EmailForm({
-  eyebrow,
-  title,
-  lead,
-  submitLabel,
-  alternative,
-  onSubmit,
-  progress,
-  defaultEmail,
-  message,
-  pending = false,
-}: EmailFormProps) {
+export function EmailForm({ step, copy, alternative, onSubmit, defaultEmail, message, pending = false }: EmailFormProps) {
   const [fieldError, setFieldError] = useState<string>();
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -66,8 +63,8 @@ export function EmailForm({
 
   return (
     <div className={styles.screen}>
-      {progress && <ProgressBar {...progress} className={styles.progress} />}
-      <ScreenHeading eyebrow={eyebrow} title={title} lead={lead} />
+      {step.progress && <ProgressBar {...step.progress} className={styles.progress} />}
+      <ScreenHeading eyebrow={step.eyebrow} title={copy.title} lead={copy.lead} />
       <form onSubmit={handleSubmit} noValidate aria-busy={pending} className={styles.form}>
         <Field id={EMAIL_FIELD_ID} label="Email address" error={fieldError ?? message}>
           {(control) => (
@@ -83,7 +80,7 @@ export function EmailForm({
           )}
         </Field>
         <Button type="submit" disabled={pending} className={styles.submit}>
-          {submitLabel}
+          {copy.submitLabel}
         </Button>
       </form>
       {alternative.presentation === "button" ? (

@@ -24,7 +24,7 @@
 }
 
 /* Below 900px the brand panel would break the tagline one word per line (design open point 10). */
-@media (max-width: 899px) {
+@media (width <= 899px) {
   .layout .panel {
     display: none;
   }

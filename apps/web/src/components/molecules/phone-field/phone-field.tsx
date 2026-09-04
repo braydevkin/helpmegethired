@@ -11,27 +11,26 @@ export interface DialCodeOption {
   label: string;
 }
 
-export interface PhoneFieldProps {
-  id: string;
-  dialCodes: readonly DialCodeOption[];
-  defaultDialCode: string;
-  dialCodeName: string;
-  numberName: string;
-  label?: string;
-  error?: string;
-  defaultNumber?: string;
+export interface PhoneFieldDialCode {
+  name: string;
+  options: readonly DialCodeOption[];
+  defaultValue: string;
 }
 
-export function PhoneField({
-  id,
-  dialCodes,
-  defaultDialCode,
-  dialCodeName,
-  numberName,
-  label = "Phone",
-  error,
-  defaultNumber,
-}: PhoneFieldProps) {
+export interface PhoneFieldNumber {
+  name: string;
+  defaultValue?: string;
+}
+
+export interface PhoneFieldProps {
+  id: string;
+  dialCode: PhoneFieldDialCode;
+  number: PhoneFieldNumber;
+  label?: string;
+  error?: string;
+}
+
+export function PhoneField({ id, dialCode, number, label = "Phone", error }: PhoneFieldProps) {
   const errorId = useId();
   const invalid = Boolean(error);
 
@@ -41,12 +40,12 @@ export function PhoneField({
       <div className={styles.controls}>
         <Select
           aria-label="Country code"
-          name={dialCodeName}
-          defaultValue={defaultDialCode}
+          name={dialCode.name}
+          defaultValue={dialCode.defaultValue}
           invalid={invalid}
           className={styles.dialCode}
         >
-          {dialCodes.map((option) => (
+          {dialCode.options.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>
@@ -54,12 +53,12 @@ export function PhoneField({
         </Select>
         <TextInput
           id={id}
-          name={numberName}
+          name={number.name}
           type="tel"
           autoComplete="tel-national"
           placeholder="912 345 678"
           density="compact"
-          defaultValue={defaultNumber}
+          defaultValue={number.defaultValue}
           invalid={invalid}
           aria-describedby={error ? errorId : undefined}
           className={styles.number}
