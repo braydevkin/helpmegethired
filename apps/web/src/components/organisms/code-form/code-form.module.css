@@ -25,7 +25,7 @@
   color: var(--color-text-muted);
 }
 
-.changeEmail {
+.change-email {
   padding: 0;
   border: none;
   background: none;
@@ -36,10 +36,10 @@
   cursor: pointer;
 }
 
-.changeEmail:hover:enabled {
+.change-email:hover:enabled {
   color: var(--color-ink);
 }
 
-.changeEmail:disabled {
+.change-email:disabled {
   cursor: progress;
 }
