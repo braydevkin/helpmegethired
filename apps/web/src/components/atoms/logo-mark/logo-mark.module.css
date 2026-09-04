@@ -1,0 +1,13 @@
+.mark {
+  display: grid;
+  place-items: center;
+  width: var(--logo-mark-size);
+  height: var(--logo-mark-size);
+  border-radius: var(--radius-logo);
+  background: var(--color-accent);
+  color: var(--color-brand-deep);
+  font-size: 15px;
+  line-height: var(--leading-control);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}

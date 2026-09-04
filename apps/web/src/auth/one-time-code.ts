@@ -4,6 +4,7 @@ import type { VerifyCodeRequest } from "@helpmegethired/shared";
 import { cookies, headers } from "next/headers";
 
 import { JOURNEY_PATH } from "../app/paths";
+import { SESSION_COOKIE } from "../lib/session-cookie";
 import { authRuntime } from "./auth";
 import { EMAIL_CODE_PROVIDER_ID } from "./email-code-provider";
 
@@ -28,7 +29,8 @@ export async function sendCode(email: string): Promise<void> {
 
 // Verifying the code in-process keeps it out of the browser's URL and lets the
 // form report a wrong or expired code inline instead of following a redirect.
-export async function verifyCode({ email, code }: VerifyCodeRequest): Promise<boolean> {
+// Returns the Session token Auth.js opened, or null for a wrong, expired, or used code.
+export async function verifyCode({ email, code }: VerifyCodeRequest): Promise<string | null> {
   const { config } = authRuntime();
   const requestHeaders = new Headers(await headers());
   const callbackUrl = createActionURL(
@@ -51,15 +53,20 @@ export async function verifyCode({ email, code }: VerifyCodeRequest): Promise<bo
       skipCSRFCheck,
     });
     const cookieJar = await cookies();
+    let sessionToken: string | null = null;
 
     for (const cookie of response.cookies ?? []) {
       cookieJar.set(cookie.name, cookie.value, cookie.options);
+
+      if (cookie.name === SESSION_COOKIE) {
+        sessionToken = cookie.value;
+      }
     }
 
-    return true;
+    return sessionToken;
   } catch (error) {
     if (error instanceof Verification) {
-      return false;
+      return null;
     }
 
     throw error;

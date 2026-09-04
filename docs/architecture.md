@@ -72,8 +72,9 @@ Workspace conventions:
 
 - Next.js with the App Router and TypeScript strict mode, extending `packages/tsconfig/nextjs.json`. Pages live under `src/app`.
 - `pnpm --filter web dev` serves the app; `next build` produces the output that `next start` and the end-to-end tests run against.
-- Unit and component tests run on Vitest with a jsdom environment and Testing Library, next to the code as `*.test.tsx`.
-- Linting combines the shared configuration with the Next.js plugin (`core-web-vitals`) and the React Hooks plugin.
+- Unit and component tests run on Vitest with a jsdom environment and Testing Library, next to the code as `*.test.tsx`. CSS Modules keep their authored class names under Vitest (`classNameStrategy: "non-scoped"`), so a test can assert on them.
+- Linting combines the shared configuration with the Next.js plugin (`core-web-vitals`), the React Hooks plugin, and the app's own `atomic-design/no-upward-stage-imports` rule under `apps/web/eslint/`.
+- Manrope is loaded once with `next/font/google` (weights 400 to 800) in the root layout and exposed as `--font-manrope`; the design tokens from the Account design (palette, type scale, spacing, radii, focus ring, transitions, layout widths) are CSS custom properties in `globals.css`, declared once and read by every component.
 - Pages follow the application flow: sign up and sign in, then the journey (upload resume, LinkedIn URL, profile page, job description, analysis, resume recommendations, study recommendations, mock interview, summary).
 - Because steps are sequential (TC-06), the UI exposes a step as available only when the backend reports the previous step complete. The UI never decides step order on its own.
 - Profile-building progress (TC-04) is shown as a percentage, driven by backend state.
@@ -85,15 +86,18 @@ Shared components live under `src/components`, in one folder per stage of [atomi
 ```
 apps/web/src/
 ├── app/                      pages: page.tsx with real content, route groups and layout.tsx
+│   ├── layout.tsx            root: the Manrope font variable and globals.css, nothing visible
+│   ├── (site)/               home and journey under the site header
+│   └── (account)/            sign in and sign up inside the account template
 └── components/
-    ├── atoms/                button, text input, label, eyebrow, error message, progress bar
-    ├── molecules/            field with label, hint and error; code input; phone field
-    ├── organisms/            email form, code form, identity form, brand panel
-    └── templates/            account template: brand panel beside the centred form column
+    ├── atoms/                button, text input, select, label, eyebrow, hint, error message, progress bar, badge, logo mark, code box
+    ├── molecules/            field; code input; phone field; verified email field; labelled divider; screen heading; resend countdown
+    ├── organisms/            brand panel; email form; code form; identity form; done card
+    └── templates/            account template: brand panel beside the centred form column, panel hidden below 900px
 ```
 
-- A stage imports only from the stages below it: atoms import nothing under `components/`, molecules import atoms, organisms import molecules and atoms, templates import organisms and below. Only pages touch the API client, the Session, and server actions; components receive what they need as props. An ESLint rule in `apps/web` enforces the direction (#32).
-- A route group `layout.tsx` renders a template from `components/templates/`, so the template is a plain component that Vitest renders without the router. Frost's template is not the App Router's reserved `template.tsx`.
+- A stage imports only from the stages below it: atoms import nothing under `components/`, molecules import atoms, organisms import molecules and atoms, templates import organisms and below. Only pages touch the API client, the Session, and server actions; components receive what they need as props. The `atomic-design/no-upward-stage-imports` rule in `apps/web/eslint/` fails the lint on an import that goes up a stage, sideways to another component of the same stage, or into `src/app`; a component may still import its own folder, `src/lib`, packages, and libraries.
+- A route group `layout.tsx` renders a template from `components/templates/`, so the template is a plain component that Vitest renders without the router. Frost's template is not the App Router's reserved `template.tsx`. The `(account)` layout renders `AccountTemplate`; the `(site)` layout renders the header for the home and journey pages, so the root layout stays empty and the brand panel can fill the viewport.
 - One folder per component, kebab-case, with the component and its test inside: `components/molecules/code-input/code-input.tsx` and `code-input.test.tsx`. Imports use the full path to the file; there are no barrel `index.ts` files.
 - `"use client"` sits on the lowest stage that needs browser state. Design tokens are CSS custom properties in `globals.css`, not components.
 - The design pages in the [GitHub Wiki](https://github.com/braydevkin/helpmegethired/wiki) list the components of each screen by stage, and the review checks the tree against that list.
@@ -102,12 +106,14 @@ apps/web/src/
 
 Sign in and sign up are passwordless (ADR-0017). Auth.js runs the one-time code flow inside the web app, and the web app is the only client of the API, talking to it from the server side, so the browser never handles the Session token:
 
-- `/sign-up` and `/sign-in` render one `OneTimeCodeForm` with two steps. The email step parses the field with `SendCodeSchema` from `packages/shared` before anything is sent; the server action asks Auth.js to send a code to that email. The code step parses `VerifyCodeSchema`; the server action verifies the code in-process and either redirects to `/journey` or answers the form with one message for a wrong, expired, or used code. "Change email" returns to the first step.
+- `/sign-in` renders `SignInFlow`, a client component next to the page that switches between the `EmailForm` and `CodeForm` organisms and passes the server actions down. `EmailForm` parses the field with `SendCodeSchema` from `packages/shared` before anything is sent, and `sendCodeAction` asks Auth.js to send a code to that email. `CodeForm` parses `VerifyCodeSchema` from its six digit boxes; `signInWithCodeAction` verifies the code in-process, then redirects to `/journey`, or to `/sign-up` when the Account has no name yet (open point 8), or answers with one message for a wrong, expired, or used code, shown under the boxes. "Change email" returns to the first step with the email kept; the resend link is a 60 second countdown that sends a new code when it ends.
+- `/sign-up` renders `SignUpFlow` with the same two organisms under a three-step progress bar, then `IdentityForm` (name, last name, the verified email read-only with its badge, phone with the dial code select showing the ISO country as text, optional address with its hint; no Terms sentence until the documents exist) and `DoneCard` ("You're in, {name}", "Go to my dashboard" to `/journey`). `verifyCodeAction` opens the Session and stays on the page; `saveAccountInformationAction` parses `AccountInformationSchema` and calls `PATCH /auth/account`. `signUpStart` picks the first step on the server: a Session without a name means step 3, a pending email means step 2, otherwise step 1.
+- `sendCodeAction` remembers the email in the `pending-email` cookie (HTTP-only, `SameSite=Lax`, living as long as the code) so a reload of the code step keeps it; verifying the code deletes the cookie (open point 11).
 - `src/auth` holds the Auth.js setup: `authRuntime()` builds the configuration on first use from `AUTH_SECRET` and `DATABASE_URL` (validated by `readAuthEnvironment`), the `email-code` provider generates 6-digit codes with a 10 minute expiry, `AccountAdapter` maps Auth.js onto `accounts`, `sessions`, and `verification_tokens` through Kysely, and `one-time-code.ts` exposes `sendCode` and `verifyCode`. There is no `/api/auth/*` route: both steps are server actions.
 - Delivery goes through the `CodeSender` abstraction (ADR-0018). With `AUTH_RESEND_KEY` set, `ResendCodeSender` posts the email rendered by `renderCodeEmail` (plain text and HTML, the design tokens inlined, no embedded font) to Resend's HTTP API from the address in `EMAIL_FROM`. Without the key the `DevelopmentCodeSender` logs the code and keeps the last one per email, readable at `GET /development/verification-code?email=` outside production so the end-to-end tests can finish the flow; a production configuration without the key refuses to start with a message naming the two variables.
 - A verified code opens a database Session of 12 hours whose token Auth.js stores in the cookie named `session`: HTTP-only, `SameSite=Lax`, `Path=/`, `Secure` in production, expiring with the Session. The adapter stores only the SHA-256 hash of the token in `sessions.token_hash`, which is what the API validates. Server components and actions read the cookie with `readSessionToken()` and send it to the API as `Authorization: Bearer`.
 - `/journey` is the first authenticated page. It asks the API for the Account behind the cookie and redirects to `/sign-in` when the API no longer accepts the token. Sign out is a server action that deletes the Session at the API, clears the cookie, and redirects to `/sign-in`.
-- `src/proxy.ts` handles the redirects before a page renders: an authenticated path without the cookie goes to `/sign-in`; the forms with a cookie go to `/journey` when the API still accepts the token, and otherwise the stale cookie is cleared and the form is shown.
+- `src/proxy.ts` handles the redirects before a page renders: an authenticated path without the cookie goes to `/sign-in`; with a cookie the proxy asks the API for the Account: a stale token is cleared (and an authenticated path goes to `/sign-in`), an Account without a name is sent to `/sign-up` from every other path so the account information step is finished first, and a complete Account is sent from the forms to `/journey`.
 - The API origin comes from `API_URL`, read on the server only, defaulting to `http://localhost:3001` for a native `next dev`. The compose stack sets it to `http://api:3001` and gives the web app the same `DATABASE_URL` as the API. The variables are listed in `apps/web/.env.example`.
 
 ## Backend (apps/api)
@@ -266,12 +272,12 @@ Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow leve
 
   `.env.example` is the configuration in CI, so it must stay complete and valid. A new run for the same pull request cancels the previous one.
 - **`Release document` on every pull request to `main`**: fails unless the pull request adds or changes a `docs/releases/vX.Y.Z.md`.
-- **`Codacy Static Code Analysis` on every pull request and on every push to `develop` and `main`** ([ADR-0016](adr/0016-codacy-static-analysis.md)): Codacy Cloud analyses the commit in its own cloud, triggered by the repository webhook, and reports the result as a commit status. No workflow, secret, or CI minute is involved, so the check also runs on pull requests from forks. It fails when the pull request introduces a new issue or a new security issue of at least medium severity (the `Help Me Get Hired` gate policy, [ADR-0019](adr/0019-codacy-review-scope.md)); minor findings, complexity, duplication, and coverage are reported but do not gate.
+- **`Codacy Static Code Analysis` on every pull request and on every push to `develop` and `main`** ([ADR-0016](adr/0016-codacy-static-analysis.md)): Codacy Cloud analyses the commit in its own cloud, triggered by the repository webhook, and reports the result as a commit status. No workflow, secret, or CI minute is involved, so the check also runs on pull requests from forks. It fails when the pull request introduces at least one new issue (the organisation's default `Codacy Gate Policy`); complexity, duplication, and coverage are reported but do not gate.
 
   | Tool | Looks at | Configuration |
   | --- | --- | --- |
   | ESLint 9 | TypeScript and JavaScript | The repository's `eslint.config.*` files, so the findings match `pnpm lint` |
-  | Opengrep | Security and secrets, every language (Semgrep rules) | Codacy defaults minus two patterns |
+  | Opengrep | Security and secrets, every language (Semgrep rules) | Codacy defaults minus two patterns; `*.test.ts`, `*.test.tsx`, and `e2e/` excluded in `.codacy.yml` because fixtures hold literal passwords |
   | Trivy | Vulnerable dependencies | Codacy defaults |
   | Checkov | Docker Compose and GitHub Actions | Codacy defaults |
   | Hadolint | Dockerfiles | Codacy defaults |
@@ -282,7 +288,7 @@ Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow leve
   | Spectral | OpenAPI documents | Codacy defaults |
   | Jackson Linter | JSON | Codacy defaults |
 
-  `.codacy.yml` at the root holds what the repository can express itself: paths excluded from every tool (`arch/`, build output, and the test files `*.test.ts`, `*.test.tsx`, `*.spec.ts`, and `e2e/`, which `pnpm lint` still checks in `CI`) and the per-tool exclusions. `pnpm-lock.yaml` is excluded from Lizard only, so its length is not a finding while Trivy still reads it to resolve the exact dependency versions. Five settings live in Codacy and are reproduced with the Codacy Cloud CLI from a clone of the repository:
+  `.codacy.yml` at the root holds what the repository can express itself: paths excluded from every tool (`arch/`, build output) and the per-tool exclusions. `pnpm-lock.yaml` is excluded from Lizard only, so its length is not a finding while Trivy still reads it to resolve the exact dependency versions. Five settings live in Codacy and are reproduced with the Codacy Cloud CLI from a clone of the repository:
 
   ```sh
   codacy tool Agentlinter --disable
@@ -293,8 +299,6 @@ Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow leve
   ```
 
   Agentlinter grades `CLAUDE.md` as an agent prompt, which is not code quality. The two Stylelint patterns are SCSS rules that report "unknown rule" on every plain CSS file. The dependency-versions pattern flags every caret range in a `package.json` while `pnpm-lock.yaml` already pins what `CI` installs with `--frozen-lockfile`. The Terraform password pattern matches the `password` autocomplete attributes of the sign-in form. That is the bar for disabling a pattern: it is wrong for the stack as a whole, not for one line. A false positive on a single line is ignored with a reason (`codacy issue <id> --ignore --ignore-reason "..."`) and the pattern stays on. `codacy tools` and `codacy patterns <tool> --enabled` list the live configuration.
-
-  Two settings have no CLI command and are set in the Codacy UI. The gate policy `Help Me Get Hired` (organisation **Policies**, tab **Gate policies**) sets `New issues are over 0` and `New security issues are over 0`, both at `Medium` severity, leaves complexity, duplication, and coverage unset, is applied to this repository, and is the organisation default; the built-in `Codacy Gate Policy` cannot be edited. In the repository **Settings > Integrations > GitHub**, `Pull request summary` and `AI Reviewer` are on with `Run reviewer` set to `Automatically (first review only)`: the reviewer posts one review when the pull request opens and runs again only from `Run Reviewer` in the summary comment. The reviewer reads `.codacy/instructions/review.md`, which describes the repository and puts test files and low-risk suggestions out of scope. Every open Codacy comment of medium or higher severity is fixed, or answered and ignored with a reason, before review is requested (see [workflow.md](workflow.md), "Pull requests").
 - **`Board` on pull request and issue events**: keeps the project board in step with GitHub activity (see [workflow.md](workflow.md), "Task lifecycle"). A pull request that is opened, reopened, marked ready for review, or edited moves itself and every issue it closes (`Closes #n`) to **In review**; a merged pull request moves them to **Done**; a closed issue moves to **Done**. Draft pull requests and pull requests closed without merging move nothing. The logic is `.github/scripts/board.js`, run with `actions/github-script`. It needs a `PROJECT_TOKEN` repository secret: a personal access token of a collaborator with `project` scope (classic) or read and write access to the project (fine-grained), because the workflow token cannot edit a project board. The workflow runs on `pull_request_target`, so it always executes the script from the base branch and works for pull requests from forks.
 - **Branch protection**: `main` and `develop` require the five `CI` checks and `Codacy Static Code Analysis`; `main` also requires `Release document`.
 - **On merge to `develop`**: build images and deploy to the **test environment**. Pending the deployment target decision.

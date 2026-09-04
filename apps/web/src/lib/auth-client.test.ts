@@ -48,4 +48,27 @@ describe("AuthClient", () => {
       expect.objectContaining({ method: "POST", headers: { authorization: `Bearer ${token}` } }),
     );
   });
+
+  it("saves the Account information with a JSON body and answers the updated Account", async () => {
+    const information = { name: "Ada", lastName: "Lovelace", phone: { countryCode: "+44" as const, number: "7700900123" }, address: null };
+    const { client, fetchImplementation } = clientAnswering(200, { ...account, ...information });
+
+    expect(await client.updateAccount(token, information)).toMatchObject(information);
+    expect(fetchImplementation).toHaveBeenCalledWith(
+      "http://api.test/auth/account",
+      expect.objectContaining({
+        method: "PATCH",
+        headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+        body: JSON.stringify(information),
+      }),
+    );
+  });
+
+  it("answers undefined when the API refuses the Account information", async () => {
+    const { client } = clientAnswering(400, { statusCode: 400, message: "Name is required" });
+
+    expect(
+      await client.updateAccount(token, { name: "", lastName: "", phone: { countryCode: "+351" as const, number: "1" }, address: null }),
+    ).toBeUndefined();
+  });
 });
