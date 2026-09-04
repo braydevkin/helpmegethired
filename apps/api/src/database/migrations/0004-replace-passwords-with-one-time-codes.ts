@@ -1,8 +1,6 @@
 import type { Kysely } from "kysely";
 import type { Migration } from "kysely/migration";
 
-const unverifiablePasswordHash = "";
-
 export const replacePasswordsWithOneTimeCodes: Migration = {
   async up(database: Kysely<unknown>) {
     await database.schema.alterTable("accounts").dropColumn("password_hash").execute();
@@ -39,9 +37,10 @@ export const replacePasswordsWithOneTimeCodes: Migration = {
       .dropColumn("email_verified_at")
       .execute();
 
+    // Existing rows get an empty hash that no password can verify against; the default is dropped right after.
     await database.schema
       .alterTable("accounts")
-      .addColumn("password_hash", "text", (column) => column.notNull().defaultTo(unverifiablePasswordHash))
+      .addColumn("password_hash", "text", (column) => column.notNull().defaultTo(""))
       .execute();
 
     await database.schema
