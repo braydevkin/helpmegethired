@@ -1,7 +1,7 @@
 import path from "node:path";
 
 const STAGES = ["atoms", "molecules", "organisms", "templates"];
-const COMPONENT_PATH = /(?:^|\/)src\/components\/(atoms|molecules|organisms|templates)\/([^/]+)(?:\/|$)/;
+const COMPONENT_PATH = /(?:^|\/)(?:src\/)?components\/(atoms|molecules|organisms|templates)\/([^/]+)(?:\/|$)/;
 const PAGE_PATH = /(?:^|\/)src\/app(?:\/|$)/;
 
 function placeOf(filePath) {

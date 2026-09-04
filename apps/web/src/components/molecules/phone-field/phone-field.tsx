@@ -43,7 +43,7 @@ export function PhoneField({ id, dialCode, number, label = "Phone", error }: Pho
           name={dialCode.name}
           defaultValue={dialCode.defaultValue}
           invalid={invalid}
-          className={styles.dialCode}
+          className={styles["dial-code"]}
         >
           {dialCode.options.map((option) => (
             <option key={option.value} value={option.value}>

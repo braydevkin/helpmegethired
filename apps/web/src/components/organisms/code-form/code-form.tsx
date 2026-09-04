@@ -84,7 +84,7 @@ export function CodeForm({ delivery, step, onVerify, onChangeEmail, onResend, me
         </Button>
       </form>
       <div className={styles.actions}>
-        <button type="button" onClick={onChangeEmail} disabled={pending} className={styles.changeEmail}>
+        <button type="button" onClick={onChangeEmail} disabled={pending} className={styles["change-email"]}>
           <span aria-hidden="true">← </span>Change email
         </button>
         <ResendCountdown sentAt={delivery.sentAt} onResend={onResend} disabled={pending} />

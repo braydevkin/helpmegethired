@@ -16,12 +16,12 @@
   margin-top: var(--space-button-gap);
 }
 
-.footerLine {
+.footer-line {
   margin-top: var(--space-footer-gap-wide);
   font-size: var(--text-link-line);
   color: var(--color-text-muted);
 }
 
-.footerLine a {
+.footer-line a {
   font-weight: 700;
 }

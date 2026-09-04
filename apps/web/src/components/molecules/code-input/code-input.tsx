@@ -104,7 +104,7 @@ export function CodeInput({
   };
 
   return (
-    <div className={styles.codeInput}>
+    <div className={styles["code-input"]}>
       <fieldset aria-label="Verification code" aria-describedby={error ? errorId : undefined} className={styles.boxes}>
         {digits.map((digit, index) => (
           <CodeBox

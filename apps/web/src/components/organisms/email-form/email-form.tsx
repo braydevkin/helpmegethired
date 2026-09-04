@@ -91,7 +91,7 @@ export function EmailForm({ step, copy, alternative, onSubmit, defaultEmail, mes
           </Button>
         </>
       ) : (
-        <p className={styles.footerLine}>
+        <p className={styles["footer-line"]}>
           {alternative.prompt} <Link href={alternative.href}>{alternative.label}</Link>
         </p>
       )}
