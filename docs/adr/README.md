@@ -25,6 +25,7 @@ Use [template.md](template.md). Number sequentially. Status is one of `Proposed`
 | [0015](0015-atomic-design-frontend-components.md) | Atomic design for frontend components | Accepted |
 | [0016](0016-codacy-static-analysis.md) | Codacy Cloud for static analysis and quality gates | Accepted |
 | [0017](0017-passwordless-sign-in-with-auth-js-one-time-codes.md) | Passwordless sign in with Auth.js one-time email codes | Accepted |
+| [0018](0018-resend-transactional-email-with-logging-fallback.md) | Resend delivers transactional email, the logging sender is the local fallback | Accepted |
 
 ## Pending decisions
 
