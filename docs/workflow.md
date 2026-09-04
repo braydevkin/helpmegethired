@@ -115,7 +115,7 @@ Common rules:
 - Fill in every section of the template. Empty sections are a review blocker.
 - Tag the people working on the change in the "Working on this" section. PR descriptions describe the work, not the tools used to produce it.
 - CI must be green: lint, typecheck, unit, integration, e2e. The `Codacy Static Code Analysis` check must be green too: a pull request adds no new Codacy issue of medium or higher severity (see [architecture.md](architecture.md#cicd)). Read the findings with `codacy pull-request <n>` before asking for review.
-- Every open Codacy comment of medium or higher severity, from the AI Reviewer or an issue annotation, is fixed before review is requested. A comment that is not a defect is answered in its thread with the reason and ignored with `codacy pull-request <n> --ignore-issue <id> --ignore-reason <reason>`. None stays open. The AI Reviewer runs once, when the pull request opens; after the fixes, a second pass is requested with `Run Reviewer` in the summary comment only when someone wants one.
+- Every open Codacy comment of medium or higher severity, from the AI Reviewer or an issue annotation, is fixed before review is requested. A comment that is not a defect is answered in its thread with the reason and ignored with `codacy issue <id> --ignore --ignore-reason <reason>`. None stays open. The AI Reviewer runs once, when the pull request opens; after the fixes, a second pass is requested with `Run Reviewer` in the summary comment only when someone wants one.
 - Reviewer checks the acceptance criteria from the issue, not just the diff.
 
 ## Releases
