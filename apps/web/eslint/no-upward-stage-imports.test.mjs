@@ -40,6 +40,7 @@ describe("no-upward-stage-imports", () => {
   it.each([
     ["package path", 'import { BrandPanel } from "@helpmegethired/web/src/components/organisms/brand-panel/brand-panel";', "cannot import from the organisms stage"],
     ["alias", 'import { oneTimeCodeAction } from "@/src/app/(account)/actions";', "cannot import from src/app"],
+    ["alias that drops src", 'import { BrandPanel } from "@/components/organisms/brand-panel/brand-panel";', "cannot import from the organisms stage"],
   ])("rejects a higher stage reached through a %s instead of a relative path", (_label, source, message) => {
     expect(messagesFor(source, component("molecules", "field"))[0]?.message).toContain(message);
   });

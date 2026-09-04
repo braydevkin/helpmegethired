@@ -9,7 +9,7 @@
   gap: var(--space-code-gap);
 }
 
-.dialCode {
+.dial-code {
   flex: 0 0 var(--dial-code-width);
   width: var(--dial-code-width);
 }

@@ -30,7 +30,7 @@ export function Field({ id, label, hint, error, optional = false, className, chi
 
   return (
     <div className={classNames(styles.field, className)}>
-      <div className={styles.labelRow}>
+      <div className={styles["label-row"]}>
         <Label htmlFor={id}>{label}</Label>
         {optional && <span className={styles.optional}>Optional</span>}
       </div>
