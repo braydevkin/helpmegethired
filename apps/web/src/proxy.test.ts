@@ -34,6 +34,12 @@ describe("proxy", () => {
     expect(currentAccount).not.toHaveBeenCalled();
   });
 
+  it("redirects on the request's own origin and drops the query string", async () => {
+    const response = await proxy(new NextRequest("http://web.test/journey?next=https://evil.test"));
+
+    expect(response.headers.get("location")).toBe("http://web.test/sign-in");
+  });
+
   it("leaves the forms alone for a visitor without a cookie", async () => {
     const response = await proxy(requestFor("/sign-in"));
 

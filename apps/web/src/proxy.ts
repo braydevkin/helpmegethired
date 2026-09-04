@@ -6,7 +6,16 @@ import { SESSION_COOKIE } from "./lib/session-cookie";
 
 const startsWithAny = (pathname: string, paths: string[]) => paths.some((path) => pathname.startsWith(path));
 
-const redirectTo = (path: string, request: NextRequest) => NextResponse.redirect(new URL(path, request.url));
+// The destination is always one of our own paths on the request's own origin: only the
+// pathname changes, so no value can ever send a Candidate to another site.
+function redirectTo(path: string, request: NextRequest): NextResponse {
+  const destination = request.nextUrl.clone();
+
+  destination.pathname = path;
+  destination.search = "";
+
+  return NextResponse.redirect(destination);
+}
 
 const withoutSession = (response: NextResponse) => {
   response.cookies.delete(SESSION_COOKIE);
