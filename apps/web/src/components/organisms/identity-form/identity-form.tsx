@@ -91,10 +91,8 @@ export function IdentityForm({ email, dialCodes, defaultDialCode, onSubmit, mess
         <VerifiedEmailField id="email" email={email} />
         <PhoneField
           id="phoneNumber"
-          dialCodes={dialCodes}
-          defaultDialCode={defaultDialCode}
-          dialCodeName="phoneCountryCode"
-          numberName="phoneNumber"
+          dialCode={{ name: "phoneCountryCode", options: dialCodes, defaultValue: defaultDialCode }}
+          number={{ name: "phoneNumber" }}
           error={errors.phone}
         />
         <Field

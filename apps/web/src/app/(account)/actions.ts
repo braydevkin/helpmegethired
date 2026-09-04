@@ -22,6 +22,7 @@ export type AccountInformationRequest = z.input<typeof AccountInformationSchema>
 
 const CODE_NOT_SENT_MESSAGE = "We could not send your code. Try again in a moment.";
 const CODE_REJECTED_MESSAGE = "That code is not valid or has expired. Request a new one.";
+const CODE_NOT_CHECKED_MESSAGE = "We could not check your code. Try again in a moment.";
 const SESSION_EXPIRED_MESSAGE = "Your session has expired. Sign in again to continue.";
 const INFORMATION_NOT_SAVED_MESSAGE = "We could not save your details. Check them and try again.";
 
@@ -54,7 +55,13 @@ async function verifyParsedCode(request: VerifyCodeRequest): Promise<{ token: st
     return { message: firstMessage(parsed.error.issues) };
   }
 
-  const token = await verifyCode(parsed.data);
+  let token: string | null;
+
+  try {
+    token = await verifyCode(parsed.data);
+  } catch {
+    return { message: CODE_NOT_CHECKED_MESSAGE };
+  }
 
   if (!token) {
     return { message: CODE_REJECTED_MESSAGE };
@@ -73,6 +80,17 @@ export async function verifyCodeAction(request: VerifyCodeRequest): Promise<Acti
 
 // A verified code is the sign in. An Account that has not given its name yet
 // continues to the account information step instead of the journey (design open point 8).
+// When the lookup fails the journey page repeats it, so nothing is lost by going there.
+async function destinationAfterSignIn(token: string): Promise<string> {
+  try {
+    const account = await authClient.currentAccount(token);
+
+    return account?.name ? JOURNEY_PATH : SIGN_UP_PATH;
+  } catch {
+    return JOURNEY_PATH;
+  }
+}
+
 export async function signInWithCodeAction(request: VerifyCodeRequest): Promise<ActionResult> {
   const outcome = await verifyParsedCode(request);
 
@@ -80,9 +98,7 @@ export async function signInWithCodeAction(request: VerifyCodeRequest): Promise<
     return failure(outcome.message);
   }
 
-  const account = await authClient.currentAccount(outcome.token);
-
-  redirect(account?.name ? JOURNEY_PATH : SIGN_UP_PATH);
+  redirect(await destinationAfterSignIn(outcome.token));
 }
 
 export async function saveAccountInformationAction(request: AccountInformationRequest): Promise<ActionResult> {
@@ -98,9 +114,13 @@ export async function saveAccountInformationAction(request: AccountInformationRe
     return failure(SESSION_EXPIRED_MESSAGE);
   }
 
-  const account = await authClient.updateAccount(token, parsed.data);
+  try {
+    const account = await authClient.updateAccount(token, parsed.data);
 
-  return account ? { ok: true } : failure(INFORMATION_NOT_SAVED_MESSAGE);
+    return account ? { ok: true } : failure(INFORMATION_NOT_SAVED_MESSAGE);
+  } catch {
+    return failure(INFORMATION_NOT_SAVED_MESSAGE);
+  }
 }
 
 export async function signOutAction(): Promise<void> {

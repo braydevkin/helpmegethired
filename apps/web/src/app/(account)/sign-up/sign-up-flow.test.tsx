@@ -23,7 +23,7 @@ function renderFlow(start: Parameters<typeof SignUpFlow>[0]["start"] = { step: "
 const fill = (label: string, value: string) => fireEvent.change(screen.getByLabelText(label), { target: { value } });
 
 function submitCode(code: string) {
-  fireEvent.paste(screen.getAllByLabelText("Verification digit")[0]!, { clipboardData: { getData: () => code } });
+  fireEvent.paste(screen.getAllByLabelText(/^Verification digit \d$/)[0]!, { clipboardData: { getData: () => code } });
   fireEvent.click(screen.getByRole("button", { name: "Verify and continue" }));
 }
 
