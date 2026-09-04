@@ -40,7 +40,9 @@ const information: AccountInformationRequest = {
 const notChecked = "We could not check your code. Try again in a moment.";
 const notSaved = "We could not save your details. Check them and try again.";
 
-beforeEach(() => vi.clearAllMocks());
+beforeEach(() => {
+  vi.clearAllMocks();
+});
 
 describe("verifyCodeAction", () => {
   it("accepts a verified code", async () => {
@@ -66,7 +68,9 @@ describe("verifyCodeAction", () => {
 });
 
 describe("signInWithCodeAction", () => {
-  beforeEach(() => vi.mocked(verifyCode).mockResolvedValue("session-token"));
+  beforeEach(() => {
+    vi.mocked(verifyCode).mockResolvedValue("session-token");
+  });
 
   it("continues to the journey when the Account has a name", async () => {
     vi.mocked(authClient.currentAccount).mockResolvedValue(account);
@@ -101,7 +105,9 @@ describe("signInWithCodeAction", () => {
 });
 
 describe("saveAccountInformationAction", () => {
-  beforeEach(() => vi.mocked(readSessionToken).mockResolvedValue("session-token"));
+  beforeEach(() => {
+    vi.mocked(readSessionToken).mockResolvedValue("session-token");
+  });
 
   it("saves valid information", async () => {
     vi.mocked(authClient.updateAccount).mockResolvedValue(account);
