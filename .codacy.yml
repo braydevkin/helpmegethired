@@ -1,0 +1,16 @@
+---
+exclude_paths:
+  - "pnpm-lock.yaml"
+  - "arch/**"
+  - "**/dist/**"
+  - "**/coverage/**"
+  - "**/.next/**"
+  - "**/.turbo/**"
+  - "**/next-env.d.ts"
+
+engines:
+  opengrep:
+    exclude_paths:
+      - "**/*.test.ts"
+      - "**/*.test.tsx"
+      - "e2e/**"
