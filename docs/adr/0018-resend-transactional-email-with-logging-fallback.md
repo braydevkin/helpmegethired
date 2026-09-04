@@ -1,4 +1,4 @@
-# ADR-0017: Resend delivers transactional email, the logging sender is the local fallback
+# ADR-0018: Resend delivers transactional email, the logging sender is the local fallback
 
 - **Status:** Accepted
 - **Date:** 2026-09-03
@@ -6,9 +6,9 @@
 
 ## Context
 
-ADR-0016 moved sign in to one-time codes sent by email and left delivery behind the `CodeSender` abstraction: #30 shipped a development sender that logs the code and keeps the last one per email for the end-to-end tests, and made production refuse to start without a real sender. The Account system design ([Design: Account](https://github.com/braydevkin/helpmegethired/wiki/Design-Account)) names Resend as the provider. #31 adds that sender.
+ADR-0017 moved sign in to one-time codes sent by email and left delivery behind the `CodeSender` abstraction: #30 shipped a development sender that logs the code and keeps the last one per email for the end-to-end tests, and made production refuse to start without a real sender. The Account system design ([Design: Account](https://github.com/braydevkin/helpmegethired/wiki/Design-Account)) names Resend as the provider. #31 adds that sender.
 
-The forces from ADR-0013 and ADR-0016 still apply: no paid service for contributors, `docker compose up` and CI must run the whole flow with no third-party account or key, and nothing sensitive may reach the repository. Two more come with email:
+The forces from ADR-0013 and ADR-0017 still apply: no paid service for contributors, `docker compose up` and CI must run the whole flow with no third-party account or key, and nothing sensitive may reach the repository. Two more come with email:
 
 - **Deliverability**: a code that lands in spam or arrives after its 10 minute expiry breaks sign in. The sender address must belong to a domain the provider has verified, so it cannot be a default baked into the code.
 - **The rendered email is part of the design.** The Account design defines the tokens and the type; the email follows them, but email clients ignore stylesheets and web fonts, so Manrope is not embedded and the styles are inlined.
@@ -26,7 +26,7 @@ The forces from ADR-0013 and ADR-0016 still apply: no paid service for contribut
 ## Alternatives considered
 
 - **The `resend` npm package**: a typed client for one endpoint we call with five fields. It would be a new dependency to track for a request the unit tests stub anyway; the HTTP call is small enough to own.
-- **Auth.js's built-in Resend provider**: it sends a magic link, not a code, and would bypass the `CodeSender` abstraction that keeps the logging sender and the tests working. The custom provider from ADR-0016 stays.
+- **Auth.js's built-in Resend provider**: it sends a magic link, not a code, and would bypass the `CodeSender` abstraction that keeps the logging sender and the tests working. The custom provider from ADR-0017 stays.
 - **SMTP through Nodemailer, with Resend's SMTP relay in production**: one transport for every environment and a local catcher for free, but a new dependency and a second delivery path Resend treats as secondary. The HTTP API is Resend's primary interface and needs nothing installed.
 - **A local SMTP catcher (Mailpit or MailHog) in Docker Compose**: it shows the rendered email in a browser, but only over SMTP, a transport this project does not use, so it would exercise a different sender than production. The rendered email is covered by unit tests and a maintainer can send a real one by setting the key locally; a catcher can be added later if seeing the email in the local stack becomes a need.
 
@@ -34,4 +34,4 @@ The forces from ADR-0013 and ADR-0016 still apply: no paid service for contribut
 
 - Positive: production sign in works with two variables; the local stack, CI, and contributors need no Resend account; the sender abstraction from #30 is unchanged; no dependency is added; the email follows the design tokens and degrades to the system font.
 - Negative: delivery depends on a third-party service and on the domain verification done in Resend's dashboard, outside the repository; the HTML template is maintained by hand without a preview in the local stack; a rejected send is reported to the Candidate only as "try again", with the detail in the server logs.
-- Follow-ups: verify the sending domain and set `AUTH_RESEND_KEY` and `EMAIL_FROM` in the test and production environments once the deployment target is decided; rate limiting on sending codes (ADR-0016) matters more now that each send costs a provider call; revisit the catcher if the team wants to see the rendered email locally.
+- Follow-ups: verify the sending domain and set `AUTH_RESEND_KEY` and `EMAIL_FROM` in the test and production environments once the deployment target is decided; rate limiting on sending codes (ADR-0017) matters more now that each send costs a provider call; revisit the catcher if the team wants to see the rendered email locally.
