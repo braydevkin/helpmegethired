@@ -4,20 +4,12 @@ import { APP_GUARD } from "@nestjs/core";
 import { AccountRepository } from "./account.repository";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
-import { PasswordHasher } from "./password-hasher";
-import { ScryptPasswordHasher } from "./scrypt-password-hasher";
 import { SessionGuard } from "./session.guard";
 import { SessionRepository } from "./session.repository";
 
 @Module({
   controllers: [AuthController],
-  providers: [
-    AccountRepository,
-    SessionRepository,
-    AuthService,
-    { provide: PasswordHasher, useClass: ScryptPasswordHasher },
-    { provide: APP_GUARD, useClass: SessionGuard },
-  ],
-  exports: [AccountRepository, AuthService],
+  providers: [AccountRepository, SessionRepository, AuthService, { provide: APP_GUARD, useClass: SessionGuard }],
+  exports: [AccountRepository, SessionRepository, AuthService],
 })
 export class AuthModule {}

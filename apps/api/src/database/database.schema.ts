@@ -4,7 +4,12 @@ import type { IngestionStatus, SegmentStatus } from "@helpmegethired/shared";
 export interface AccountsTable {
   id: Generated<string>;
   email: string;
-  password_hash: string;
+  name: string | null;
+  last_name: string | null;
+  phone_country_code: string | null;
+  phone_number: string | null;
+  address: string | null;
+  email_verified_at: Date | null;
   created_at: Generated<Date>;
 }
 
@@ -21,6 +26,14 @@ export interface SessionsTable {
 
 export type SessionRow = Selectable<SessionsTable>;
 export type NewSessionRow = Insertable<SessionsTable>;
+
+export interface VerificationTokensTable {
+  identifier: string;
+  token_hash: string;
+  expires_at: Date;
+}
+
+export type VerificationTokenRow = Selectable<VerificationTokensTable>;
 
 export interface IngestionsTable {
   id: Generated<string>;
@@ -57,6 +70,7 @@ export type NewIngestionSegmentRow = Insertable<IngestionSegmentsTable>;
 export interface DatabaseSchema {
   accounts: AccountsTable;
   sessions: SessionsTable;
+  verification_tokens: VerificationTokensTable;
   ingestions: IngestionsTable;
   ingestion_segments: IngestionSegmentsTable;
 }

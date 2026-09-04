@@ -55,7 +55,6 @@ describe("profile ingestion through pg-boss", () => {
 
     const account = await context.get(AccountRepository).create({
       email: `${crypto.randomUUID()}@candidate.example`,
-      passwordHash: "scrypt$32768$8$1$c2FsdA==$a2V5",
     });
 
     accountId = account.id;

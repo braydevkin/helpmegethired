@@ -65,11 +65,15 @@ services:
     environment:
       NODE_ENV: development
       API_URL: http://api:3001
+      DATABASE_URL: *database-url
+      AUTH_SECRET: ${AUTH_SECRET:?}
     ports:
       - "${WEB_PORT:?}:3000"
     volumes:
       - ./apps/web/src:/workspace/apps/web/src
     depends_on:
+      migrate:
+        condition: service_completed_successfully
       api:
         condition: service_healthy
     healthcheck:

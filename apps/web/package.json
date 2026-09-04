@@ -10,13 +10,19 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "next typegen && tsc --noEmit",
-    "test": "vitest run"
+    "test": "vitest run --project unit",
+    "test:integration": "vitest run --project integration"
   },
   "dependencies": {
+    "@auth/core": "0.41.3",
     "@helpmegethired/shared": "workspace:*",
+    "kysely": "^0.29.5",
     "next": "^16.3.4",
+    "next-auth": "5.0.0-beta.32",
+    "pg": "^8.23.0",
     "react": "^19.2.8",
-    "react-dom": "^19.2.8"
+    "react-dom": "^19.2.8",
+    "zod": "catalog:"
   },
   "devDependencies": {
     "@helpmegethired/eslint-config": "workspace:*",
@@ -26,6 +32,7 @@
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@types/node": "catalog:",
+    "@types/pg": "^8.23.1",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.5",
     "@vitejs/plugin-react": "^6.1.1",

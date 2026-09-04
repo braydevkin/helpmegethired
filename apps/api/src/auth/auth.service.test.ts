@@ -1,41 +1,48 @@
-import { ConflictException, UnauthorizedException } from "@nestjs/common";
+import { UnauthorizedException } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { AuthenticatedAccountSchema, type Account } from "@helpmegethired/shared";
+import type { Account, AccountInformation } from "@helpmegethired/shared";
 import { beforeEach, describe, expect, it } from "vitest";
 
-import { AccountRepository, DuplicateEmailError, type NewAccount } from "./account.repository";
+import { AccountRepository } from "./account.repository";
 import { AuthService } from "./auth.service";
-import { PasswordHasher } from "./password-hasher";
 import { SessionRepository, type NewSession } from "./session.repository";
 import { hashSessionToken } from "./session-token";
 
-class TransparentPasswordHasher extends PasswordHasher {
-  hash(password: string): Promise<string> {
-    return Promise.resolve(`hashed:${password}`);
-  }
+const account: Account = {
+  id: crypto.randomUUID(),
+  email: "ada@example.com",
+  name: null,
+  lastName: null,
+  phone: null,
+  address: null,
+  createdAt: new Date().toISOString(),
+};
 
-  verify(password: string, hash: string): Promise<boolean> {
-    return Promise.resolve(hash === `hashed:${password}`);
-  }
-}
+const information: AccountInformation = {
+  name: "Ada",
+  lastName: "Lovelace",
+  phone: { countryCode: "+44", number: "7700900123" },
+  address: null,
+};
+
+const inAnHour = () => new Date(Date.now() + 60 * 60 * 1000);
 
 class InMemoryAccounts {
-  readonly rows: Array<{ account: Account; passwordHash: string }> = [];
+  readonly rows: Account[] = [account];
 
-  create({ email, passwordHash }: NewAccount): Promise<Account> {
-    if (this.rows.some((row) => row.account.email === email)) {
-      return Promise.reject(new DuplicateEmailError(email));
+  updateInformation(id: string, update: AccountInformation): Promise<Account | undefined> {
+    const index = this.rows.findIndex((row) => row.id === id);
+    const stored = this.rows[index];
+
+    if (!stored) {
+      return Promise.resolve(undefined);
     }
 
-    const account = { id: crypto.randomUUID(), email, createdAt: new Date().toISOString() };
+    const updated = { ...stored, name: update.name, lastName: update.lastName, phone: update.phone, address: update.address };
 
-    this.rows.push({ account, passwordHash });
+    this.rows[index] = updated;
 
-    return Promise.resolve(account);
-  }
-
-  findCredentialsByEmail(email: string) {
-    return Promise.resolve(this.rows.find((row) => row.account.email === email));
+    return Promise.resolve(updated);
   }
 }
 
@@ -52,9 +59,8 @@ class InMemorySessions {
 
   findAccountByTokenHash(tokenHash: string, now: Date): Promise<Account | undefined> {
     const session = this.rows.find((row) => row.tokenHash === tokenHash && row.expiresAt > now);
-    const account = this.accounts.rows.find((row) => row.account.id === session?.accountId)?.account;
 
-    return Promise.resolve(account);
+    return Promise.resolve(this.accounts.rows.find((row) => row.id === session?.accountId));
   }
 
   deleteByTokenHash(tokenHash: string): Promise<void> {
@@ -68,12 +74,18 @@ class InMemorySessions {
   }
 }
 
-const credentials = { email: "ada@example.com", password: "correct horse battery" };
-
 describe("AuthService", () => {
   let accounts: InMemoryAccounts;
   let sessions: InMemorySessions;
   let service: AuthService;
+
+  const openSession = async (expiresAt = inAnHour()) => {
+    const token = crypto.randomUUID();
+
+    await sessions.create({ accountId: account.id, tokenHash: hashSessionToken(token), expiresAt });
+
+    return token;
+  };
 
   beforeEach(async () => {
     accounts = new InMemoryAccounts();
@@ -84,69 +96,17 @@ describe("AuthService", () => {
         AuthService,
         { provide: AccountRepository, useValue: accounts },
         { provide: SessionRepository, useValue: sessions },
-        { provide: PasswordHasher, useClass: TransparentPasswordHasher },
       ],
     }).compile();
 
     service = moduleRef.get(AuthService);
   });
 
-  describe("signUp", () => {
-    it("creates the Account with a hashed password and opens a Session", async () => {
-      const result = await service.signUp(credentials);
-
-      expect(AuthenticatedAccountSchema.safeParse(result)).toMatchObject({ success: true });
-      expect(result.account.email).toBe(credentials.email);
-      expect(accounts.rows[0]?.passwordHash).toBe("hashed:correct horse battery");
-      expect(sessions.rows[0]).toMatchObject({
-        accountId: result.account.id,
-        tokenHash: hashSessionToken(result.session.token),
-      });
-    });
-
-    it("issues a Session that expires in the future", async () => {
-      const { session } = await service.signUp(credentials);
-
-      expect(new Date(session.expiresAt).getTime()).toBeGreaterThan(Date.now());
-    });
-
-    it("rejects a second sign up with the same email as a conflict", async () => {
-      await service.signUp(credentials);
-
-      await expect(service.signUp({ ...credentials, password: "another password" })).rejects.toThrow(
-        ConflictException,
-      );
-    });
-  });
-
-  describe("signIn", () => {
-    beforeEach(() => service.signUp(credentials));
-
-    it("opens a new Session for the right password", async () => {
-      const result = await service.signIn(credentials);
-
-      expect(result.account.email).toBe(credentials.email);
-      expect(sessions.rows).toHaveLength(2);
-    });
-
-    it("rejects a wrong password", async () => {
-      await expect(service.signIn({ ...credentials, password: "wrong password" })).rejects.toThrow(
-        UnauthorizedException,
-      );
-    });
-
-    it("rejects an unknown email with the same error as a wrong password", async () => {
-      const unknown = service.signIn({ email: "nobody@example.com", password: credentials.password });
-
-      await expect(unknown).rejects.toThrow("Invalid email or password");
-    });
-  });
-
   describe("authenticate", () => {
-    it("resolves the Account behind a live Session token", async () => {
-      const { account, session } = await service.signUp(credentials);
+    it("resolves the Account behind a live Session token by its hash", async () => {
+      const token = await openSession();
 
-      expect(await service.authenticate(session.token)).toEqual(account);
+      expect(await service.authenticate(token)).toEqual(account);
     });
 
     it("answers undefined for an unknown token", async () => {
@@ -154,24 +114,34 @@ describe("AuthService", () => {
     });
 
     it("answers undefined once the Session has expired", async () => {
-      const { session } = await service.signUp(credentials);
-      const stored = sessions.rows[0];
+      const token = await openSession(new Date(Date.now() - 1));
 
-      if (stored) {
-        stored.expiresAt = new Date(Date.now() - 1);
-      }
-
-      expect(await service.authenticate(session.token)).toBeUndefined();
+      expect(await service.authenticate(token)).toBeUndefined();
     });
   });
 
   describe("signOut", () => {
     it("revokes the Session so its token no longer authenticates", async () => {
-      const { session } = await service.signUp(credentials);
+      const token = await openSession();
 
-      await service.signOut(session.token);
+      await service.signOut(token);
 
-      expect(await service.authenticate(session.token)).toBeUndefined();
+      expect(await service.authenticate(token)).toBeUndefined();
+    });
+  });
+
+  describe("updateInformation", () => {
+    it("stores the identity fields on the Account", async () => {
+      const updated = await service.updateInformation(account, information);
+
+      expect(updated).toEqual({ ...account, ...information });
+      expect(accounts.rows[0]).toEqual(updated);
+    });
+
+    it("rejects an Account that no longer exists", async () => {
+      const gone = { ...account, id: crypto.randomUUID() };
+
+      await expect(service.updateInformation(gone, information)).rejects.toThrow(UnauthorizedException);
     });
   });
 });
