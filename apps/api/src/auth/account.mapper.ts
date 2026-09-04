@@ -16,9 +16,13 @@ export const accountColumns = [
 export type AccountColumns = Pick<AccountRow, (typeof accountColumns)[number]>;
 
 function toPhone(row: AccountColumns): Phone | null {
-  return row.phone_country_code && row.phone_number
-    ? { countryCode: DialCodeSchema.parse(row.phone_country_code), number: row.phone_number }
-    : null;
+  if (!row.phone_country_code || !row.phone_number) {
+    return null;
+  }
+
+  const countryCode = DialCodeSchema.safeParse(row.phone_country_code);
+
+  return countryCode.success ? { countryCode: countryCode.data, number: row.phone_number } : null;
 }
 
 export function toAccount(row: AccountColumns): Account {

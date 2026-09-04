@@ -59,8 +59,8 @@ docker compose up
 
 | Service | URL |
 | --- | --- |
-| Web | http://localhost:3000 |
-| API | http://localhost:3001/health |
+| Web | <http://localhost:3000> |
+| API | <http://localhost:3001/health> |
 | PostgreSQL (pgvector) | `postgres://helpmegethired:helpmegethired@localhost:5432/helpmegethired` |
 
 - Edits under `apps/web/src` and `apps/api/src` reload inside the running containers. After changing dependencies, configuration files, or `packages/shared`, run `docker compose up --build`.
