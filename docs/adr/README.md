@@ -23,6 +23,7 @@ Use [template.md](template.md). Number sequentially. Status is one of `Proposed`
 | [0013](0013-own-credentials-with-database-sessions.md) | Own credentials with hashed passwords and database-backed sessions | Accepted |
 | [0014](0014-pg-boss-queue-on-postgresql.md) | pg-boss on PostgreSQL as the queue backend for profile ingestion | Accepted |
 | [0015](0015-atomic-design-frontend-components.md) | Atomic design for frontend components | Accepted |
+| [0016](0016-codacy-static-analysis.md) | Codacy Cloud for static analysis and quality gates | Accepted |
 
 ## Pending decisions
 
