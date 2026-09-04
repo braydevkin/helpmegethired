@@ -54,4 +54,14 @@ describe("Button", () => {
     expect(link).toHaveClass("button");
     expect(link).toHaveClass("secondary");
   });
+
+  it("passes anchor attributes through to the link", () => {
+    render(
+      <Button href="/sign-up" aria-label="Create an account now" target="_blank">
+        Create an account
+      </Button>,
+    );
+
+    expect(screen.getByRole("link", { name: "Create an account now" })).toHaveAttribute("target", "_blank");
+  });
 });

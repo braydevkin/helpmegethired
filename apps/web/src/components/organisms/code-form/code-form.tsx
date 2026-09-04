@@ -15,14 +15,22 @@ export interface CodeFormProgress {
   completed: number;
 }
 
-export interface CodeFormProps {
-  email: string;
+export interface CodeFormStep {
   eyebrow: string;
+  progress?: CodeFormProgress;
+}
+
+export interface CodeDelivery {
+  email: string;
   sentAt: number;
+}
+
+export interface CodeFormProps {
+  delivery: CodeDelivery;
+  step: CodeFormStep;
   onVerify: (code: string) => void;
   onChangeEmail: () => void;
   onResend: () => void;
-  progress?: CodeFormProgress;
   message?: string;
   pending?: boolean;
 }
@@ -30,23 +38,16 @@ export interface CodeFormProps {
 const CODE_FIELD_NAME = "code";
 const CODE_LIFETIME_MINUTES = VERIFICATION_CODE_LIFETIME_SECONDS / 60;
 
-export function CodeForm({
-  email,
-  eyebrow,
-  sentAt,
-  onVerify,
-  onChangeEmail,
-  onResend,
-  progress,
-  message,
-  pending = false,
-}: CodeFormProps) {
+export function CodeForm({ delivery, step, onVerify, onChangeEmail, onResend, message, pending = false }: CodeFormProps) {
   const [fieldError, setFieldError] = useState<string>();
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const parsed = VerifyCodeSchema.safeParse({ email, code: new FormData(event.currentTarget).get(CODE_FIELD_NAME) });
+    const parsed = VerifyCodeSchema.safeParse({
+      email: delivery.email,
+      code: new FormData(event.currentTarget).get(CODE_FIELD_NAME),
+    });
 
     if (!parsed.success) {
       setFieldError(parsed.error.issues[0]?.message);
@@ -59,20 +60,20 @@ export function CodeForm({
 
   return (
     <div className={styles.screen}>
-      {progress && <ProgressBar {...progress} className={styles.progress} />}
+      {step.progress && <ProgressBar {...step.progress} className={styles.progress} />}
       <ScreenHeading
-        eyebrow={eyebrow}
+        eyebrow={step.eyebrow}
         title="Check your inbox"
         lead={
           <>
-            We sent a {VERIFICATION_CODE_LENGTH}-digit code to <strong>{email}</strong>. It expires in{" "}
+            We sent a {VERIFICATION_CODE_LENGTH}-digit code to <strong>{delivery.email}</strong>. It expires in{" "}
             {CODE_LIFETIME_MINUTES} minutes.
           </>
         }
       />
       <form onSubmit={handleSubmit} noValidate aria-busy={pending} className={styles.form}>
         <CodeInput
-          key={`${sentAt}-${message ?? ""}`}
+          key={`${delivery.sentAt}-${message ?? ""}`}
           name={CODE_FIELD_NAME}
           length={VERIFICATION_CODE_LENGTH}
           error={fieldError ?? message}
@@ -86,7 +87,7 @@ export function CodeForm({
         <button type="button" onClick={onChangeEmail} disabled={pending} className={styles.changeEmail}>
           <span aria-hidden="true">← </span>Change email
         </button>
-        <ResendCountdown sentAt={sentAt} onResend={onResend} disabled={pending} />
+        <ResendCountdown sentAt={delivery.sentAt} onResend={onResend} disabled={pending} />
       </div>
     </div>
   );

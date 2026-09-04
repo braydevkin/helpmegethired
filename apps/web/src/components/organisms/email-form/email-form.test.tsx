@@ -4,10 +4,12 @@ import { describe, expect, it, vi } from "vitest";
 import { EmailForm } from "./email-form";
 
 const signIn = {
-  eyebrow: "Welcome back",
-  title: "Sign in to keep going",
-  lead: "Enter the email you signed up with and we'll get you straight back in.",
-  submitLabel: "Send my code",
+  step: { eyebrow: "Welcome back" },
+  copy: {
+    title: "Sign in to keep going",
+    lead: "Enter the email you signed up with and we'll get you straight back in.",
+    submitLabel: "Send my code",
+  },
   alternative: { presentation: "button", prompt: "New here?", label: "Create an account", href: "/sign-up" },
 } as const;
 
@@ -31,9 +33,8 @@ describe("EmailForm", () => {
     render(
       <EmailForm
         {...signIn}
-        eyebrow="Step 1 of 3"
-        title="Let's get you hired"
-        progress={{ steps: 3, completed: 1 }}
+        step={{ eyebrow: "Step 1 of 3", progress: { steps: 3, completed: 1 } }}
+        copy={{ ...signIn.copy, title: "Let's get you hired" }}
         alternative={{ presentation: "line", prompt: "Already have an account?", label: "Sign in", href: "/sign-in" }}
         onSubmit={vi.fn()}
       />,
