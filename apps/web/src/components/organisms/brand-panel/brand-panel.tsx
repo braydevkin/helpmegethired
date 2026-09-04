@@ -1,3 +1,4 @@
+import { classNames } from "../../../lib/class-names";
 import { LogoMark } from "../../atoms/logo-mark/logo-mark";
 import styles from "./brand-panel.module.css";
 
@@ -18,7 +19,7 @@ export interface BrandPanelProps {
 
 export function BrandPanel({ className }: BrandPanelProps) {
   return (
-    <aside aria-label={BRAND_NAME} className={[styles.panel, className].filter(Boolean).join(" ")}>
+    <aside aria-label={BRAND_NAME} className={classNames(styles.panel, className)}>
       <div aria-hidden="true" className={styles.glow} />
       <div className={styles.brand}>
         <LogoMark />

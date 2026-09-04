@@ -1,5 +1,7 @@
 import { VERIFICATION_CODE_LIFETIME_SECONDS } from "@helpmegethired/shared";
 
+import { html, type Html } from "../lib/html";
+
 export interface CodeEmail {
   subject: string;
   text: string;
@@ -17,7 +19,7 @@ const footer = "No passwords. We send a one-time code every time.";
 // and custom properties, so the values are inlined; Manrope is not embedded and
 // the system stack takes over.
 const theme = {
-  fontFamily: "Manrope, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif",
+  fontFamily: "Manrope, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif",
   ink: "#0F1A14",
   textMuted: "#5F7268",
   textPlaceholder: "#9AAFA3",
@@ -29,11 +31,13 @@ const theme = {
   surface: "#FFFFFF",
 };
 
+const font = `font-family: ${theme.fontFamily};`;
+
 export function renderCodeEmail(code: string): CodeEmail {
   return {
     subject: `${code} is your ${BRAND_NAME} code`,
     text: renderText(code),
-    html: renderHtml(code),
+    html: renderHtml(code).toString(),
   };
 }
 
@@ -41,10 +45,8 @@ function renderText(code: string): string {
   return [`Your ${BRAND_NAME} code`, "", code, "", lead, "", ignoreNote, footer, ""].join("\n");
 }
 
-function renderHtml(code: string): string {
-  const font = `font-family: ${theme.fontFamily};`;
-
-  return `<!doctype html>
+function renderHtml(code: string): Html {
+  return html`<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -57,7 +59,17 @@ function renderHtml(code: string): string {
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background: ${theme.fieldReadonly};">
   <tr>
     <td align="center" style="padding: 40px 16px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 520px; background: ${theme.surface}; border: 1px solid ${theme.border}; border-radius: 16px;">
+      ${renderCard(code)}
+    </td>
+  </tr>
+</table>
+</body>
+</html>
+`;
+}
+
+function renderCard(code: string): Html {
+  return html`<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width: 520px; background: ${theme.surface}; border: 1px solid ${theme.border}; border-radius: 16px;">
         <tr>
           <td style="padding: 32px 32px 0;">
             <table role="presentation" cellpadding="0" cellspacing="0" border="0">
@@ -89,11 +101,5 @@ function renderHtml(code: string): string {
         <tr>
           <td style="padding: 24px 32px 32px; ${font} font-size: 12.5px; line-height: 1.55; color: ${theme.textPlaceholder};">${ignoreNote}<br>${footer}</td>
         </tr>
-      </table>
-    </td>
-  </tr>
-</table>
-</body>
-</html>
-`;
+      </table>`;
 }

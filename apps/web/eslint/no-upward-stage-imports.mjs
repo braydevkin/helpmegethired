@@ -20,6 +20,13 @@ function sourceOf(node) {
 
 const singular = (stage) => stage.slice(0, -1);
 
+// A relative specifier is resolved against the importing file; any other specifier
+// (a package path, an alias) is checked as written, so a component cannot reach a
+// higher stage by spelling the path out from the package root.
+function targetOf(specifier, filename) {
+  return specifier.startsWith(".") ? path.resolve(path.dirname(filename), specifier) : specifier;
+}
+
 export const noUpwardStageImports = {
   meta: {
     type: "problem",
@@ -43,10 +50,10 @@ export const noUpwardStageImports = {
 
     function check(node) {
       const source = sourceOf(node);
-      if (!source || typeof source.value !== "string" || !source.value.startsWith(".")) {
+      if (!source || typeof source.value !== "string") {
         return;
       }
-      const targetPath = path.resolve(path.dirname(context.filename), source.value);
+      const targetPath = targetOf(source.value, context.filename);
       const data = { importer: singular(importer.stage) };
 
       if (PAGE_PATH.test(targetPath)) {

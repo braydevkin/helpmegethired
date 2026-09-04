@@ -1,5 +1,6 @@
 import { useId, type ReactNode } from "react";
 
+import { classNames } from "../../../lib/class-names";
 import { ErrorMessage } from "../../atoms/error-message/error-message";
 import { Hint } from "../../atoms/hint/hint";
 import { Label } from "../../atoms/label/label";
@@ -28,7 +29,7 @@ export function Field({ id, label, hint, error, optional = false, className, chi
   const describedBy = [hintId, errorId].filter(Boolean).join(" ") || undefined;
 
   return (
-    <div className={[styles.field, className].filter(Boolean).join(" ")}>
+    <div className={classNames(styles.field, className)}>
       <div className={styles.labelRow}>
         <Label htmlFor={id}>{label}</Label>
         {optional && <span className={styles.optional}>Optional</span>}

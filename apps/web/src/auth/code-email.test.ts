@@ -21,9 +21,14 @@ describe("renderCodeEmail", () => {
 
   it("writes an HTML version with the code and the expiry", () => {
     expect(email.html).toContain("<!doctype html>");
-    expect(email.html).toContain(`>${code}</td>`);
+    expect(email.html).toContain(">" + code + "</td>");
     expect(email.html).toContain("It expires in 10 minutes.");
     expect(email.html).toContain("Help Me Get Hired");
+  });
+
+  it("escapes what it interpolates into the HTML", () => {
+    expect(renderCodeEmail("<b>").html).not.toContain("<b>");
+    expect(renderCodeEmail("<b>").html).toContain("&lt;b&gt;");
   });
 
   it("styles the HTML with the design tokens and a system font fallback", () => {
