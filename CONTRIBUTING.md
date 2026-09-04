@@ -19,7 +19,7 @@ Only collaborators can edit the GitHub Project board. Everyone can open issues, 
 
 ## Stack
 
-The stack is fixed by ADRs: Next.js, NestJS, LangChain, PostgreSQL + pgvector, Turborepo + pnpm, Vitest, Playwright, Docker, GitHub Actions. If you think a decision should change, open an issue proposing a new ADR. Do not introduce new tooling in a feature PR.
+The stack is fixed by ADRs: Next.js, NestJS, LangChain, PostgreSQL + pgvector, Turborepo + pnpm, Vitest, Playwright, Docker, GitHub Actions, Codacy. If you think a decision should change, open an issue proposing a new ADR. Do not introduce new tooling in a feature PR.
 
 ## Local setup
 
@@ -34,6 +34,20 @@ pnpm turbo run lint typecheck test build
 `pnpm lint`, `pnpm typecheck`, `pnpm test` and `pnpm build` run the same pipelines individually across the whole workspace.
 
 Integration tests and database migrations need a running PostgreSQL: start the compose one with `docker compose up --wait postgres`, copy `apps/api/.env.example` to `apps/api/.env` (or export `DATABASE_URL`), then run `pnpm test:integration` or `pnpm db:migrate`.
+
+## Code quality
+
+Codacy analyses every pull request in its cloud and reports `Codacy Static Code Analysis` next to the CI checks. The check fails when the pull request adds a new issue, whatever its severity. The tools and their configuration are listed in [docs/architecture.md](docs/architecture.md#cicd).
+
+Findings are on the pull request in Codacy, or in the terminal with the Codacy Cloud CLI:
+
+```sh
+pnpm add -g @codacy/codacy-cloud-cli
+codacy login
+codacy pull-request <n>
+```
+
+`codacy login` asks for an account API token from Codacy > My Account > Access Management. From a clone, the CLI reads the provider, organisation, and repository from the `origin` remote. If a finding is a false positive on one line, ignore it with a reason (`codacy issue <id> --ignore --ignore-reason "..."`) and say so in the pull request. A pattern is disabled only when it is wrong for the whole stack, and that change is recorded in the architecture doc.
 
 ## Branching, commits, PRs
 
@@ -50,7 +64,7 @@ We use **Gitflow**. `main` is production and `develop` is the test environment. 
 
 ## Using Claude Code
 
-The repository ships a `CLAUDE.md` and `.claude/settings.json`. If you use Claude Code, it will follow the same rules as you: it works from an issue, it does not commit or push without being asked, and it proposes an ADR before stepping outside the stack. Personal overrides go in `.claude/settings.local.json`, which is git-ignored.
+The repository ships a `CLAUDE.md` and `.claude/settings.json`. If you use Claude Code, it will follow the same rules as you: it works from an issue, it does not commit or push without being asked, and it proposes an ADR before stepping outside the stack. Personal overrides go in `.claude/settings.local.json`, which is git-ignored. To let it read Codacy findings, install the CLI above and the `codacy-skills` plugin: `claude plugin marketplace add codacy/codacy-skills`, then `claude plugin install codacy-skills@codacy`.
 
 ## Code of conduct
 

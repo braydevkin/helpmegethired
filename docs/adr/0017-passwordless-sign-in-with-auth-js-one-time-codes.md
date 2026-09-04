@@ -1,4 +1,4 @@
-# ADR-0016: Passwordless sign in with Auth.js one-time email codes
+# ADR-0017: Passwordless sign in with Auth.js one-time email codes
 
 - **Status:** Accepted
 - **Date:** 2026-09-03
