@@ -1,6 +1,5 @@
 ---
 exclude_paths:
-  - "pnpm-lock.yaml"
   - "arch/**"
   - "**/dist/**"
   - "**/coverage/**"
@@ -9,6 +8,9 @@ exclude_paths:
   - "**/next-env.d.ts"
 
 engines:
+  lizard:
+    exclude_paths:
+      - "pnpm-lock.yaml"
   opengrep:
     exclude_paths:
       - "**/*.test.ts"

@@ -23,9 +23,9 @@ Codacy Cloud analyses every pull request and every push to `develop` and `main`,
 
 The check fails when a pull request introduces at least one new issue, which is the organisation's default `Codacy Gate Policy`. Complexity, duplication, and coverage are reported but do not gate until a coverage upload exists.
 
-The ESLint 9 tool in Codacy reads the repository's `eslint.config.*` files, so Codacy and `pnpm lint` enforce the same rules; the `lint` check stays required and Codacy never replaces it. The other tools run with Codacy's defaults tuned to this stack: a pattern that reports on every file of a language the repository does not use is disabled, a rule that only matters in test fixtures is excluded from test files through `.codacy.yml`, and a false positive on a single line is ignored with a reason (`codacy issue <id> --ignore`) rather than by disabling its pattern. The live configuration is recorded in `docs/architecture.md`, "CI/CD", with the command that reproduces each setting made outside the repository.
+The ESLint 9 tool in Codacy reads the repository's `eslint.config.*` files, so Codacy and `pnpm lint` enforce the same rules; the `lint` check stays required and Codacy never replaces it. The other tools run with Codacy's defaults tuned to this stack: a pattern is disabled only when it is wrong for the whole stack, such as one that reports on every file of a language the repository does not use; a rule that only matters in test fixtures is excluded from test files through `.codacy.yml`; a false positive on a single line is ignored with a reason (`codacy issue <id> --ignore`) and the pattern stays on. The live configuration is recorded in `docs/architecture.md`, "CI/CD", with the command that reproduces each setting made outside the repository.
 
-Findings are read from the terminal with the Codacy Cloud CLI (`codacy pull-request <n>`) and by Claude Code through the `codacy-skills` plugin. The paid-only features (pull request summary, AI reviewer, suggested fixes) are not used.
+Findings are read from the terminal with the Codacy Cloud CLI (`codacy pull-request <n>`) and by Claude Code through the `codacy-skills` plugin. The pull request summary and the AI review that Codacy posts as comments are advisory: a reviewer weighs them like any other comment, and only the status check gates.
 
 ## Alternatives considered
 
@@ -37,5 +37,5 @@ Findings are read from the terminal with the Codacy Cloud CLI (`codacy pull-requ
 ## Consequences
 
 - Positive: one check with no secret, so fork pull requests are covered; the findings of ten tools in one place, per pull request and over time; ESLint results identical to `pnpm lint`; a reviewer or Claude Code reads the findings from the terminal before asking for review.
-- Negative: part of the configuration lives in Codacy rather than in git, so `docs/architecture.md` has to record it and the CLI has to reproduce it; a zero-tolerance gate stops a pull request on a minor finding, which is the point but needs the noise kept down; markdownlint now grades the documentation.
+- Negative: part of the configuration lives in Codacy rather than in git, so `docs/architecture.md` has to record it and the CLI has to reproduce it; a zero-tolerance gate stops a pull request on a minor finding, which is the point but needs the noise kept down; markdownlint now grades the documentation; the AI review comment can be wrong and must not be treated as a check.
 - Follow-ups: #47 adds `Codacy Static Code Analysis` to the required checks; a separate issue uploads Vitest coverage so the diff-coverage gate can be turned on; the findings that existed before this decision are triaged in their own issue.

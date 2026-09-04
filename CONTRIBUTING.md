@@ -47,7 +47,7 @@ codacy login
 codacy pull-request <n>
 ```
 
-`codacy login` asks for an account API token from Codacy > My Account > Access Management. From a clone, the CLI reads the provider, organisation, and repository from the `origin` remote. If a finding is a false positive, ignore it with a reason (`codacy issue <id> --ignore --ignore-reason "..."`) and say so in the pull request; do not disable the pattern.
+`codacy login` asks for an account API token from Codacy > My Account > Access Management. From a clone, the CLI reads the provider, organisation, and repository from the `origin` remote. If a finding is a false positive on one line, ignore it with a reason (`codacy issue <id> --ignore --ignore-reason "..."`) and say so in the pull request. A pattern is disabled only when it is wrong for the whole stack, and that change is recorded in the architecture doc.
 
 ## Branching, commits, PRs
 
