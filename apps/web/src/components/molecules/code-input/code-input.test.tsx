@@ -12,7 +12,7 @@ function renderCodeInput(props: Partial<Parameters<typeof CodeInput>[0]> = {}) {
     </form>,
   );
 
-  const boxes = screen.getAllByLabelText("Verification digit");
+  const boxes = screen.getAllByLabelText(/^Verification digit \d$/);
   const hidden = document.querySelector<HTMLInputElement>('input[name="code"]');
 
   return { boxes, hidden, onChange };

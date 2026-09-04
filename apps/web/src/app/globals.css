@@ -3,7 +3,7 @@
 
   --font-sans: var(--font-manrope), Manrope, ui-sans-serif, system-ui, sans-serif;
 
-  --color-surface: #ffffff;
+  --color-surface: #fff;
   --color-ink: #0f1a14;
   --color-text-muted: #5f7268;
   --color-text-label: #33473c;
@@ -12,20 +12,20 @@
   --color-brand-hover: #0a6239;
   --color-brand-deep: #06301f;
   --color-accent: #2ecc71;
-  --color-accent-tint: rgba(46, 204, 113, 0.16);
+  --color-accent-tint: rgb(46 204 113 / 16%);
   --color-brand-tint: #e4f4eb;
   --color-surface-tint: #f3faf6;
   --color-field-readonly: #f5f8f6;
   --color-border: #dde5e0;
   --color-divider: #e7ede9;
-  --color-focus-ring: rgba(14, 124, 74, 0.12);
+  --color-focus-ring: rgb(14 124 74 / 12%);
   --color-error: #c0392b;
   --color-panel-text: #eaf6ef;
   --color-panel-lead: #a9c9b7;
   --color-panel-claim: #d6ebe0;
   --color-panel-footer: #7fa894;
-  --color-panel-glow: rgba(46, 204, 113, 0.28);
-  --color-panel-glow-end: rgba(6, 48, 31, 0);
+  --color-panel-glow: rgb(46 204 113 / 28%);
+  --color-panel-glow-end: rgb(6 48 31 / 0%);
 
   --text-brand-tagline: 44px;
   --text-screen-title: 34px;
@@ -95,7 +95,7 @@
 
   --focus-ring: 0 0 0 4px var(--color-focus-ring);
   --transition-fast: 140ms;
-  --rise-in: riseIn 380ms cubic-bezier(0.22, 0.85, 0.3, 1) both;
+  --rise-in: rise-in 380ms cubic-bezier(0.22, 0.85, 0.3, 1) both;
 
   --brand-panel-width: 42%;
   --brand-panel-max-width: 620px;
@@ -108,7 +108,7 @@
   --measure: 40rem;
 }
 
-@keyframes riseIn {
+@keyframes rise-in {
   from {
     opacity: 0;
     transform: translateY(10px);

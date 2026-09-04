@@ -89,15 +89,11 @@ export function CodeInput({
 
   return (
     <div className={styles.codeInput}>
-      <div
-        role="group"
-        aria-label="Verification code"
-        aria-describedby={error ? errorId : undefined}
-        className={styles.boxes}
-      >
+      <fieldset aria-label="Verification code" aria-describedby={error ? errorId : undefined} className={styles.boxes}>
         {digits.map((digit, index) => (
           <CodeBox
-            key={index}
+            key={`${name}-${index}`}
+            aria-label={`Verification digit ${index + 1}`}
             ref={(element) => {
               boxes.current[index] = element;
             }}
@@ -111,7 +107,7 @@ export function CodeInput({
             onKeyDown={handleKeyDown(index)}
           />
         ))}
-      </div>
+      </fieldset>
       <input type="hidden" name={name} value={digits.join("")} />
       {error && <ErrorMessage id={errorId}>{error}</ErrorMessage>}
     </div>
