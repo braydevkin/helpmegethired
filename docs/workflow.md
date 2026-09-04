@@ -114,7 +114,7 @@ Common rules:
 - One issue per feature or fix PR. Link it with `Closes #<n>`.
 - Fill in every section of the template. Empty sections are a review blocker.
 - Tag the people working on the change in the "Working on this" section. PR descriptions describe the work, not the tools used to produce it.
-- CI must be green: lint, typecheck, unit, integration, e2e.
+- CI must be green: lint, typecheck, unit, integration, e2e. The `Codacy Static Code Analysis` check must be green too: a pull request adds no new Codacy issue (see [architecture.md](architecture.md#cicd)). Read the findings with `codacy pull-request <n>` before asking for review.
 - Reviewer checks the acceptance criteria from the issue, not just the diff.
 
 ## Releases
@@ -162,3 +162,4 @@ Claude Code follows `CLAUDE.md`. In practice:
 - It branches from `develop` (or from `main` for a hotfix) and never targets `main` with a feature or fix.
 - It does not commit or push unless asked.
 - If it proposes something outside the stack, it must propose an ADR first.
+- It reads the Codacy findings of the branch it works on with the Codacy Cloud CLI (`codacy pull-request <n>`, after a one-time `codacy login`) and fixes them before asking for review. With the `codacy-skills` plugin installed (`claude plugin marketplace add codacy/codacy-skills`, then `claude plugin install codacy-skills@codacy`), it does the same in natural language.

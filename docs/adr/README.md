@@ -20,11 +20,12 @@ Use [template.md](template.md). Number sequentially. Status is one of `Proposed`
 | [0010](0010-gitflow-branching.md) | Gitflow branching with main as production and develop as test | Accepted |
 | [0011](0011-zod-shared-schemas.md) | Zod for shared schemas and inferred types | Accepted |
 | [0012](0012-kysely-query-layer-and-migrations.md) | Kysely as the query layer and migration tool | Accepted |
-| [0013](0013-own-credentials-with-database-sessions.md) | Own credentials with hashed passwords and database-backed sessions | Superseded by ADR-0016 |
+| [0013](0013-own-credentials-with-database-sessions.md) | Own credentials with hashed passwords and database-backed sessions | Superseded by ADR-0017 |
 | [0014](0014-pg-boss-queue-on-postgresql.md) | pg-boss on PostgreSQL as the queue backend for profile ingestion | Accepted |
 | [0015](0015-atomic-design-frontend-components.md) | Atomic design for frontend components | Accepted |
-| [0016](0016-passwordless-sign-in-with-auth-js-one-time-codes.md) | Passwordless sign in with Auth.js one-time email codes | Accepted |
-| [0017](0017-resend-transactional-email-with-logging-fallback.md) | Resend delivers transactional email, the logging sender is the local fallback | Accepted |
+| [0016](0016-codacy-static-analysis.md) | Codacy Cloud for static analysis and quality gates | Accepted |
+| [0017](0017-passwordless-sign-in-with-auth-js-one-time-codes.md) | Passwordless sign in with Auth.js one-time email codes | Accepted |
+| [0018](0018-resend-transactional-email-with-logging-fallback.md) | Resend delivers transactional email, the logging sender is the local fallback | Accepted |
 
 ## Pending decisions
 

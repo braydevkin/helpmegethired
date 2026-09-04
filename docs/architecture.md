@@ -104,11 +104,11 @@ apps/web/src/
 
 ### Account pages and the Session cookie (FR-01)
 
-Sign in and sign up are passwordless (ADR-0016). Auth.js runs the one-time code flow inside the web app, and the web app is the only client of the API, talking to it from the server side, so the browser never handles the Session token:
+Sign in and sign up are passwordless (ADR-0017). Auth.js runs the one-time code flow inside the web app, and the web app is the only client of the API, talking to it from the server side, so the browser never handles the Session token:
 
 - `/sign-up` and `/sign-in` render inside the account template and, until #33 and #34 replace it, one `OneTimeCodeForm` with two steps. The email step parses the field with `SendCodeSchema` from `packages/shared` before anything is sent; the server action asks Auth.js to send a code to that email. The code step parses `VerifyCodeSchema`; the server action verifies the code in-process and either redirects to `/journey` or answers the form with one message for a wrong, expired, or used code. "Change email" returns to the first step.
 - `src/auth` holds the Auth.js setup: `authRuntime()` builds the configuration on first use from `AUTH_SECRET` and `DATABASE_URL` (validated by `readAuthEnvironment`), the `email-code` provider generates 6-digit codes with a 10 minute expiry, `AccountAdapter` maps Auth.js onto `accounts`, `sessions`, and `verification_tokens` through Kysely, and `one-time-code.ts` exposes `sendCode` and `verifyCode`. There is no `/api/auth/*` route: both steps are server actions.
-- Delivery goes through the `CodeSender` abstraction (ADR-0017). With `AUTH_RESEND_KEY` set, `ResendCodeSender` posts the email rendered by `renderCodeEmail` (plain text and HTML, the design tokens inlined, no embedded font) to Resend's HTTP API from the address in `EMAIL_FROM`. Without the key the `DevelopmentCodeSender` logs the code and keeps the last one per email, readable at `GET /development/verification-code?email=` outside production so the end-to-end tests can finish the flow; a production configuration without the key refuses to start with a message naming the two variables.
+- Delivery goes through the `CodeSender` abstraction (ADR-0018). With `AUTH_RESEND_KEY` set, `ResendCodeSender` posts the email rendered by `renderCodeEmail` (plain text and HTML, the design tokens inlined, no embedded font) to Resend's HTTP API from the address in `EMAIL_FROM`. Without the key the `DevelopmentCodeSender` logs the code and keeps the last one per email, readable at `GET /development/verification-code?email=` outside production so the end-to-end tests can finish the flow; a production configuration without the key refuses to start with a message naming the two variables.
 - A verified code opens a database Session of 12 hours whose token Auth.js stores in the cookie named `session`: HTTP-only, `SameSite=Lax`, `Path=/`, `Secure` in production, expiring with the Session. The adapter stores only the SHA-256 hash of the token in `sessions.token_hash`, which is what the API validates. Server components and actions read the cookie with `readSessionToken()` and send it to the API as `Authorization: Bearer`.
 - `/journey` is the first authenticated page. It asks the API for the Account behind the cookie and redirects to `/sign-in` when the API no longer accepts the token. Sign out is a server action that deletes the Session at the API, clears the cookie, and redirects to `/sign-in`.
 - `src/proxy.ts` handles the redirects before a page renders: an authenticated path without the cookie goes to `/sign-in`; the forms with a cookie go to `/journey` when the API still accepts the token, and otherwise the stale cookie is cleared and the form is shown.
@@ -131,7 +131,7 @@ Sign in and sign up are passwordless (ADR-0016). Auth.js runs the one-time code 
 
 ### Authentication (FR-01)
 
-The `auth` module guards the API with the Session that Auth.js opens in the web app (ADR-0016) and owns the Account information:
+The `auth` module guards the API with the Session that Auth.js opens in the web app (ADR-0017) and owns the Account information:
 
 - `SessionGuard` is registered globally, so every route requires `Authorization: Bearer <token>` unless its handler or controller carries `@Public()`. The guard hashes the token with SHA-256 and looks it up in `sessions.token_hash` with its expiry, the same row the web app's adapter wrote, so nothing is issued twice. Handlers receive the signed-in Account through `@CurrentAccount()`.
 - `GET /auth/account` returns the Account behind the token: email, name, last name, phone, address, and creation time, with `null` for information not yet given. `PATCH /auth/account` takes `AccountInformationSchema` and stores name, last name, phone with its dial code, and the optional address, answering the updated Account. `POST /auth/sign-out` deletes the Session row.
@@ -256,6 +256,8 @@ Docker Compose runs the whole monorepo. `docker compose up` brings up three long
 
 GitHub Actions, following the Gitflow model in [workflow.md](workflow.md). Workflows live in `.github/workflows`; the steps they share (pinned Node and pnpm, `pnpm install --frozen-lockfile`, starting the compose `postgres`) are composite actions under `.github/actions`.
 
+Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow level, and no more: `CI` and `Release document` only read the repository (`contents: read`), and `Board` grants the workflow token nothing (`permissions: {}`) because it acts through `PROJECT_TOKEN`. CodeQL flags a workflow that leaves the default permissions in place.
+
 - **`CI` on every pull request to `develop` or `main`**: five checks, one job each, so a failure names the level that broke.
 
   | Check | Command | Needs |
@@ -268,8 +270,35 @@ GitHub Actions, following the Gitflow model in [workflow.md](workflow.md). Workf
 
   `.env.example` is the configuration in CI, so it must stay complete and valid. A new run for the same pull request cancels the previous one.
 - **`Release document` on every pull request to `main`**: fails unless the pull request adds or changes a `docs/releases/vX.Y.Z.md`.
+- **`Codacy Static Code Analysis` on every pull request and on every push to `develop` and `main`** ([ADR-0016](adr/0016-codacy-static-analysis.md)): Codacy Cloud analyses the commit in its own cloud, triggered by the repository webhook, and reports the result as a commit status. No workflow, secret, or CI minute is involved, so the check also runs on pull requests from forks. It fails when the pull request introduces at least one new issue (the organisation's default `Codacy Gate Policy`); complexity, duplication, and coverage are reported but do not gate.
+
+  | Tool | Looks at | Configuration |
+  | --- | --- | --- |
+  | ESLint 9 | TypeScript and JavaScript | The repository's `eslint.config.*` files, so the findings match `pnpm lint` |
+  | Opengrep | Security and secrets, every language (Semgrep rules) | Codacy defaults minus two patterns; `*.test.ts`, `*.test.tsx`, and `e2e/` excluded in `.codacy.yml` because fixtures hold literal passwords |
+  | Trivy | Vulnerable dependencies | Codacy defaults |
+  | Checkov | Docker Compose and GitHub Actions | Codacy defaults |
+  | Hadolint | Dockerfiles | Codacy defaults |
+  | Lizard | Function length and cyclomatic complexity | Codacy defaults |
+  | PMD 7 | JavaScript | Codacy defaults |
+  | Stylelint | CSS | Codacy defaults minus the SCSS-only patterns |
+  | markdownlint | Markdown | Codacy defaults |
+  | Spectral | OpenAPI documents | Codacy defaults |
+  | Jackson Linter | JSON | Codacy defaults |
+
+  `.codacy.yml` at the root holds what the repository can express itself: paths excluded from every tool (`arch/`, build output) and the per-tool exclusions. `pnpm-lock.yaml` is excluded from Lizard only, so its length is not a finding while Trivy still reads it to resolve the exact dependency versions. Five settings live in Codacy and are reproduced with the Codacy Cloud CLI from a clone of the repository:
+
+  ```sh
+  codacy tool Agentlinter --disable
+  codacy pattern Stylelint Stylelint_scss_function-disallowed-list --disable
+  codacy pattern Stylelint Stylelint_scss_selector-class-pattern --disable
+  codacy pattern Opengrep Semgrep_json.npm.security.package-dependencies-check.package-dependencies-check --disable
+  codacy pattern Opengrep Semgrep_generic.secrets.gitleaks.hashicorp-tf-password.hashicorp-tf-password --disable
+  ```
+
+  Agentlinter grades `CLAUDE.md` as an agent prompt, which is not code quality. The two Stylelint patterns are SCSS rules that report "unknown rule" on every plain CSS file. The dependency-versions pattern flags every caret range in a `package.json` while `pnpm-lock.yaml` already pins what `CI` installs with `--frozen-lockfile`. The Terraform password pattern matches the `password` autocomplete attributes of the sign-in form. That is the bar for disabling a pattern: it is wrong for the stack as a whole, not for one line. A false positive on a single line is ignored with a reason (`codacy issue <id> --ignore --ignore-reason "..."`) and the pattern stays on. `codacy tools` and `codacy patterns <tool> --enabled` list the live configuration.
 - **`Board` on pull request and issue events**: keeps the project board in step with GitHub activity (see [workflow.md](workflow.md), "Task lifecycle"). A pull request that is opened, reopened, marked ready for review, or edited moves itself and every issue it closes (`Closes #n`) to **In review**; a merged pull request moves them to **Done**; a closed issue moves to **Done**. Draft pull requests and pull requests closed without merging move nothing. The logic is `.github/scripts/board.js`, run with `actions/github-script`. It needs a `PROJECT_TOKEN` repository secret: a personal access token of a collaborator with `project` scope (classic) or read and write access to the project (fine-grained), because the workflow token cannot edit a project board. The workflow runs on `pull_request_target`, so it always executes the script from the base branch and works for pull requests from forks.
-- **Branch protection**: `main` and `develop` require the five `CI` checks; `main` also requires `Release document`.
+- **Branch protection**: `main` and `develop` require the five `CI` checks and `Codacy Static Code Analysis`; `main` also requires `Release document`.
 - **On merge to `develop`**: build images and deploy to the **test environment**. Pending the deployment target decision.
 - **On merge to `main`**: build images, tag `vX.Y.Z`, publish a GitHub Release from the release document, and deploy to **production**. Pending the deployment target decision.
 
