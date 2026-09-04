@@ -23,6 +23,7 @@ When asked to do something that has no task, say so and offer to draft the issue
 - Tests: Vitest for unit and integration, Playwright for end-to-end.
 - Local runtime: Docker Compose runs the whole monorepo.
 - CI/CD: GitHub Actions.
+- Static analysis: Codacy Cloud analyses every pull request; the check fails on any new issue. Read the findings with `codacy pull-request <n>` and fix them before asking for review.
 - Package manager: pnpm only. Never use npm or yarn commands.
 
 Every decision above has an ADR in `docs/adr/`. A change to any of them requires a new ADR that supersedes the old one.

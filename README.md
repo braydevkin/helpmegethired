@@ -1,5 +1,7 @@
 # Help Me Get Hired
 
+[![Codacy grade](https://app.codacy.com/project/badge/Grade/ecdf71ba014045b78e8865e80211ae5f)](https://app.codacy.com/gh/braydevkin/helpmegethired/dashboard)
+
 > A community-driven platform for keeping the knowledge of selection processes alive, in the age of AI.
 
 ## Why this project exists
@@ -39,6 +41,7 @@ The full product definition lives in [docs/product/vision.md](docs/product/visio
 | End-to-end tests | Playwright |
 | Local runtime | Docker (whole monorepo) |
 | CI/CD | GitHub Actions |
+| Static analysis | Codacy |
 | Task management | GitHub Projects |
 
 Each of these choices is recorded with its reasoning in [docs/adr](docs/adr/README.md).
