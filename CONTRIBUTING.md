@@ -37,7 +37,7 @@ Integration tests and database migrations need a running PostgreSQL: start the c
 
 ## Code quality
 
-Codacy analyses every pull request in its cloud and reports `Codacy Static Code Analysis` next to the CI checks. The check fails when the pull request adds a new issue, whatever its severity. The tools and their configuration are listed in [docs/architecture.md](docs/architecture.md#cicd).
+Codacy analyses every pull request in its cloud and reports `Codacy Static Code Analysis` next to the CI checks. The check fails when the pull request adds a new issue or security issue of medium or higher severity. Test files are not analysed; `pnpm lint` covers them in CI. The AI Reviewer posts one review when the pull request opens, and every open comment of medium or higher severity is fixed, or answered in its thread and ignored with a reason, before you ask for review. None stays open. The tools and their configuration are listed in [docs/architecture.md](docs/architecture.md#cicd).
 
 Findings are on the pull request in Codacy, or in the terminal with the Codacy Cloud CLI:
 

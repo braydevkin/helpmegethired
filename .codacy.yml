@@ -6,13 +6,12 @@ exclude_paths:
   - "**/.next/**"
   - "**/.turbo/**"
   - "**/next-env.d.ts"
+  - "**/*.test.ts"
+  - "**/*.test.tsx"
+  - "**/*.spec.ts"
+  - "e2e/**"
 
 engines:
   lizard:
     exclude_paths:
       - "pnpm-lock.yaml"
-  opengrep:
-    exclude_paths:
-      - "**/*.test.ts"
-      - "**/*.test.tsx"
-      - "e2e/**"
