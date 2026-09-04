@@ -266,12 +266,12 @@ Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow leve
 
   `.env.example` is the configuration in CI, so it must stay complete and valid. A new run for the same pull request cancels the previous one.
 - **`Release document` on every pull request to `main`**: fails unless the pull request adds or changes a `docs/releases/vX.Y.Z.md`.
-- **`Codacy Static Code Analysis` on every pull request and on every push to `develop` and `main`** ([ADR-0016](adr/0016-codacy-static-analysis.md)): Codacy Cloud analyses the commit in its own cloud, triggered by the repository webhook, and reports the result as a commit status. No workflow, secret, or CI minute is involved, so the check also runs on pull requests from forks. It fails when the pull request introduces at least one new issue (the organisation's default `Codacy Gate Policy`); complexity, duplication, and coverage are reported but do not gate.
+- **`Codacy Static Code Analysis` on every pull request and on every push to `develop` and `main`** ([ADR-0016](adr/0016-codacy-static-analysis.md)): Codacy Cloud analyses the commit in its own cloud, triggered by the repository webhook, and reports the result as a commit status. No workflow, secret, or CI minute is involved, so the check also runs on pull requests from forks. It fails when the pull request introduces a new issue or a new security issue of at least medium severity (the `Help Me Get Hired` gate policy, [ADR-0019](adr/0019-codacy-review-scope.md)); minor findings, complexity, duplication, and coverage are reported but do not gate.
 
   | Tool | Looks at | Configuration |
   | --- | --- | --- |
   | ESLint 9 | TypeScript and JavaScript | The repository's `eslint.config.*` files, so the findings match `pnpm lint` |
-  | Opengrep | Security and secrets, every language (Semgrep rules) | Codacy defaults minus two patterns; `*.test.ts`, `*.test.tsx`, and `e2e/` excluded in `.codacy.yml` because fixtures hold literal passwords |
+  | Opengrep | Security and secrets, every language (Semgrep rules) | Codacy defaults minus two patterns |
   | Trivy | Vulnerable dependencies | Codacy defaults |
   | Checkov | Docker Compose and GitHub Actions | Codacy defaults |
   | Hadolint | Dockerfiles | Codacy defaults |
@@ -282,7 +282,7 @@ Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow leve
   | Spectral | OpenAPI documents | Codacy defaults |
   | Jackson Linter | JSON | Codacy defaults |
 
-  `.codacy.yml` at the root holds what the repository can express itself: paths excluded from every tool (`arch/`, build output) and the per-tool exclusions. `pnpm-lock.yaml` is excluded from Lizard only, so its length is not a finding while Trivy still reads it to resolve the exact dependency versions. Five settings live in Codacy and are reproduced with the Codacy Cloud CLI from a clone of the repository:
+  `.codacy.yml` at the root holds what the repository can express itself: paths excluded from every tool (`arch/`, build output, and the test files `*.test.ts`, `*.test.tsx`, `*.spec.ts`, and `e2e/`, which `pnpm lint` still checks in `CI`) and the per-tool exclusions. `pnpm-lock.yaml` is excluded from Lizard only, so its length is not a finding while Trivy still reads it to resolve the exact dependency versions. Five settings live in Codacy and are reproduced with the Codacy Cloud CLI from a clone of the repository:
 
   ```sh
   codacy tool Agentlinter --disable
@@ -293,6 +293,8 @@ Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow leve
   ```
 
   Agentlinter grades `CLAUDE.md` as an agent prompt, which is not code quality. The two Stylelint patterns are SCSS rules that report "unknown rule" on every plain CSS file. The dependency-versions pattern flags every caret range in a `package.json` while `pnpm-lock.yaml` already pins what `CI` installs with `--frozen-lockfile`. The Terraform password pattern matches the `password` autocomplete attributes of the sign-in form. That is the bar for disabling a pattern: it is wrong for the stack as a whole, not for one line. A false positive on a single line is ignored with a reason (`codacy issue <id> --ignore --ignore-reason "..."`) and the pattern stays on. `codacy tools` and `codacy patterns <tool> --enabled` list the live configuration.
+
+  Two settings have no CLI command and are set in the Codacy UI. The gate policy `Help Me Get Hired` (organisation **Policies**, tab **Gate policies**) sets `New issues are over 0` and `New security issues are over 0`, both at `Medium` severity, leaves complexity, duplication, and coverage unset, is applied to this repository, and is the organisation default; the built-in `Codacy Gate Policy` cannot be edited. In the repository **Settings > Integrations > GitHub**, `Pull request summary` and `AI Reviewer` are on with `Run reviewer` set to `Automatically (first review only)`: the reviewer posts one review when the pull request opens and runs again only from `Run Reviewer` in the summary comment. The reviewer reads `.codacy/instructions/review.md`, which describes the repository and puts test files and low-risk suggestions out of scope. Every open Codacy comment of medium or higher severity is fixed, or answered and ignored with a reason, before review is requested (see [workflow.md](workflow.md), "Pull requests").
 - **`Board` on pull request and issue events**: keeps the project board in step with GitHub activity (see [workflow.md](workflow.md), "Task lifecycle"). A pull request that is opened, reopened, marked ready for review, or edited moves itself and every issue it closes (`Closes #n`) to **In review**; a merged pull request moves them to **Done**; a closed issue moves to **Done**. Draft pull requests and pull requests closed without merging move nothing. The logic is `.github/scripts/board.js`, run with `actions/github-script`. It needs a `PROJECT_TOKEN` repository secret: a personal access token of a collaborator with `project` scope (classic) or read and write access to the project (fine-grained), because the workflow token cannot edit a project board. The workflow runs on `pull_request_target`, so it always executes the script from the base branch and works for pull requests from forks.
 - **Branch protection**: `main` and `develop` require the five `CI` checks and `Codacy Static Code Analysis`; `main` also requires `Release document`.
 - **On merge to `develop`**: build images and deploy to the **test environment**. Pending the deployment target decision.

@@ -24,7 +24,7 @@ When asked to do something that has no task, say so and offer to draft the issue
 - Tests: Vitest for unit and integration, Playwright for end-to-end.
 - Local runtime: Docker Compose runs the whole monorepo.
 - CI/CD: GitHub Actions.
-- Static analysis: Codacy Cloud analyses every pull request; the check fails on any new issue. Read the findings with `codacy pull-request <n>` and fix them before asking for review.
+- Static analysis: Codacy Cloud analyses every pull request; the check fails on a new issue of medium or higher severity, and test files are excluded. Read the findings with `codacy pull-request <n>` and the AI Reviewer comments on the pull request, and fix every open one of medium or higher severity before asking for review: all of them, never a subset. A comment that is wrong is answered with the reason and ignored through the CLI, not left open. The reviewer runs once when the pull request opens; never trigger another run without being asked.
 - Package manager: pnpm only. Never use npm or yarn commands.
 
 Every decision above has an ADR in `docs/adr/`. A change to any of them requires a new ADR that supersedes the old one.
@@ -80,4 +80,5 @@ These come from the product definition and are not negotiable:
 - Prefer small, reviewable changes over large ones.
 - When something in the task is ambiguous in a way that changes the outcome, ask. Otherwise decide and state the assumption in the PR.
 - Report test results faithfully. If something fails or was skipped, say it.
+- Before asking for review, every open Codacy comment of medium or higher severity on the pull request is fixed or answered and ignored with a reason. None stays open.
 - Do not introduce new tooling, libraries, or patterns that are not in the stack without flagging it and proposing an ADR.
