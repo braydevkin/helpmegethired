@@ -7,7 +7,7 @@ Derived from `arch/helpmegethired-architecture.drawio`. When the diagram and thi
 | ID | Requirement |
 | --- | --- |
 | FR-01 | Account sign up and sign in with an email and a one-time code sent by email; no passwords. Sign up adds the Account information: name, last name, phone with country code, optional address. |
-| FR-02 | Upload a resume as PDF. |
+| FR-02 | Upload a Resume as a PDF of at most 5 MB and 20 pages. The upload is refused with a reason the Candidate can act on when the file is not a PDF, is too large, has too many pages, is password-protected, is damaged, or is a scan without text. |
 | FR-03 | Read a LinkedIn profile from a pasted profile URL. |
 | FR-04 | Build a candidate profile from the resume and LinkedIn data: basic profile, experiences, projects. |
 | FR-05 | Paste a job description. |
@@ -53,9 +53,14 @@ These are the LangChain tools the LLM can call. They run in this order for a giv
 | Entity | Notes |
 | --- | --- |
 | Account | Authentication identity. |
-| Basic Profile | Name, headline, summary, and other profile-level data. |
+| Uploaded Resume | The PDF a Candidate uploaded, its status, and the text extracted from it. The PDF itself is deleted once the text is kept. |
+| Basic Profile | Headline, summary, LinkedIn URL, GitHub URL. Name, e-mail, and phone belong to the Account, never to the Profile. |
 | Experiences | Work history. Input to ATS scoring and resume building. |
+| Education | Academic history. |
 | Projects | Personal or professional projects. Input to resume building. |
+| Skills | Technologies and competences, grouped by category. Input to ATS scoring. |
+| Languages | Spoken languages with a level. |
+| Certifications | Credentials with issuer and year. |
 | Job Descriptions | Stored per user; embedded for RAG. |
 | Learnings | What the user should learn, accumulated across applications. |
 
@@ -65,7 +70,7 @@ These constraints are product decisions and must be honoured by any implementati
 
 | ID | Constraint |
 | --- | --- |
-| TC-01 | Reading files: resume input is a PDF that must be parsed. |
+| TC-01 | Reading files: the Uploaded Resume is a PDF whose text is extracted once and kept. In this phase the Profile is recognised from that text by rules with a Confidence per field. LLM extraction is a later step that reads the same stored text, never the PDF again. |
 | TC-02 | Reading LinkedIn via API. |
 | TC-03 | Profile building runs **by segment** through a queue: each segment is read, recognised, and saved independently. |
 | TC-04 | Profile building is **resumable**: if the process fails, it resumes where it left off. Percentage and progress are visible to the user. |
