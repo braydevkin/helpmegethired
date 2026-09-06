@@ -27,8 +27,8 @@ export class IngestionService {
     });
   }
 
-  async progressOf(ingestionId: Id): Promise<IngestionProgress> {
-    const progress = await this.repository.progressOf(ingestionId);
+  async progressOf(accountId: Id, ingestionId: Id): Promise<IngestionProgress> {
+    const progress = await this.repository.progressOf(accountId, ingestionId);
 
     if (!progress) {
       throw new IngestionNotFoundError(ingestionId);

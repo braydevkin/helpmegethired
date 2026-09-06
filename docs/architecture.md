@@ -134,7 +134,10 @@ Sign in and sign up are passwordless (ADR-0017). Auth.js runs the one-time code 
   - `analysis` (the sequential AI pipeline)
   - `learnings` (store, study plans)
   - `interview` (mock interview)
-- Authorization is enforced at the module boundary. A Candidate can only read and write their own entities.
+- Authorization is enforced at the module boundary. A Candidate can only read and write their own entities, and the rule is structural, not a check added per route:
+  - Every repository method that reads or changes a Candidate-owned row takes the `accountId` first and filters by it (`where account_id = ...`, or through the owning row for a table such as `ingestion_segments` that has no `account_id` of its own). A row of another Account answers as not found, never as forbidden, so an id is never confirmed to exist. Services and controllers pass the Account from `@CurrentAccount()`.
+  - The queue is the one exception. Code that acts on behalf of a job, not a Candidate, lives in a repository named for it (`IngestionRunRepository` for the runner and worker) and addresses rows by id alone. A Candidate-facing service never injects such a repository.
+  - Review rule: a pull request that adds a query on an owned table without the Account filter, or that gives a Candidate-facing service an unscoped repository, is not merged. The two-Account helper under [Testing](#testing) is how the tests prove it.
 - Configuration comes from environment variables, validated at startup by a Zod schema in `apps/api/src/config`. A missing or invalid variable stops the process with a message naming the variable. The variables and their defaults are listed in `apps/api/.env.example`.
 - `GET /health` reports the application status. Its response shape is `HealthStatusSchema` in `packages/shared`, so the web app and the end-to-end tests validate it against the same contract.
 - Tests live next to the code: `*.test.ts` files are unit tests (`pnpm test`), `*.integration.test.ts` files boot the application against a real database (`pnpm test:integration`, see [Testing](#testing)).
@@ -360,6 +363,8 @@ One database serves both relational data and vector search.
 | Unit | Vitest | Next to the code in each app and package |
 | Integration | Vitest | `apps/api` against the compose PostgreSQL, Redis, and object store, one isolated database per run; `apps/web` for the Auth.js adapter against the migrated database in `DATABASE_URL` |
 | End-to-end | Playwright | `e2e/`, a workspace package; against the built web app locally, against the full stack in Docker Compose in CI |
+
+`apps/api/src/database/testing/account-pair.ts` is the helper every module with Candidate-owned rows uses: `createAccountPair` inserts two Accounts, and `expectScopedToAccount` runs a lookup as the owner, which must answer, and as the other Account, which must answer `undefined` or throw a `*NotFoundError`. A new owned table adds one such assertion per read and write.
 
 Integration tests need the compose `postgres`, `redis`, and `storage` services and the API's `DATABASE_URL`, `REDIS_URL`, and `S3_*` variables: `pnpm test:integration` reads them from the environment or from `apps/api/.env`. The parser's snapshot suite is unit level and runs without Docker. The API's Vitest global setup creates a database named `helpmegethired_test_<id>` on that server, migrates it to the latest version, hands its URL to the test workers, and drops it when the run ends. Test files run one at a time because they share that database. The migration test reverts and reapplies the last migration, so every migration must have a working `down`. The web app's integration project runs the Auth.js adapter against the database `DATABASE_URL` names, which must already be migrated (`pnpm db:migrate`), as CI does before the integration job.
 

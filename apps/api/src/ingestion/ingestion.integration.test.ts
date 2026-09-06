@@ -6,9 +6,12 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import { AccountRepository } from "../auth/account.repository";
 import { AuthModule } from "../auth/auth.module";
 import { EnvironmentModule } from "../config/environment.module";
+import { DATABASE, type Database } from "../database/database";
 import { DatabaseModule } from "../database/database.module";
+import { createAccountPair, expectScopedToAccount } from "../database/testing/account-pair";
 import { IngestionAlreadyActiveError } from "./ingestion-errors";
 import { IngestionQueue, type IngestionJob, type IngestionJobHandler } from "./ingestion-queue";
+import { IngestionRunRepository } from "./ingestion-run.repository";
 import { IngestionModule } from "./ingestion.module";
 import { IngestionRepository } from "./ingestion.repository";
 import { IngestionRunner } from "./ingestion.runner";
@@ -57,6 +60,8 @@ describe("profile ingestion", () => {
   let service: IngestionService;
   let runner: IngestionRunner;
   let repository: IngestionRepository;
+  let runs: IngestionRunRepository;
+  let database: Database;
   let queue: RecordingQueue;
   let processor: ScriptedSegmentProcessor;
   let accountId: Id;
@@ -79,6 +84,8 @@ describe("profile ingestion", () => {
     service = context.get(IngestionService);
     runner = context.get(IngestionRunner);
     repository = context.get(IngestionRepository);
+    runs = context.get(IngestionRunRepository);
+    database = context.get(DATABASE);
   });
 
   afterAll(async () => {
@@ -99,7 +106,7 @@ describe("profile ingestion", () => {
   });
 
   const statusesOf = async (ingestionId: Id) =>
-    (await repository.segmentsOf(ingestionId)).map((segment) => segment.status);
+    (await runs.segmentsOf(ingestionId)).map((segment) => segment.status);
 
   describe("start", () => {
     it("persists a queued Ingestion with its Segments in order and enqueues one job", async () => {
@@ -152,8 +159,8 @@ describe("profile ingestion", () => {
         "save:2",
       ]);
       expect(processor.saved.get(1)).toEqual({ summary: "second-experience" });
-      expect(await repository.findById(ingestion.id)).toMatchObject({ status: "completed", attempts: 1 });
-      expect(await service.progressOf(ingestion.id)).toMatchObject({ percentage: 100, segments: { total: 3, saved: 3 } });
+      expect(await repository.findById(accountId, ingestion.id)).toMatchObject({ status: "completed", attempts: 1 });
+      expect(await service.progressOf(accountId, ingestion.id)).toMatchObject({ percentage: 100, segments: { total: 3, saved: 3 } });
     });
 
     it("resumes a failed Ingestion from the step that failed, without redoing completed work", async () => {
@@ -162,13 +169,13 @@ describe("profile ingestion", () => {
 
       await expect(runner.run(ingestion.id)).rejects.toThrow("recognize of segment 1 failed");
 
-      expect(await repository.findById(ingestion.id)).toMatchObject({
+      expect(await repository.findById(accountId, ingestion.id)).toMatchObject({
         status: "queued",
         attempts: 1,
         lastError: "recognize of segment 1 failed",
       });
       expect(await statusesOf(ingestion.id)).toEqual(["saved", "read", "pending"]);
-      expect(await service.progressOf(ingestion.id)).toMatchObject({ percentage: 44, segments: { total: 3, saved: 1 } });
+      expect(await service.progressOf(accountId, ingestion.id)).toMatchObject({ percentage: 44, segments: { total: 3, saved: 1 } });
 
       await runner.run(ingestion.id);
 
@@ -176,7 +183,7 @@ describe("profile ingestion", () => {
       expect(processor.callsFor("recognize")).toEqual([0, 1, 1, 2]);
       expect(processor.callsFor("save")).toEqual([0, 1, 2]);
       expect(await statusesOf(ingestion.id)).toEqual(["saved", "saved", "saved"]);
-      expect(await repository.findById(ingestion.id)).toMatchObject({ status: "completed", attempts: 2, lastError: null });
+      expect(await repository.findById(accountId, ingestion.id)).toMatchObject({ status: "completed", attempts: 2, lastError: null });
     });
 
     it("keeps the error on the Segment that failed until it succeeds", async () => {
@@ -185,13 +192,13 @@ describe("profile ingestion", () => {
 
       await expect(runner.run(ingestion.id)).rejects.toThrow();
 
-      const [, , failed] = await repository.segmentsOf(ingestion.id);
+      const [, , failed] = await runs.segmentsOf(ingestion.id);
 
       expect(failed).toMatchObject({ status: "recognized", lastError: "save of segment 2 failed" });
 
       await runner.run(ingestion.id);
 
-      const [, , recovered] = await repository.segmentsOf(ingestion.id);
+      const [, , recovered] = await runs.segmentsOf(ingestion.id);
 
       expect(recovered).toMatchObject({ status: "saved", lastError: null });
     });
@@ -204,12 +211,12 @@ describe("profile ingestion", () => {
 
       for (let attempt = 1; attempt < MAX_ATTEMPTS; attempt += 1) {
         await expect(runner.run(ingestion.id)).rejects.toThrow();
-        expect(await repository.findById(ingestion.id)).toMatchObject({ status: "queued", attempts: attempt });
+        expect(await repository.findById(accountId, ingestion.id)).toMatchObject({ status: "queued", attempts: attempt });
       }
 
       await expect(runner.run(ingestion.id)).rejects.toThrow();
 
-      expect(await repository.findById(ingestion.id)).toMatchObject({ status: "failed", attempts: MAX_ATTEMPTS });
+      expect(await repository.findById(accountId, ingestion.id)).toMatchObject({ status: "failed", attempts: MAX_ATTEMPTS });
       await expect(service.start(accountId, threeSegments)).resolves.toMatchObject({ status: "queued" });
     });
 
@@ -222,7 +229,7 @@ describe("profile ingestion", () => {
       await runner.run(ingestion.id);
 
       expect(processor.calls).toEqual([]);
-      expect(await repository.findById(ingestion.id)).toMatchObject({ status: "completed", attempts: 1 });
+      expect(await repository.findById(accountId, ingestion.id)).toMatchObject({ status: "completed", attempts: 1 });
     });
 
     it("refuses an unknown Ingestion", async () => {
@@ -230,21 +237,42 @@ describe("profile ingestion", () => {
     });
   });
 
+  describe("Account scoping", () => {
+    it("answers not found for an Ingestion of another Account, never forbidden", async () => {
+      const pair = await createAccountPair(database);
+      const ingestion = await service.start(pair.owner, threeSegments);
+
+      await expectScopedToAccount(pair, (account) => repository.findById(account, ingestion.id));
+      await expectScopedToAccount(pair, (account) => repository.progressOf(account, ingestion.id));
+      await expectScopedToAccount(pair, (account) => service.progressOf(account, ingestion.id));
+    });
+
+    it("lets the runner act on an Ingestion by id alone, on behalf of the queue", async () => {
+      const pair = await createAccountPair(database);
+      const ingestion = await service.start(pair.owner, threeSegments);
+
+      await runner.run(ingestion.id);
+
+      expect(await runs.findById(ingestion.id)).toMatchObject({ accountId: pair.owner, status: "completed" });
+      expect(await repository.findById(pair.other, ingestion.id)).toBeUndefined();
+    });
+  });
+
   describe("progress", () => {
     it("is derived from the persisted Segment states", async () => {
       const ingestion = await service.start(accountId, threeSegments);
-      const [first, second] = await repository.segmentsOf(ingestion.id);
+      const [first, second] = await runs.segmentsOf(ingestion.id);
 
       if (!first || !second) {
         throw new Error("Expected three segments");
       }
 
-      await repository.recordStep(first.id, "read", { words: [] });
-      await repository.recordStep(first.id, "recognize", { summary: "" });
-      await repository.recordStep(first.id, "save", undefined);
-      await repository.recordStep(second.id, "read", { words: [] });
+      await runs.recordStep(first.id, "read", { words: [] });
+      await runs.recordStep(first.id, "recognize", { summary: "" });
+      await runs.recordStep(first.id, "save", undefined);
+      await runs.recordStep(second.id, "read", { words: [] });
 
-      const progress = await service.progressOf(ingestion.id);
+      const progress = await service.progressOf(accountId, ingestion.id);
 
       expect(IngestionProgressSchema.safeParse(progress)).toMatchObject({ success: true });
       expect(progress).toEqual({

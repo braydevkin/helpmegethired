@@ -2,7 +2,7 @@ import { Injectable, Logger } from "@nestjs/common";
 import type { Id, Ingestion, SegmentStep } from "@helpmegethired/shared";
 
 import { IngestionNotFoundError } from "./ingestion-errors";
-import { IngestionRepository } from "./ingestion.repository";
+import { IngestionRunRepository } from "./ingestion-run.repository";
 import type { Segment } from "./segment";
 import type { AnySegmentProcessor, SegmentContext } from "./segment-processor";
 import { SegmentProcessorRegistry } from "./segment-processor.registry";
@@ -15,7 +15,7 @@ export class IngestionRunner {
   private readonly logger = new Logger(IngestionRunner.name);
 
   constructor(
-    private readonly repository: IngestionRepository,
+    private readonly repository: IngestionRunRepository,
     private readonly processors: SegmentProcessorRegistry,
   ) {}
 
