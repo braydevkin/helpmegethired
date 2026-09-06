@@ -3,8 +3,8 @@ import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const MEGABYTE = 1024 * 1024;
-const MAX_SIZE_BYTES = 5 * MEGABYTE;
+import { RESUME_MAX_SIZE_BYTES } from "@helpmegethired/shared";
+
 const SCANNED_DETECTION_MIN_BYTES = 50 * 1024;
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -118,11 +118,13 @@ function imageOnly(): Buffer {
 }
 
 export function oversized(): Buffer {
-  const padding = streamObject("", Buffer.alloc(MAX_SIZE_BYTES + 1, 0x41));
+  const padding = streamObject("", Buffer.alloc(RESUME_MAX_SIZE_BYTES + 1, 0x41));
 
   return serialise(textDocument({ extraObjects: [padding] }), "/Root 1 0 R");
 }
 
+// The PDF standard security handler (revision 2) is defined over MD5 and RC4 40-bit; a stronger
+// primitive would produce a file no reader recognises as encrypted, which is the point of the fixture.
 const PASSWORD_PADDING = Buffer.from(
   "28bf4e5e4e758a4164004e56fffa01082e2e00b6d0683e802f0ca9fe6453697a",
   "hex",

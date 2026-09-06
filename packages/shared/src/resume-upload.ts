@@ -26,7 +26,7 @@ export const ResumeUploadErrorCodeSchema = z.enum([
 
 export type ResumeUploadErrorCode = z.infer<typeof ResumeUploadErrorCodeSchema>;
 
-export const Sha256Schema = z.string().regex(SHA256_HEX);
+export const Sha256Schema = z.string().toLowerCase().regex(SHA256_HEX);
 
 export const ResumeUploadSchema = z.object({
   fileName: TextSchema.max(255).regex(PDF_FILE_NAME),

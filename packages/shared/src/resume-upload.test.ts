@@ -31,9 +31,14 @@ describe("ResumeUploadSchema", () => {
     ["an empty file", { ...resumeUpload, sizeBytes: 0 }],
     ["a fractional size", { ...resumeUpload, sizeBytes: 12.5 }],
     ["a short checksum", { ...resumeUpload, sha256: "9f86d081" }],
-    ["an upper-case checksum", { ...resumeUpload, sha256: resumeUpload.sha256.toUpperCase() }],
   ])("rejects %s", (_label, input) => {
     expect(ResumeUploadSchema.safeParse(input).success).toBe(false);
+  });
+
+  it("lowercases an upper-case checksum so the same bytes always dedupe to one record", () => {
+    const parsed = ResumeUploadSchema.parse({ ...resumeUpload, sha256: resumeUpload.sha256.toUpperCase() });
+
+    expect(parsed.sha256).toBe(resumeUpload.sha256);
   });
 
   it("fixes the limits the design pages quote", () => {
