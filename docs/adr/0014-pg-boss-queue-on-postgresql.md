@@ -1,6 +1,6 @@
 # ADR-0014: pg-boss on PostgreSQL as the queue backend for profile ingestion
 
-- **Status:** Accepted
+- **Status:** Superseded by ADR-0020
 - **Date:** 2026-09-02
 - **Deciders:** @braydevkin
 

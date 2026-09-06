@@ -20,16 +20,20 @@ This document describes the intended architecture. Nothing here is implemented y
 │   │ shared       │                └────────────┼─────────────┘    │
 │   └──────────────┘                             │                  │
 │                                                ▼                  │
-│                                   ┌──────────────────────────┐    │
-│                                   │ PostgreSQL + pgvector    │    │
-│                                   │  relational data + RAG   │    │
-│                                   └──────────────────────────┘    │
-│                                                ▲                  │
-│                                   ┌────────────┴─────────────┐    │
-│                                   │ pg-boss queue (in api)   │    │
-│                                   └──────────────────────────┘    │
+│   ┌──────────────┐  BullMQ jobs  ┌──────────────────────────┐    │
+│   │ Redis        │ ◀──────────── │ PostgreSQL + pgvector    │    │
+│   │ (queues)     │ ─────────┐    │  relational data + RAG   │    │
+│   └──────────────┘          │    └──────────────────────────┘    │
+│                             ▼                 ▲                  │
+│   ┌──────────────┐  PDF   ┌──────────────────┴───────┐          │
+│   │ Object store │ ─────▶ │ apps/api worker          │          │
+│   │ (S3 API)     │ ◀───── │  extraction + ingestion  │          │
+│   └──────────────┘ delete └──────────────────────────┘          │
+│          ▲ presigned PUT from the browser                        │
 └───────────────────────────────────────────────────────────────────┘
 ```
+
+The web app talks to the API only. The API enqueues jobs on Redis (ADR-0020) and signs the URL the browser uploads to (ADR-0021); the worker, a second entrypoint of `apps/api`, consumes the queues, streams the PDF from the object store, and writes the Profile to PostgreSQL.
 
 ## Monorepo layout
 
@@ -120,8 +124,12 @@ Sign in and sign up are passwordless (ADR-0017). Auth.js runs the one-time code 
 
 - NestJS modules mirror the domain:
   - `auth` (Account, authorization)
-  - `profile` (Basic Profile, Experiences, Projects)
-  - `ingestion` (resume PDF parsing, LinkedIn reading, segment queue)
+  - `profile` (the seven Profile parts, `GET /profile`, confirmation)
+  - `resumes` (Uploaded Resume, its state machine, the four resume routes)
+  - `storage` (the `ObjectStorage` abstraction over the S3 clients)
+  - `parser` (rule-based extraction of Profile parts from text; pure functions)
+  - `ingestion` (Ingestion, Segments, Steps, the Segment processors)
+  - `queue` (the BullMQ connection and the two queues)
   - `job-descriptions` (store, embed)
   - `analysis` (the sequential AI pipeline)
   - `learnings` (store, study plans)
@@ -151,10 +159,12 @@ The database layer lives in `apps/api/src/database` and follows ADR-0012:
 
 ### Profile ingestion (TC-03, TC-04, TC-05)
 
-Profile building is an **Ingestion**: one run for one Account from one source, split into ordered **Segments**, each of which goes through three **Steps**. The vocabulary is in [CONTEXT.md](../CONTEXT.md); the queue decision is ADR-0014. The `ingestion` module holds the state machine and its persistence; the first real segment processors (Resume PDF, LinkedIn) arrive with their own tasks.
+Profile building is an **Ingestion**: one run for one Account from one source, split into ordered **Segments**, each of which goes through three **Steps**. The vocabulary is in [CONTEXT.md](../CONTEXT.md); the queue decision is ADR-0020. The `ingestion` module holds the state machine and its persistence; the resume Segment processors are described under [Resume upload and extraction](#resume-upload-and-extraction-fr-02-tc-01), the LinkedIn ones arrive with their own milestone.
 
 ```
-start ──▶ ingestions (queued) + ingestion_segments (pending) + pg-boss job, one transaction
+start ──▶ ingestions (queued) + ingestion_segments (pending), one transaction
+                                                          │ after commit
+                                       profile-ingestion job, id = ingestion id
                                                                     │
                           worker: run(ingestionId) ◀────────────────┘
                                    │
@@ -163,10 +173,10 @@ start ──▶ ingestions (queued) + ingestion_segments (pending) + pg-boss job
                                    │
                   all saved ──▶ completed
                   a Step throws ──▶ Segment keeps its last completed Step + error
-                                    Ingestion: attempts < max ? queued (pg-boss retries) : failed
+                                    Ingestion: attempts < max ? queued (BullMQ retries) : failed
 ```
 
-**Ingestion states.** `queued` (waiting for a worker, on the first attempt or after a failed one), `running` (a worker is processing it), `failed` (every attempt used; the Candidate may start a new Ingestion), `completed`. Every attempt increments `attempts`; `max_attempts` (3) is stored on the row and sent to pg-boss as its retry limit, so the queue and the row agree.
+**Ingestion states.** `queued` (waiting for a worker, on the first attempt or after a failed one), `running` (a worker is processing it), `failed` (every attempt used; the Candidate may start a new Ingestion), `completed`. Every attempt increments `attempts`; `max_attempts` (3) is stored on the row and sent to BullMQ as the job's attempts, so the queue and the row agree.
 
 **Segment states.** A Segment's status is the last Step it completed: `pending`, `read`, `recognized`, `saved`. The output of `read` and `recognize` is persisted on the Segment (`content`, `recognized`) so a retry continues with the next Step instead of recomputing. A Step that throws records the message on the Segment (`last_error`) and stops the run; the Segment's status does not move.
 
@@ -174,11 +184,132 @@ start ──▶ ingestions (queued) + ingestion_segments (pending) + pg-boss job
 
 **Progress.** `progressOf(ingestionId)` reads the Ingestion status and the status of every Segment and answers `IngestionProgressSchema`: the percentage is `floor(100 × completed Steps ÷ (3 × Segments))`, plus the total and saved Segment counts. Nothing in memory contributes; a fresh process answers the same number.
 
-**One active Ingestion per Account.** The partial unique index `ingestions_one_active_per_account_idx` on `account_id where status in ('queued', 'running')` enforces it in the database. `start` inserts the Ingestion, its Segments, and the pg-boss job in one transaction and maps the unique violation to `IngestionAlreadyActiveError`; if the job cannot be sent, nothing is kept and the Account stays free. A `completed` or `failed` Ingestion frees the Account. A worker that dies leaves the row `running` until pg-boss expires the job and re-delivers it; a heartbeat for long attempts is a follow-up in ADR-0014.
+**One active Ingestion per Account.** The partial unique index `ingestions_one_active_per_account_idx` on `account_id where status in ('queued', 'running')` enforces it in the database. `start` inserts the Ingestion and its Segments in one transaction and maps the unique violation to `IngestionAlreadyActiveError`; the job is added after the commit, with the Ingestion id as job id. If the enqueue fails, the row stays `queued` and the [reconciliation job](#reconciliation) enqueues it on its next run. A `completed` or `failed` Ingestion frees the Account. A worker that dies stops renewing the job's lock; BullMQ marks the job stalled and re-delivers it, and the next attempt resumes from the first incomplete Segment.
 
-**Processors.** A `SegmentProcessor` implements `read`, `recognize`, and `save` for one Segment `kind`; the `SegmentProcessorRegistry` resolves the processor by kind. No real processor is registered yet; the tests use a scripted one.
+**Processors.** A `SegmentProcessor` implements `read`, `recognize`, and `save` for one Segment `kind`; the `SegmentProcessorRegistry` resolves the processor by kind. The resume kinds are listed under [Segments from sections](#segments-from-sections); the tests keep a scripted processor for the state machine.
 
-**Queue.** `IngestionQueue` is the abstraction (`enqueue`, `work`); `PgBossIngestionQueue` implements it on the `profile-ingestion` queue with a one-second polling interval and exponential backoff between retries. The `QueueModule` provides the `PgBoss` instance on the Kysely connection, starts it with the module, and stops it gracefully on shutdown. pg-boss keeps its tables in the `pgboss` schema, which it migrates on start.
+**Queue.** `IngestionQueue` is the abstraction (`enqueue`, `work`); `BullMqIngestionQueue` implements it on the `profile-ingestion` queue with exponential backoff between retries and failed jobs kept for inspection. The `QueueModule` provides the BullMQ connection from `REDIS_URL` and registers the two queues; only the [worker](#the-worker) registers processors.
+
+### Resume upload and extraction (FR-02, TC-01)
+
+The Candidate uploads a PDF, the platform extracts its text once, and an Ingestion builds the Profile from that text. The screens are [Design: Resume Upload](https://github.com/braydevkin/helpmegethired/wiki/Design-Resume-Upload) and [Design: Profile](https://github.com/braydevkin/helpmegethired/wiki/Design-Profile) on the wiki; the maintainer's upload lane is `design/resume/system-design.png` there, from `arch/helpmegethired-architecture.drawio`. The decisions are ADR-0020 (queues and worker) and ADR-0021 (object storage); the limits and error codes are fixed by #52. The terms (Uploaded Resume, Ingestion, Segment, Step, Progress, the seven Profile parts, Confidence) are in [CONTEXT.md](../CONTEXT.md).
+
+```
+browser                 api                    object store          redis            worker                    postgres
+  │ POST /resumes ──────▶│ uploaded_resumes: pending ──────────────────────────────────────────────────────────────▶│
+  │◀── presigned PUT ────│                                                                                          │
+  │ PUT bytes ───────────────────────────────▶│ resumes/{account}/{id}.pdf                                          │
+  │ POST /resumes/:id/complete ▶│ HeadObject ─▶│                                                                     │
+  │                      │ uploaded ─────────────────────────────────────────────────────────────────────────────▶│
+  │                      │ resume-extraction job ───────────────────▶│                                             │
+  │                      │                                           │──▶│ processing, validate, pdftotext          │
+  │                      │                        GetObject ◀────────────│ raw text + extractor version ──────────▶│
+  │                      │                        DeleteObject ◀─────────│                                          │
+  │                      │                                           │◀──│ ingestion + segments ──────────────────▶│
+  │                      │                                           │──▶│ profile-ingestion job: read, recognize, save per Segment ▶│
+  │ GET /resumes/:id (poll, ETag) ▶│                                     │ done ──────────────────────────────────▶│
+  │ GET /profile ────────▶│                                                                                          │
+```
+
+#### Uploaded Resume state machine
+
+| From | To | Written by | When |
+| --- | --- | --- | --- |
+| — | `pending` | API, `POST /resumes` | The record and the presigned URL are created |
+| `pending` | `uploaded` | API, `POST /resumes/:id/complete`, or the reconciliation job | The object exists with the declared size; the `resume-extraction` job is added with the record id as job id |
+| `pending` | `expired` | Reconciliation job | No object after 24 hours |
+| `uploaded` | `processing` | Worker | The extraction job starts |
+| `processing` | `uploaded` | Reconciliation job | The record is stale and no job is active; it is re-enqueued |
+| `processing` | `failed` | Worker | Validation or extraction refuses the file, or the Ingestion exhausts its attempts |
+| `processing` | `done` | Worker | The Ingestion created from the text has completed |
+
+`done` means the Profile is saved, not only the text extracted: the record stays `processing` while the Ingestion runs, and the upload page derives its "Building your profile" stage from the Ingestion's Progress. A `failed` record carries one error code, which the page turns into a message: `not_pdf`, `too_large`, `too_many_pages`, `encrypted_pdf`, `corrupt_pdf`, `scanned_pdf`, `upload_incomplete`, `extraction_failed` (retries exhausted on a transient error), and `profile_build_failed` (the Ingestion exhausted its attempts). `POST /resumes` never refuses a new upload; `complete` answers `409 ingestion_active` while the Account has another record `uploaded` or `processing` or an active Ingestion (TC-05). Uploading the same bytes twice (same Account, same SHA-256) answers the existing record and creates no second job.
+
+#### The two queues
+
+| Queue | One job per | Job id | Producer | Consumer |
+| --- | --- | --- | --- | --- |
+| `resume-extraction` | Uploaded Resume | the record id | `complete`, or the reconciliation job | the extraction processor on the worker |
+| `profile-ingestion` | Ingestion | the Ingestion id | the extraction processor, after it creates the Ingestion | the Ingestion runner on the worker |
+
+The job id equal to the record id makes every add idempotent, and every processor begins by reading what is already persisted and skipping it, so a re-delivery after a crash, a stalled lock, or a reconciliation run never repeats work. Attempts come from the row, backoff is exponential, and failed jobs are kept so the queue dashboard shows them. The enqueue always happens after the PostgreSQL transaction commits; an enqueue failure is logged and left to the reconciliation job, never surfaced as a request error.
+
+#### The worker
+
+`apps/api/src/worker.ts` is a second Nest entrypoint (`createApplicationContext(WorkerModule)`) that hosts every processor: extraction, the Ingestion runner, and the reconciliation job. It runs with `WORKER_CONCURRENCY` jobs at a time (default 4), renews the lock of every active job, and closes both queues on `SIGTERM`. The `worker` compose service is built from the API image with the same environment as `api`, no port, and a memory limit, so a hostile PDF can exhaust the worker and never the API. The API process registers no processor.
+
+#### Extraction
+
+The extraction processor takes an `uploaded` record, marks it `processing`, and streams the object from storage:
+
+1. **Validation of what storage could not check**: magic bytes (`%PDF-`), size at most 5 MB, page count at most 20, and no encryption. Each failure is unrecoverable: the record becomes `failed` with its code and the object is deleted.
+2. **Text extraction** with `pdftotext -layout` from poppler as a child process fed by the stream, killed after `EXTRACTION_TIMEOUT_MS` (default 30 s); exit codes map to `corrupt_pdf` and `encrypted_pdf`. `pdfjs-dist` is the fallback when poppler is unavailable or fails transiently. No network access.
+3. **Scanned detection**: fewer than 200 non-blank characters on a file over 50 KB is `scanned_pdf`. OCR is out of this phase.
+4. **The raw text and the extractor version are saved on the record first**, then the object is deleted. A job re-delivered after this point never runs `pdftotext` again, and a later extractor or an LLM extraction reads the stored text, never the PDF.
+5. **Hand over**: the section splitter creates the Segments, the Ingestion is inserted, and its job is added.
+
+Storage or database errors and timeouts retry with backoff up to the job's attempts, then end in `failed` with `extraction_failed`. The extractor runs only on the worker; the API image ships poppler because both services share it.
+
+#### Segments from sections
+
+The section splitter (parser foundation) cuts the text into blocks, and each block becomes one Segment, in this order: `header` (headline, summary, LinkedIn URL, GitHub URL), one `experience` per Experience block, `education`, one `project` per Project block, `skills`, `languages`, `certifications`. A section the résumé lacks produces no Segment. Each kind has a `SegmentProcessor`: `read` returns the Segment's slice of the text, `recognize` runs the parser layer for that kind, and `save` writes typed rows tagged with the source Ingestion. The upload page's Profile data checklist ticks along these kinds as their `save` Steps complete.
+
+The header processor reads the name, e-mail, and phone only to find where the header ends and to compare them with the Account; a mismatch is recorded as a review flag. They are never written into a Profile table.
+
+#### Replace by source Ingestion
+
+Every Profile row records the Ingestion that wrote it. The Profile reads the rows of the latest completed Ingestion per source (Uploaded Resume, later LinkedIn). When an Ingestion completes, the rows written by earlier Ingestions of the same source are deleted, the review flags are cleared, and the confirmation is reset. A re-upload that fails leaves the previous Profile untouched, and the Candidate never sees a half-built Profile. A resume Ingestion never touches rows from another source; how two sources merge the Basic Profile is decided with the LinkedIn milestone.
+
+#### Reconciliation
+
+A BullMQ repeatable job on the worker, every 5 minutes with a fixed repeat key so one instance exists however many workers run. It is what makes the state machine converge without a transactional enqueue:
+
+| Rule | Condition | Action |
+| --- | --- | --- |
+| Promote a silent upload | `pending` older than 2 minutes and the object is present with the declared size | `uploaded`, extraction job added (the same path as `complete`) |
+| Expire | `pending` older than 24 hours with no object | `expired` |
+| Re-enqueue an orphan | `uploaded` with no waiting or active job | extraction job added |
+| Reset a stale run | `processing` older than `STALE_PROCESSING_MINUTES` (default 10) with no active job; an Ingestion `queued` or `running` with no job likewise | back to `uploaded` and re-enqueued; the Ingestion re-enqueued |
+| Clean the bucket | an object whose record is `expired` or `failed`, or that has no record, older than 7 days | deleted |
+
+Every action writes one structured log line without Candidate data.
+
+#### Parser layers
+
+The parser is pure functions in `apps/api/src/parser`, independent of the queue and the database, applied in layers to the stored text. Every recognised field carries a Confidence (`high`, `medium`, `low`); `low` is what the Profile page flags for review.
+
+| Layer | What it does |
+| --- | --- |
+| Cleaning | Normalised line endings, collapsed blank lines, page numbers removed, hyphenated line breaks joined, bullet glyphs stripped |
+| Contact | E-mail, phone, LinkedIn, GitHub, and other URLs over the full text (`high`); the name line heuristic (`medium`). Used for the header boundary and the Account comparison only |
+| Section splitting | A Portuguese and English header dictionary (experience, education, skills, projects, summary, languages, certifications), accent-insensitive, with a header score (dictionary match, all caps, short line, followed by a blank line; threshold 3). The text before the first header is the header section |
+| Experiences | Date range detection in both languages, including open endings; a matching line starts an entry. Title and company split on the usual separators with a job title dictionary deciding which side is the title (`high`), both kept raw otherwise (`low`). Career months from the periods with overlaps merged, open ranges ending today; exposed as a pure function `GET /profile` reuses for the years of experience |
+| Education | Entries by the date range rule; institution and degree split by a degree dictionary, Confidence per field |
+| Skills | A technology dictionary of about 300 terms with canonical names, synonyms, and a category (`Languages & runtimes`, `Frameworks & data`, `Infrastructure`, `Other`), matched over the full text and deduplicated; a term found inside an Experience or Project is also attached to it |
+| Projects | Entries by the date range rule or a name line followed by description lines; name, description, link, matched skills |
+| Languages | One entry per line with the level when a known level word or CEFR code appears (`medium`) |
+| Certifications | One entry per line: name, issuer, year when present (`medium`) |
+
+The output is `ProfileDraftSchema` in `packages/shared`: the seven parts, each field wrapped with its value and Confidence, and the parser version. Two-column layouts regrouped by coordinates are a follow-up.
+
+#### Synthetic corpus
+
+Parser quality is measured against a corpus of résumés with expected output, and a rule change that regresses another case is caught by a snapshot. The corpus holds no real person's data: fictional people and companies rendered through HTML templates to PDF with Playwright's Chromium, in several layouts (single column, two columns, Canva-like, LaTeX-like, LinkedIn export), in Portuguese and English, with the PDF, its extracted text, and its expected JSON committed under `apps/api/test/fixtures/resumes`. The milestone target is thirty résumés. A rule change updates the snapshots deliberately in the same pull request; a real résumé is never committed. Beside it sits the set of hostile PDFs from #52 that the extraction tests feed the worker.
+
+#### Client contract
+
+Every route is Candidate-owned: another Account's id answers `404` everywhere. Schemas live in `packages/shared` (`UploadedResumeSchema`, `ResumeUploadSchema`, `ProfileSchema`, and the error codes).
+
+| Route | Answers |
+| --- | --- |
+| `POST /resumes` (file name, size, SHA-256, content type) | `201` with the record, the presigned `PUT` URL, and its expiry; `200` with the existing record when the same bytes are already `uploaded`, `processing`, or `done`; a `pending` duplicate gets a fresh URL |
+| `POST /resumes/:id/complete` | `202` and the record `uploaded`; `409 upload_incomplete` when the object is missing or its size differs; `409 ingestion_active` while another upload or Ingestion is active; idempotent for a record no longer `pending` |
+| `GET /resumes/:id` | The record with its status, error code, and the Ingestion Progress when it exists; an `ETag` from status, error, and Progress, `304` on `If-None-Match`, so the page can poll cheaply |
+| `GET /resumes` | The Account's records, newest first, optional status filter |
+| `GET /profile` | The seven Profile parts, the source Uploaded Resume, the review flags, and the derived years of experience |
+| `POST /profile/confirm` | Clears the review flags and records the confirmation time; idempotent |
+
+The upload page composes its single percentage from the byte progress of the `PUT` (0 to 25), the record status (`uploaded` 25, `processing` 30), and the Ingestion Progress mapped onto 30 to 100. Nothing on the page comes from a timer.
 
 ### AI pipeline (TC-06, TC-07)
 
@@ -217,7 +348,7 @@ Preparation summary with success rates
 
 One database serves both relational data and vector search.
 
-- Relational tables for Account, Session, One-Time Code, Ingestion, Segment, Basic Profile, Experiences, Projects, Job Descriptions, Learnings, and pipeline runs. Tables arrive with the task that needs them, each through a migration; `accounts`, `sessions`, `verification_tokens`, `ingestions`, and `ingestion_segments` are the first. The `pgboss` schema holds the job queue and is managed by pg-boss (ADR-0014).
+- Relational tables for Account, Session, One-Time Code, Uploaded Resume, Ingestion, Segment, the seven Profile parts, Job Descriptions, Learnings, and pipeline runs. Tables arrive with the task that needs them, each through a migration; `accounts`, `sessions`, `verification_tokens`, `ingestions`, and `ingestion_segments` are the first, `uploaded_resumes` and the Profile tables follow with the upload milestone. Every Profile row carries `account_id` and `source_ingestion_id`. The job queue lives in Redis (ADR-0020), and the PDF bytes in the object store (ADR-0021), never in PostgreSQL.
 - The `vector` extension is enabled by the first migration, so every later migration can declare embedding columns.
 - Embeddings stored in pgvector columns alongside the rows they describe (profile chunks, job description chunks, learnings).
 - RAG queries are scoped by Account id. Retrieval across Accounts is never performed.
@@ -227,16 +358,16 @@ One database serves both relational data and vector search.
 | Level | Tool | Where |
 | --- | --- | --- |
 | Unit | Vitest | Next to the code in each app and package |
-| Integration | Vitest | `apps/api` against a real PostgreSQL in Docker, one isolated database per run; `apps/web` for the Auth.js adapter against the migrated database in `DATABASE_URL` |
+| Integration | Vitest | `apps/api` against the compose PostgreSQL, Redis, and object store, one isolated database per run; `apps/web` for the Auth.js adapter against the migrated database in `DATABASE_URL` |
 | End-to-end | Playwright | `e2e/`, a workspace package; against the built web app locally, against the full stack in Docker Compose in CI |
 
-Integration tests need the compose `postgres` service and the `DATABASE_URL` of the API: `pnpm test:integration` reads it from the environment or from `apps/api/.env`. The API's Vitest global setup creates a database named `helpmegethired_test_<id>` on that server, migrates it to the latest version, hands its URL to the test workers, and drops it when the run ends. Test files run one at a time because they share that database. The migration test reverts and reapplies the last migration, so every migration must have a working `down`. The web app's integration project runs the Auth.js adapter against the database `DATABASE_URL` names, which must already be migrated (`pnpm db:migrate`), as CI does before the integration job.
+Integration tests need the compose `postgres`, `redis`, and `storage` services and the API's `DATABASE_URL`, `REDIS_URL`, and `S3_*` variables: `pnpm test:integration` reads them from the environment or from `apps/api/.env`. The parser's snapshot suite is unit level and runs without Docker. The API's Vitest global setup creates a database named `helpmegethired_test_<id>` on that server, migrates it to the latest version, hands its URL to the test workers, and drops it when the run ends. Test files run one at a time because they share that database. The migration test reverts and reapplies the last migration, so every migration must have a working `down`. The web app's integration project runs the Auth.js adapter against the database `DATABASE_URL` names, which must already be migrated (`pnpm db:migrate`), as CI does before the integration job.
 
 The `e2e` package depends on `@helpmegethired/web`, so `pnpm turbo run test:e2e` builds the web app first and Playwright starts it with `next start` on port 3100. Setting `E2E_BASE_URL` points the tests at an already running stack instead. Browsers are installed once with `pnpm --filter e2e exec playwright install chromium`.
 
 ## Local runtime
 
-Docker Compose runs the whole monorepo. `docker compose up` brings up three long-running services and one migration step from the root `docker-compose.yml`. The job queue runs inside `api` on PostgreSQL (ADR-0014), so no queue service is needed. CI uses the same compose file for integration and end-to-end tests.
+Docker Compose runs the whole monorepo. `docker compose up` brings up the long-running services and two one-shot steps from the root `docker-compose.yml`. CI uses the same compose file for integration and end-to-end tests. The queue (ADR-0020), the object store (ADR-0021), the worker, and their two dashboards arrive with #72 and #73; until then the stack is the first four rows.
 
 | Service | Image | Host port (default) | Health check |
 | --- | --- | --- | --- |
@@ -244,9 +375,16 @@ Docker Compose runs the whole monorepo. `docker compose up` brings up three long
 | `api` | `docker/api/Dockerfile`, target `development` | `API_PORT` (3001) | `GET /health` answers |
 | `migrate` | same image as `api`, runs `pnpm db:migrate` and exits | none | exit code 0 |
 | `postgres` | `pgvector/pgvector:pg17` | `POSTGRES_PORT` (5432) | `pg_isready` |
+| `redis` | `redis:8-alpine`, `--maxmemory-policy noeviction`, append-only persistence | `REDIS_PORT` (6379) | `redis-cli ping` |
+| `worker` | same image as `api`, runs `pnpm --filter api dev:worker`, memory limit | none | the process is alive and both queues are connected |
+| `storage` | `rustfs/rustfs`, S3 API on 9000 and the console on 9001 | `STORAGE_PORT` (9000), `STORAGE_CONSOLE_PORT` (9001) | the S3 health endpoint answers |
+| `storage-init` | the S3 client image, creates the private `resumes` bucket with its CORS and exits | none | exit code 0 |
+| `queue-dashboard` | `ghcr.io/felixmosh/bull-board`, pointed at `redis` | `QUEUE_DASHBOARD_PORT` (3002) | `GET /` answers |
+
+The two dashboards are development tools: the queue dashboard shows every job of both queues with its attempts and failures, and the storage console shows the bucket. Neither is part of a deployed environment.
 
 - Configuration comes from a root `.env`, copied from `.env.example`. Every variable is required except `AUTH_RESEND_KEY` and `EMAIL_FROM`, which are blank by default: a missing required one stops `docker compose` with a message naming it. Inside the network the services keep fixed ports (`api:3001`, `web:3000`, `postgres:5432`); the `.env` variables only choose the host ports.
-- The `api` and `migrate` containers receive `PORT`, `WEB_ORIGIN`, and `DATABASE_URL` from the compose file, so `apps/api/.env.example` is only needed when the API runs natively. Inside the network the database URL points at `postgres:5432`; from the host it points at `localhost:${POSTGRES_PORT}`.
+- The `api`, `worker`, and `migrate` containers receive `PORT`, `WEB_ORIGIN`, `DATABASE_URL`, `REDIS_URL`, and the `S3_*` variables from the compose file, so `apps/api/.env.example` is only needed when the API runs natively. Inside the network the database URL points at `postgres:5432`, the Redis URL at `redis:6379`, and `S3_ENDPOINT` at `storage:9000`; from the host they point at `localhost` with the `.env` ports. `S3_PUBLIC_ENDPOINT` is always the host address, because it is embedded in the presigned URL the browser uses.
 - The `web` container receives `API_URL=http://api:3001` and starts only after `api` is healthy. When the web app runs natively, `API_URL` defaults to `http://localhost:3001`.
 - The stack sends no real email. `web` receives `AUTH_RESEND_KEY` and `EMAIL_FROM` from `.env`, blank by default, so the code is printed in its logs and read from the development route; setting both in `.env` switches the local stack to Resend for a real delivery check.
 - Both Dockerfiles build from the repository root: they install the workspace with pnpm filtered to the app and its workspace dependencies, build those dependencies (`packages/shared`), and run the app's `dev` script as the unprivileged `node` user. The `development` target is the only one for now; production images are a separate task.
@@ -256,7 +394,7 @@ Docker Compose runs the whole monorepo. `docker compose up` brings up three long
 
 ## CI/CD
 
-GitHub Actions, following the Gitflow model in [workflow.md](workflow.md). Workflows live in `.github/workflows`; the steps they share (pinned Node and pnpm, `pnpm install --frozen-lockfile`, starting the compose `postgres`) are composite actions under `.github/actions`.
+GitHub Actions, following the Gitflow model in [workflow.md](workflow.md). Workflows live in `.github/workflows`; the steps they share (pinned Node and pnpm, `pnpm install --frozen-lockfile`, starting the compose `postgres`, `redis`, and `storage`) are composite actions under `.github/actions`.
 
 Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow level, and no more: `CI` and `Release document` only read the repository (`contents: read`), and `Board` grants the workflow token nothing (`permissions: {}`) because it acts through `PROJECT_TOKEN`. CodeQL flags a workflow that leaves the default permissions in place.
 
@@ -267,7 +405,7 @@ Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow leve
   | `lint` | `pnpm lint` | |
   | `typecheck` | `pnpm typecheck` | |
   | `unit` | `pnpm test` | |
-  | `integration` | `pnpm db:migrate`, `pnpm db:migrate:down`, `pnpm db:migrate`, then `pnpm test:integration` | compose `postgres` started from `.env.example` |
+  | `integration` | `pnpm db:migrate`, `pnpm db:migrate:down`, `pnpm db:migrate`, then `pnpm test:integration` | compose `postgres`, `redis`, and `storage` started from `.env.example`; poppler on the runner |
   | `e2e` | `pnpm --filter e2e test:e2e` with `E2E_BASE_URL` pointing at the stack | `docker compose up --build --wait` from `.env.example` |
 
   `.env.example` is the configuration in CI, so it must stay complete and valid. A new run for the same pull request cancels the previous one.
