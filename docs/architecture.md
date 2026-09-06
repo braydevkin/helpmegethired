@@ -176,7 +176,7 @@ start ──▶ ingestions (queued) + ingestion_segments (pending), one transact
                                     Ingestion: attempts < max ? queued (BullMQ retries) : failed
 ```
 
-**Ingestion states.** `queued` (waiting for a worker, on the first attempt or after a failed one), `running` (a worker is processing it), `failed` (every attempt used; the Candidate may start a new Ingestion), `completed`. Every attempt increments `attempts`; `max_attempts` (3) is stored on the row and sent to BullMQ as the job's attempts, so the queue and the row agree.
+**Ingestion states.** `queued` (waiting for a worker, on the first attempt or after a failed one), `running` (a worker is processing it), `failed` (every attempt used; the Candidate may start a new Ingestion), `completed`. The worker increments `attempts` in the same write that moves the row to `running`, before any Step runs, so an attempt that dies without reporting (a crash, an out-of-memory kill) still counts. `max_attempts` (3) is stored on the row and sent to BullMQ as the job's attempts, so the queue and the row agree; a run that finds `attempts` already at `max_attempts` marks the Ingestion `failed` instead of executing.
 
 **Segment states.** A Segment's status is the last Step it completed: `pending`, `read`, `recognized`, `saved`. The output of `read` and `recognize` is persisted on the Segment (`content`, `recognized`) so a retry continues with the next Step instead of recomputing. A Step that throws records the message on the Segment (`last_error`) and stops the run; the Segment's status does not move.
 
@@ -184,7 +184,7 @@ start ──▶ ingestions (queued) + ingestion_segments (pending), one transact
 
 **Progress.** `progressOf(ingestionId)` reads the Ingestion status and the status of every Segment and answers `IngestionProgressSchema`: the percentage is `floor(100 × completed Steps ÷ (3 × Segments))`, plus the total and saved Segment counts. Nothing in memory contributes; a fresh process answers the same number.
 
-**One active Ingestion per Account.** The partial unique index `ingestions_one_active_per_account_idx` on `account_id where status in ('queued', 'running')` enforces it in the database. `start` inserts the Ingestion and its Segments in one transaction and maps the unique violation to `IngestionAlreadyActiveError`; the job is added after the commit, with the Ingestion id as job id. If the enqueue fails, the row stays `queued` and the [reconciliation job](#reconciliation) enqueues it on its next run. A `completed` or `failed` Ingestion frees the Account. A worker that dies stops renewing the job's lock; BullMQ marks the job stalled and re-delivers it, and the next attempt resumes from the first incomplete Segment.
+**One active Ingestion per Account.** The partial unique index `ingestions_one_active_per_account_idx` on `account_id where status in ('queued', 'running')` enforces it in the database. `start` inserts the Ingestion and its Segments in one transaction and maps the unique violation to `IngestionAlreadyActiveError`; the job is added after the commit, with the Ingestion id as job id. If the enqueue fails, the row stays `queued` and the [reconciliation job](#reconciliation) enqueues it on its next run. A `completed` or `failed` Ingestion frees the Account. A worker that dies stops renewing the job's lock; BullMQ marks the job stalled and re-delivers it, and the next attempt resumes from the first incomplete Segment. Because the dead run had already incremented `attempts`, the re-delivery is counted, and an Ingestion whose runs keep dying reaches `max_attempts` and becomes `failed`, which frees the Account instead of locking it behind endless resets.
 
 **Processors.** A `SegmentProcessor` implements `read`, `recognize`, and `save` for one Segment `kind`; the `SegmentProcessorRegistry` resolves the processor by kind. The resume kinds are listed under [Segments from sections](#segments-from-sections); the tests keep a scripted processor for the state machine.
 
@@ -216,11 +216,11 @@ browser                 api                    object store          redis      
 | From | To | Written by | When |
 | --- | --- | --- | --- |
 | — | `pending` | API, `POST /resumes` | The record and the presigned URL are created |
-| `pending` | `uploaded` | API, `POST /resumes/:id/complete`, or the reconciliation job | The object exists with the declared size; the `resume-extraction` job is added with the record id as job id |
+| `pending` | `uploaded` | API, `POST /resumes/:id/complete`, or the reconciliation job | The object exists with the declared size (`complete` heads it up to three times, 500 ms apart, before giving up); the `resume-extraction` job is added with the record id as job id |
 | `pending` | `expired` | Reconciliation job | No object after 24 hours |
 | `uploaded` | `processing` | Worker | The extraction job starts |
-| `processing` | `uploaded` | Reconciliation job | The record is stale and no job is active; it is re-enqueued |
-| `processing` | `failed` | Worker | Validation or extraction refuses the file, or the Ingestion exhausts its attempts |
+| `processing` | `uploaded` | Reconciliation job | The record is stale, no job is active, and `attempts` is below `max_attempts`; it is re-enqueued |
+| `processing` | `failed` | Worker, or the reconciliation job | Validation or extraction refuses the file, the Ingestion exhausts its attempts, or a stale record has no attempt left |
 | `processing` | `done` | Worker | The Ingestion created from the text has completed |
 
 `done` means the Profile is saved, not only the text extracted: the record stays `processing` while the Ingestion runs, and the upload page derives its "Building your profile" stage from the Ingestion's Progress. A `failed` record carries one error code, which the page turns into a message: `not_pdf`, `too_large`, `too_many_pages`, `encrypted_pdf`, `corrupt_pdf`, `scanned_pdf`, `upload_incomplete`, `extraction_failed` (retries exhausted on a transient error), and `profile_build_failed` (the Ingestion exhausted its attempts). `POST /resumes` never refuses a new upload; `complete` answers `409 ingestion_active` while the Account has another record `uploaded` or `processing` or an active Ingestion (TC-05). Uploading the same bytes twice (same Account, same SHA-256) answers the existing record and creates no second job.
@@ -232,7 +232,7 @@ browser                 api                    object store          redis      
 | `resume-extraction` | Uploaded Resume | the record id | `complete`, or the reconciliation job | the extraction processor on the worker |
 | `profile-ingestion` | Ingestion | the Ingestion id | the extraction processor, after it creates the Ingestion | the Ingestion runner on the worker |
 
-The job id equal to the record id makes every add idempotent, and every processor begins by reading what is already persisted and skipping it, so a re-delivery after a crash, a stalled lock, or a reconciliation run never repeats work. Attempts come from the row, backoff is exponential, and failed jobs are kept so the queue dashboard shows them. The enqueue always happens after the PostgreSQL transaction commits; an enqueue failure is logged and left to the reconciliation job, never surfaced as a request error.
+The job id equal to the record id makes every add idempotent, and every processor begins by reading what is already persisted and skipping it, so a re-delivery after a crash, a stalled lock, or a reconciliation run never repeats work. Both rows carry `attempts` and `max_attempts`; the processor increments `attempts` in the write that marks the row `processing` or `running`, before doing any work, so a run killed without reporting still counts and the reconciliation job never re-enqueues past the limit. Backoff is exponential, and failed jobs are kept so the queue dashboard shows them. The enqueue always happens after the PostgreSQL transaction commits; an enqueue failure is logged and left to the reconciliation job, never surfaced as a request error.
 
 #### The worker
 
@@ -240,7 +240,7 @@ The job id equal to the record id makes every add idempotent, and every processo
 
 #### Extraction
 
-The extraction processor takes an `uploaded` record, marks it `processing`, and streams the object from storage:
+The extraction processor takes an `uploaded` record, marks it `processing` and increments its `attempts` in one write, and streams the object from storage:
 
 1. **Validation of what storage could not check**: magic bytes (`%PDF-`), size at most 5 MB, page count at most 20, and no encryption. Each failure is unrecoverable: the record becomes `failed` with its code and the object is deleted.
 2. **Text extraction** with `pdftotext -layout` from poppler as a child process fed by the stream, killed after `EXTRACTION_TIMEOUT_MS` (default 30 s); exit codes map to `corrupt_pdf` and `encrypted_pdf`. `pdfjs-dist` is the fallback when poppler is unavailable or fails transiently. No network access.
@@ -248,7 +248,7 @@ The extraction processor takes an `uploaded` record, marks it `processing`, and 
 4. **The raw text and the extractor version are saved on the record first**, then the object is deleted. A job re-delivered after this point never runs `pdftotext` again, and a later extractor or an LLM extraction reads the stored text, never the PDF.
 5. **Hand over**: the section splitter creates the Segments, the Ingestion is inserted, and its job is added.
 
-Storage or database errors and timeouts retry with backoff up to the job's attempts, then end in `failed` with `extraction_failed`. The extractor runs only on the worker; the API image ships poppler because both services share it.
+Storage or database errors and timeouts retry with backoff up to the row's `max_attempts`, then end in `failed` with `extraction_failed`. The extractor runs only on the worker; the API image ships poppler because both services share it.
 
 #### Segments from sections
 
@@ -269,7 +269,7 @@ A BullMQ repeatable job on the worker, every 5 minutes with a fixed repeat key s
 | Promote a silent upload | `pending` older than 2 minutes and the object is present with the declared size | `uploaded`, extraction job added (the same path as `complete`) |
 | Expire | `pending` older than 24 hours with no object | `expired` |
 | Re-enqueue an orphan | `uploaded` with no waiting or active job | extraction job added |
-| Reset a stale run | `processing` older than `STALE_PROCESSING_MINUTES` (default 10) with no active job; an Ingestion `queued` or `running` with no job likewise | back to `uploaded` and re-enqueued; the Ingestion re-enqueued |
+| Reset a stale run | `processing` older than `STALE_PROCESSING_MINUTES` (default 10) with no active job; an Ingestion `queued` or `running` with no job likewise | back to `uploaded` and re-enqueued while `attempts` is below `max_attempts`, otherwise `failed` with `extraction_failed`; the Ingestion re-enqueued under the same rule, otherwise `failed` and its record `failed` with `profile_build_failed` |
 | Clean the bucket | an object whose record is `expired` or `failed`, or that has no record, older than 7 days | deleted |
 
 Every action writes one structured log line without Candidate data.
@@ -303,7 +303,7 @@ Every route is Candidate-owned: another Account's id answers `404` everywhere. S
 | Route | Answers |
 | --- | --- |
 | `POST /resumes` (file name, size, SHA-256, content type) | `201` with the record, the presigned `PUT` URL, and its expiry; `200` with the existing record when the same bytes are already `uploaded`, `processing`, or `done`; a `pending` duplicate gets a fresh URL |
-| `POST /resumes/:id/complete` | `202` and the record `uploaded`; `409 upload_incomplete` when the object is missing or its size differs; `409 ingestion_active` while another upload or Ingestion is active; idempotent for a record no longer `pending` |
+| `POST /resumes/:id/complete` | `202` and the record `uploaded`; `409 upload_incomplete` when the object is still missing after three `HeadObject` calls 500 ms apart, or when its size differs, in which case the record stays `pending` and the reconciliation job promotes it once the object is visible; `409 ingestion_active` while another upload or Ingestion is active; idempotent for a record no longer `pending` |
 | `GET /resumes/:id` | The record with its status, error code, and the Ingestion Progress when it exists; an `ETag` from status, error, and Progress, `304` on `If-None-Match`, so the page can poll cheaply |
 | `GET /resumes` | The Account's records, newest first, optional status filter |
 | `GET /profile` | The seven Profile parts, the source Uploaded Resume, the review flags, and the derived years of experience |
