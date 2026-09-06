@@ -1,8 +1,7 @@
 import { z } from "zod";
 
 import { IdSchema, TextSchema, TimestampSchema } from "./primitives.js";
-
-const PDF_CONTENT_TYPE = "application/pdf";
+import { PDF_CONTENT_TYPE } from "./resume-upload.js";
 
 const ResumeIdentity = {
   id: IdSchema,

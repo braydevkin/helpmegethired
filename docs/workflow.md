@@ -136,7 +136,7 @@ Two places, split by what the document is for:
 
 | Place | Holds | Changed through |
 | --- | --- | --- |
-| The repository, under `docs/` and the root | What the code is held to and how it is built: `CONTEXT.md`, product vision and requirements, architecture, ADRs, this workflow, release notes | Pull request, reviewed with the code it concerns |
+| The repository, under `docs/` and the root | What the code is held to and how it is built: `CONTEXT.md`, product vision and requirements, architecture, security requirements, ADRs, this workflow, release notes | Pull request, reviewed with the code it concerns |
 | The [GitHub Wiki](https://github.com/braydevkin/helpmegethired/wiki) | Design definitions (screens, copy, tokens, components by stage, screenshots) and guides for contributors and Candidates | A push to the wiki repository, announced on the issue that drives it |
 
 Wiki pages are named `Design-<Feature>`, with screenshots under `design/<feature>/` in the wiki repository, or `Guide-<Topic>`. The README documentation map keeps one link per wiki page.
