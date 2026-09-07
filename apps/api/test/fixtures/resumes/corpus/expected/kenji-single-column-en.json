@@ -1,0 +1,171 @@
+{
+  "contact": {
+    "name": {
+      "value": "Kenji Nakamura",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "kenji.nakamura@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+1 (604) 555-0177",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/kenji-nakamura-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/kenjin-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Kenji Nakamura",
+        "Mobile Engineer",
+        "Vancouver, Canada | +1 (604) 555-0177 | kenji.nakamura@example.com",
+        "linkedin.com/in/kenji-nakamura-example · github.com/kenjin-example"
+      ]
+    },
+    {
+      "kind": "summary",
+      "heading": "SUMMARY",
+      "lines": [
+        "Mobile engineer shipping iOS and Android apps, and teaching on weekends."
+      ]
+    },
+    {
+      "kind": "experience",
+      "heading": "EXPERIENCE",
+      "lines": [
+        "Senior Mobile Engineer | Pacific Apps",
+        "Vancouver · February 2022 – Present",
+        "Lead the shared Kotlin Multiplatform layer used by both apps.",
+        "Cut crash-free sessions below 0.3% of users.",
+        "Mobile Engineer | Harbour Media",
+        "Vancouver · August 2018 – January 2022",
+        "Built the news app for iOS in Swift.",
+        "Volunteer Instructor | Code Club Vancouver",
+        "Vancouver",
+        "Teach children to program on Saturdays."
+      ]
+    },
+    {
+      "kind": "education",
+      "heading": "EDUCATION",
+      "lines": [
+        "BSc in Computer Science, University of British Columbia",
+        "2014 – 2018"
+      ]
+    },
+    {
+      "kind": "skills",
+      "heading": "SKILLS",
+      "lines": [
+        "Swift, Kotlin, Kotlin Multiplatform, SwiftUI, GraphQL"
+      ]
+    },
+    {
+      "kind": "languages",
+      "heading": "LANGUAGES",
+      "lines": [
+        "English - Native",
+        "Japanese - Fluent"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/2",
+    "basicProfile": {
+      "headline": {
+        "value": "Mobile Engineer",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "Mobile engineer shipping iOS and Android apps, and teaching on weekends.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/kenji-nakamura-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/kenjin-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Senior Mobile Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Pacific Apps",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2022-02",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Lead the shared Kotlin Multiplatform layer used by both apps.\nCut crash-free sessions below 0.3% of users.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Mobile Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Harbour Media",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2018-08",
+            "end": "2022-01"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Built the news app for iOS in Swift.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Volunteer Instructor",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Code Club Vancouver",
+          "confidence": "high"
+        },
+        "period": null,
+        "description": {
+          "value": "Vancouver\nTeach children to program on Saturdays.",
+          "confidence": "high"
+        },
+        "skills": []
+      }
+    ],
+    "education": [],
+    "projects": [],
+    "skills": [],
+    "languages": [],
+    "certifications": []
+  }
+}

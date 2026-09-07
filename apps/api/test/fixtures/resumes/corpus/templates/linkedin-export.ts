@@ -50,7 +50,7 @@ export function linkedinExport(person: Person): string {
         <h2>${words.experience}</h2>
         ${person.experiences
           .map(
-            (experience) => `<div class="entry"><strong>${escape(experience.company)}</strong><br>${escape(experience.role)}<div class="entry-meta">${period(experience.period, words)}</div><div class="entry-meta">${escape(experience.location)}</div><p>${experience.bullets.map(escape).join(" ")}</p></div>`,
+            (experience) => `<div class="entry"><strong>${escape(experience.company)}</strong><br>${escape(experience.role)}${experience.period ? `<div class="entry-meta">${period(experience.period, words)}</div>` : ""}<div class="entry-meta">${escape(experience.location)}</div><p>${experience.bullets.map(escape).join(" ")}</p></div>`,
           )
           .join("")}
         <h2>${words.education}</h2>

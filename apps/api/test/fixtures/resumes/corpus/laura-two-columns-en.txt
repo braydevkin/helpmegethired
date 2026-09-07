@@ -1,0 +1,25 @@
+Laura Bianchi
+Data Analyst
+
+
+CONTACT                          SUMMARY
+
+Milan, Italy                     Data analyst turning warehouse tables into decisions,
+                                 with SQL and a little Python.
++39 02 1234 5678
+
+laura.bianchi@example.com        EXPERIENCE
+linkedin.com/in/laura-bianchi-   Senior Data Analyst — Navigli Retail
+example                          Milan · Jan 2021 – Present
+                                   Own the sales reporting for 120 stores.
+SKILLS                             Built the demand forecast that drives replenishment.
+SQL                              Data Analyst — Lombardia Insights
+Python                           Milan · Sep 2018 – Dec 2020
+dbt                                Delivered dashboards for retail and logistics clients.
+Power BI
+Snowflake                        EDUCATION
+LANGUAGES                        MSc in Management Engineering, Politecnico di
+                                 Milano
+Italian - Native                 2016 – 2018
+English - Fluent
+

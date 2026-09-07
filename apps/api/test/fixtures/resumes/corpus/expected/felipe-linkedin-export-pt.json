@@ -72,7 +72,7 @@
     }
   ],
   "draft": {
-    "parserVersion": "rules/1",
+    "parserVersion": "rules/2",
     "basicProfile": {
       "headline": {
         "value": "nascimento-example",
@@ -88,7 +88,78 @@
       },
       "githubUrl": null
     },
-    "experiences": [],
+    "experiences": [
+      {
+        "role": {
+          "value": "Português (Nativo) Analista de Suporte Técnico",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Idiomas Serra Telecom",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2021-06",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Recife",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Certificações Atende o segundo nível de suporte da rede de fibra.",
+          "confidence": "low"
+        },
+        "company": null,
+        "period": null,
+        "description": {
+          "value": "CCNA Automatizou o relatório diário de chamados em Python.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Estagiário de TI",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Prefeitura de Olinda",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2020-02",
+            "end": "2021-05"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Olinda",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Deu manutenção",
+          "confidence": "low"
+        },
+        "company": {
+          "value": "estações de trabalho e",
+          "confidence": "low"
+        },
+        "period": null,
+        "description": null,
+        "skills": []
+      }
+    ],
     "education": [],
     "projects": [],
     "skills": [],

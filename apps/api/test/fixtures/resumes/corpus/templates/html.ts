@@ -8,10 +8,15 @@ export const period = (value: Period, words: Labels): string => `${value.start} 
 
 export const list = (items: readonly string[]): string => `<ul>${items.map((item) => `<li>${escape(item)}</li>`).join("")}</ul>`;
 
+const heading = (experience: ExperienceData, separator: string): string =>
+  experience.companyFirst
+    ? `${escape(experience.company)}${separator}<strong>${escape(experience.role)}</strong>`
+    : `<strong>${escape(experience.role)}</strong>${separator}${escape(experience.company)}`;
+
 export const experienceBlock = (experience: ExperienceData, words: Labels, separator = " | "): string => `
   <div class="entry">
-    <div class="entry-head"><strong>${escape(experience.role)}</strong>${separator}${escape(experience.company)}</div>
-    <div class="entry-meta">${escape(experience.location)} · ${period(experience.period, words)}</div>
+    <div class="entry-head">${heading(experience, separator)}</div>
+    <div class="entry-meta">${escape(experience.location)}${experience.period ? ` · ${period(experience.period, words)}` : ""}</div>
     ${list(experience.bullets)}
   </div>`;
 

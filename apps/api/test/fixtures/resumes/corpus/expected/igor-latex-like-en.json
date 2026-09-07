@@ -1,0 +1,156 @@
+{
+  "contact": {
+    "name": {
+      "value": "Igor Sokolov",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "igor.sokolov@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+31 20 123 4567",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/igor-sokolov-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/igorsk-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Igor Sokolov",
+        "Site Reliability Engineer",
+        "Amsterdam, Netherlands — +31 20 123 4567 — igor.sokolov@example.com",
+        "linkedin.com/in/igor-sokolov-example · github.com/igorsk-example"
+      ]
+    },
+    {
+      "kind": "summary",
+      "heading": "Summary",
+      "lines": [
+        "SRE with a taste for boring systems and clear runbooks."
+      ]
+    },
+    {
+      "kind": "experience",
+      "heading": "Experience",
+      "lines": [
+        "2021 – Present Canal Cloud, Site Reliability Engineer, Amsterdam",
+        "Own the on-call rotation and the incident process for the",
+        "platform.",
+        "Brought the error budget policy to every product team.",
+        "2016 – 2021 Tulip Hosting, Systems Engineer, Utrecht",
+        "Ran the fleet of 400 servers and moved it to Kubernetes."
+      ]
+    },
+    {
+      "kind": "education",
+      "heading": "Education",
+      "lines": [
+        "2012 – 2016 BSc in Computer Science, TU Delft"
+      ]
+    },
+    {
+      "kind": "skills",
+      "heading": "Skills",
+      "lines": [
+        "Kubernetes · Terraform · Go · Prometheus · Linux · AWS"
+      ]
+    },
+    {
+      "kind": "languages",
+      "heading": "Languages",
+      "lines": [
+        "Russian - Native; English - Fluent; Dutch - Intermediate"
+      ]
+    },
+    {
+      "kind": "certifications",
+      "heading": "Certifications",
+      "lines": [
+        "2022 Certified Kubernetes Administrator, CNCF"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/2",
+    "basicProfile": {
+      "headline": {
+        "value": "Site Reliability Engineer",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "SRE with a taste for boring systems and clear runbooks.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/igor-sokolov-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/igorsk-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Site Reliability Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Canal Cloud",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2021-01",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Own the on-call rotation and the incident process for the\nplatform.\nBrought the error budget policy to every product team.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Systems Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Tulip Hosting",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2016-01",
+            "end": "2021-12"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Ran the fleet of 400 servers and moved it to Kubernetes.",
+          "confidence": "high"
+        },
+        "skills": []
+      }
+    ],
+    "education": [],
+    "projects": [],
+    "skills": [],
+    "languages": [],
+    "certifications": []
+  }
+}

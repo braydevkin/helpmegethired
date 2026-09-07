@@ -1,0 +1,128 @@
+{
+  "contact": {
+    "name": {
+      "value": "Otto Lindqvist",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "otto.lindqvist@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+46 31 123 456",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/otto-lindqvist-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/ottol-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Otto Lindqvist",
+        "Embedded Software Engineer",
+        "Gothenburg, Sweden | +46 31 123 456 | otto.lindqvist@example.com",
+        "linkedin.com/in/otto-lindqvist-example · github.com/ottol-example"
+      ]
+    },
+    {
+      "kind": "summary",
+      "heading": "SUMMARY",
+      "lines": [
+        "Embedded engineer who has spent his whole career on one product line and knows every",
+        "one of its boards."
+      ]
+    },
+    {
+      "kind": "experience",
+      "heading": "EXPERIENCE",
+      "lines": [
+        "Nordic Drives | Embedded Software Engineer",
+        "Gothenburg · Jan 2012 – Present",
+        "Firmware in C and Rust for the motor controllers.",
+        "Introduced hardware-in-the-loop tests to the release process."
+      ]
+    },
+    {
+      "kind": "education",
+      "heading": "EDUCATION",
+      "lines": [
+        "MSc in Embedded Systems, Chalmers University of Technology",
+        "2007 – 2012"
+      ]
+    },
+    {
+      "kind": "skills",
+      "heading": "SKILLS",
+      "lines": [
+        "C, Rust, RTOS, CAN bus, Git"
+      ]
+    },
+    {
+      "kind": "languages",
+      "heading": "LANGUAGES",
+      "lines": [
+        "Swedish - Native",
+        "English - Fluent"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/2",
+    "basicProfile": {
+      "headline": {
+        "value": "Embedded Software Engineer",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "Embedded engineer who has spent his whole career on one product line and knows every one of its boards.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/otto-lindqvist-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/ottol-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Embedded Software Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Nordic Drives",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2012-01",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Firmware in C and Rust for the motor controllers.\nIntroduced hardware-in-the-loop tests to the release process.",
+          "confidence": "high"
+        },
+        "skills": []
+      }
+    ],
+    "education": [],
+    "projects": [],
+    "skills": [],
+    "languages": [],
+    "certifications": []
+  }
+}

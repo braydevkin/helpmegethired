@@ -75,7 +75,7 @@
     }
   ],
   "draft": {
-    "parserVersion": "rules/1",
+    "parserVersion": "rules/2",
     "basicProfile": {
       "headline": {
         "value": "Desenvolvedor Full Stack",

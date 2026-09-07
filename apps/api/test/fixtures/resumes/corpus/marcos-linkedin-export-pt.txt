@@ -1,0 +1,30 @@
+Contato
+(85) 99988-7766
+                              Marcos Vinícius Pereira
+marcos.pereira@example.com    Gerente de Engenharia na Sertão Digital
+www.linkedin.com/in/marcos-   Fortaleza, Ceará, Brasil
+pereira-example
+                              Resumo
+Principais
+competências                  Gerente de engenharia de dois times de produto. Antes disso,
+Gestão de Engenharia          dez anos como desenvolvedor backend.
+Java
+PostgreSQL                    Experiência Profissional
+                              Sertão Digital
+Idiomas                       Gerente de Engenharia
+Português (Nativo)            março de 2016 – Atual
+Inglês (Avançado)             Fortaleza
+
+                              Lidera dois times de produto, quatorze pessoas ao todo.
+
+                              Sertão Digital
+                              Desenvolvedor Backend Sênior
+                              janeiro de 2012 – fevereiro de 2016
+                              Fortaleza
+
+                              Projetou o serviço de pedidos em Java sobre PostgreSQL.
+
+                              Formação Acadêmica
+                              Universidade Federal do Ceará
+                              Bacharelado em Computação · (2007 – 2011)
+
