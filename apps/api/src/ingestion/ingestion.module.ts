@@ -23,6 +23,6 @@ import { SegmentProcessorRegistry } from "./segment-processor.registry";
     { provide: SEGMENT_PROCESSORS, useValue: [] },
     { provide: IngestionQueue, useClass: BullMqIngestionQueue },
   ],
-  exports: [IngestionService, IngestionRunner, IngestionQueue],
+  exports: [IngestionService, IngestionRepository, IngestionRunner, IngestionQueue],
 })
 export class IngestionModule {}

@@ -43,4 +43,21 @@ describe("ZodValidationPipe", () => {
       expect(JSON.stringify((error as BadRequestException).getResponse())).not.toContain("hunter2");
     }
   });
+
+  it("adds the code the given function derives from the issues, and nothing when it answers none", () => {
+    const withCode = new ZodValidationPipe(schema, (error) => (error.issues[0]?.path[0] === "email" ? "bad_email" : undefined));
+
+    const bodyOf = (input: unknown) => {
+      try {
+        withCode.transform(input);
+      } catch (error) {
+        return (error as BadRequestException).getResponse() as Record<string, unknown>;
+      }
+
+      throw new Error("expected the pipe to reject");
+    };
+
+    expect(bodyOf({ email: "ada", password: "correct horse" })).toMatchObject({ code: "bad_email" });
+    expect(bodyOf({ email: "ada@example.com", password: "short" })).not.toHaveProperty("code");
+  });
 });

@@ -1,7 +1,7 @@
 import { Inject, Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
 import { Queue, Worker, type ConnectionOptions } from "bullmq";
 
-import { withTimeout } from "../common/with-timeout";
+import { addBounded } from "../queue/bounded-add";
 import { CONSUMER_CONNECTION, PROFILE_INGESTION_QUEUE } from "../queue/queues";
 import { INGESTION_JOB_NAME, jobOptionsFor } from "./ingestion-job-options";
 import { IngestionQueue, type IngestionJob, type IngestionJobHandler } from "./ingestion-queue";
@@ -11,10 +11,6 @@ import { MAX_ATTEMPTS } from "./ingestion.service";
 // Every re-delivery of a stalled job counts as an attempt on the Ingestion row, so the queue
 // recovers a stalled job one time fewer than the row allows attempts.
 const STALLED_RECOVERIES = MAX_ATTEMPTS - 1;
-
-// The row is already committed when the job is added, so a Redis outage must cost the request
-// a bounded wait and a log line, never a hang.
-export const ENQUEUE_TIMEOUT_MS = 5_000;
 
 @Injectable()
 export class BullMqIngestionQueue extends IngestionQueue implements OnModuleDestroy {
@@ -30,11 +26,7 @@ export class BullMqIngestionQueue extends IngestionQueue implements OnModuleDest
   }
 
   async enqueue(job: IngestionJob): Promise<void> {
-    await withTimeout(
-      this.queue.add(INGESTION_JOB_NAME, job, jobOptionsFor(job)),
-      ENQUEUE_TIMEOUT_MS,
-      `Adding the job of Ingestion ${job.ingestionId} to ${this.queue.name}`,
-    );
+    await addBounded(this.queue, INGESTION_JOB_NAME, job, jobOptionsFor(job), `Ingestion ${job.ingestionId}`);
   }
 
   async work(handler: IngestionJobHandler): Promise<void> {
