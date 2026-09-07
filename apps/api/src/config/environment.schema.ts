@@ -31,6 +31,11 @@ export const QueueEnvironmentSchema = z.object({
     .int({ error: "must be a whole number" })
     .positive({ error: "must be above zero" })
     .default(30_000),
+  STALE_PROCESSING_MINUTES: z.coerce
+    .number({ error: "must be a number" })
+    .int({ error: "must be a whole number" })
+    .min(1, { error: "must be at least 1" })
+    .default(10),
 });
 
 export type QueueEnvironment = z.infer<typeof QueueEnvironmentSchema>;

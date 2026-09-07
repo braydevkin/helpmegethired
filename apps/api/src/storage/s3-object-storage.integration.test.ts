@@ -12,6 +12,16 @@ const PDF_CONTENT_TYPE = "application/pdf";
 const bytes = Buffer.from("%PDF-1.7\n% a fixture the storage test uploads and reads back\n");
 const sha256 = createHash("sha256").update(bytes).digest("hex");
 
+const collect = async <Item>(pages: AsyncIterable<Item[]>): Promise<Item[]> => {
+  const items: Item[] = [];
+
+  for await (const page of pages) {
+    items.push(...page);
+  }
+
+  return items;
+};
+
 const readAll = async (stream: AsyncIterable<Uint8Array>): Promise<Buffer> => {
   const chunks: Uint8Array[] = [];
 
@@ -88,6 +98,16 @@ describe("object storage through S3", () => {
 
   it("streams the stored bytes back through the internal endpoint", async () => {
     expect(await readAll(await storage.getStream(key))).toEqual(bytes);
+  });
+
+  it("lists the objects under a prefix with the time they were written", async () => {
+    const [prefix] = key.split(/(?<=\/)[^/]+\.pdf$/);
+    const listed = await collect(storage.list(prefix ?? ""));
+
+    expect(listed.map((object) => object.key)).toEqual([key]);
+    expect(listed[0]?.lastModified).toBeInstanceOf(Date);
+    expect(Math.abs(Date.now() - (listed[0]?.lastModified.getTime() ?? 0))).toBeLessThan(60_000);
+    expect(await collect(storage.list(`resumes/${randomUUID()}/`))).toEqual([]);
   });
 
   it("deletes the object so it heads as absent", async () => {

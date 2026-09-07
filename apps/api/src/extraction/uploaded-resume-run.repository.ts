@@ -3,6 +3,7 @@ import { sql } from "kysely";
 import type { Id, ResumeUploadErrorCode, UploadedResumeStatus } from "@helpmegethired/shared";
 
 import { DATABASE, type Database } from "../database/database";
+import { isUniqueViolation } from "../database/database-errors";
 import type { UploadedResumeRow } from "../database/database.schema";
 import type { ExtractedText } from "./text-extractor";
 
@@ -16,9 +17,12 @@ export interface ExtractionRecord {
   maxAttempts: number;
   rawText: string | null;
   extractorVersion: string | null;
+  ingestionId: Id | null;
+  createdAt: Date;
 }
 
 const AWAITING_EXTRACTION: readonly UploadedResumeStatus[] = ["uploaded", "processing"];
+const ONE_IN_FLIGHT_PER_ACCOUNT_INDEX = "uploaded_resumes_one_in_flight_per_account_idx";
 
 const updatedNow = { updated_at: sql<Date>`now()` };
 
@@ -32,6 +36,8 @@ const toRecord = (row: UploadedResumeRow): ExtractionRecord => ({
   maxAttempts: row.max_attempts,
   rawText: row.raw_text,
   extractorVersion: row.extractor_version,
+  ingestionId: row.ingestion_id,
+  createdAt: row.created_at,
 });
 
 // The processor acts for the queue, not for a Candidate, so this is the one repository that
@@ -96,5 +102,122 @@ export class UploadedResumeRunRepository {
       .set({ error_message: message, ...updatedNow })
       .where("id", "=", id)
       .execute();
+  }
+
+  async findPendingCreatedBefore(cutoff: Date): Promise<ExtractionRecord[]> {
+    const rows = await this.database
+      .selectFrom("uploaded_resumes")
+      .selectAll()
+      .where("status", "=", "pending")
+      .where("created_at", "<", cutoff)
+      .orderBy("created_at")
+      .execute();
+
+    return rows.map(toRecord);
+  }
+
+  async findUploaded(): Promise<ExtractionRecord[]> {
+    const rows = await this.database
+      .selectFrom("uploaded_resumes")
+      .selectAll()
+      .where("status", "=", "uploaded")
+      .orderBy("created_at")
+      .execute();
+
+    return rows.map(toRecord);
+  }
+
+  // A processing record with an Ingestion is the Ingestion's to settle.
+  async findProcessingWithoutIngestionUpdatedBefore(cutoff: Date): Promise<ExtractionRecord[]> {
+    const rows = await this.database
+      .selectFrom("uploaded_resumes")
+      .selectAll()
+      .where("status", "=", "processing")
+      .where("ingestion_id", "is", null)
+      .where("updated_at", "<", cutoff)
+      .orderBy("updated_at")
+      .execute();
+
+    return rows.map(toRecord);
+  }
+
+  async statusesByObjectKey(keys: readonly string[]): Promise<Map<string, UploadedResumeStatus>> {
+    if (keys.length === 0) {
+      return new Map();
+    }
+
+    const rows = await this.database
+      .selectFrom("uploaded_resumes")
+      .select(["object_key", "status"])
+      .where("object_key", "in", keys)
+      .execute();
+
+    return new Map(rows.map((row) => [row.object_key, row.status]));
+  }
+
+  // Answers undefined when the record is no longer pending or when the Account already has
+  // an upload in flight; the next run looks again.
+  async promote(id: Id): Promise<ExtractionRecord | undefined> {
+    try {
+      const row = await this.database
+        .updateTable("uploaded_resumes")
+        .set({ status: "uploaded", ...updatedNow })
+        .where("id", "=", id)
+        .where("status", "=", "pending")
+        .returningAll()
+        .executeTakeFirst();
+
+      return row && toRecord(row);
+    } catch (error) {
+      if (isUniqueViolation(error, ONE_IN_FLIGHT_PER_ACCOUNT_INDEX)) {
+        return undefined;
+      }
+
+      throw error;
+    }
+  }
+
+  async expire(id: Id): Promise<ExtractionRecord | undefined> {
+    const row = await this.database
+      .updateTable("uploaded_resumes")
+      .set({ status: "expired", finished_at: sql<Date>`now()`, ...updatedNow })
+      .where("id", "=", id)
+      .where("status", "=", "pending")
+      .returningAll()
+      .executeTakeFirst();
+
+    return row && toRecord(row);
+  }
+
+  // A stale processing record goes back to uploaded while it has an attempt left, otherwise
+  // it fails; both in one write, so two runs cannot both act on it.
+  async settleStale(id: Id, message: string): Promise<ExtractionRecord | undefined> {
+    const row = await this.database
+      .updateTable("uploaded_resumes")
+      .set({
+        status: sql<UploadedResumeStatus>`case when attempts < max_attempts then 'uploaded' else 'failed' end`,
+        error_code: sql<ResumeUploadErrorCode | null>`case when attempts < max_attempts then null else 'extraction_failed' end`,
+        error_message: message,
+        finished_at: sql<Date | null>`case when attempts < max_attempts then null else now() end`,
+        ...updatedNow,
+      })
+      .where("id", "=", id)
+      .where("status", "=", "processing")
+      .returningAll()
+      .executeTakeFirst();
+
+    return row && toRecord(row);
+  }
+
+  async failByIngestion(ingestionId: Id, code: ResumeUploadErrorCode, message: string): Promise<ExtractionRecord[]> {
+    const rows = await this.database
+      .updateTable("uploaded_resumes")
+      .set({ status: "failed", error_code: code, error_message: message, finished_at: sql<Date>`now()`, ...updatedNow })
+      .where("ingestion_id", "=", ingestionId)
+      .where("status", "=", "processing")
+      .returningAll()
+      .execute();
+
+    return rows.map(toRecord);
   }
 }

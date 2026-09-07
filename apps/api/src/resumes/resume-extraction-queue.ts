@@ -10,4 +10,5 @@ export type ResumeExtractionJobHandler = (job: ResumeExtractionJob) => Promise<v
 export abstract class ResumeExtractionQueue {
   abstract enqueue(job: ResumeExtractionJob): Promise<void>;
   abstract work(handler: ResumeExtractionJobHandler): Promise<void>;
+  abstract hasPendingJob(uploadedResumeId: Id): Promise<boolean>;
 }

@@ -1,12 +1,18 @@
 import { Readable } from "node:stream";
 
-import { DeleteObjectCommand, GetObjectCommand, HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  HeadObjectCommand,
+  ListObjectsV2Command,
+  PutObjectCommand,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { Inject, Injectable } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
 import type { EnvironmentConfig } from "../config/environment.module";
-import { ObjectStorage, type PresignedUpload, type StoredObject } from "./object-storage";
+import { ObjectStorage, type ListedObject, type PresignedUpload, type StoredObject } from "./object-storage";
 import { CHECKSUM_SHA256_HEADER, PUT_SIGNED_HEADERS, putObjectInput, uploadHeaders } from "./put-object-signature";
 import { S3_CLIENTS, type S3Clients } from "./s3-clients";
 
@@ -77,5 +83,21 @@ export class S3ObjectStorage extends ObjectStorage {
 
   async delete(key: string): Promise<void> {
     await this.clients.internal.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
+  }
+
+  async *list(prefix: string): AsyncIterable<ListedObject[]> {
+    let continuationToken: string | undefined;
+
+    do {
+      const page = await this.clients.internal.send(
+        new ListObjectsV2Command({ Bucket: this.bucket, Prefix: prefix, ContinuationToken: continuationToken }),
+      );
+
+      yield (page.Contents ?? []).flatMap(({ Key, LastModified }) =>
+        Key !== undefined && LastModified !== undefined ? [{ key: Key, lastModified: LastModified }] : [],
+      );
+
+      continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
+    } while (continuationToken);
   }
 }
