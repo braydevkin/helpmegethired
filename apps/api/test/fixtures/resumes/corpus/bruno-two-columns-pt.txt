@@ -1,0 +1,37 @@
+Bruno Henrique da Silva
+Desenvolvedor Full Stack
+
+
+CONTATO                         RESUMO
+
+Belo Horizonte, MG              Desenvolvedor full stack com sete anos entre React,
+                                Node.js e bancos relacionais. Gosto de produtos
+(31) 98877-6655
+                                pequenos com times pequenos e de código que dá para
+bruno.hsilva@example.com        ler.
+
+linkedin.com/in/bruno-hsilva-   EXPERIÊNCIA PROFISSIONAL
+example
+                                Desenvolvedor Full Stack Pleno — Mineral Digital
+github.com/brunohs-example      Belo Horizonte · 08/2020 – Atual
+                                  Desenvolve o portal do cliente em React e a API em
+HABILIDADES                       NestJS.
+JavaScript                        Migrou a autenticação para códigos de uso único,
+TypeScript                        eliminando as senhas.
+React                           Desenvolvedor Júnior — Alameda Sistemas
+Node.js                         Contagem · 02/2018 – 07/2020
+NestJS
+                                  Manteve o ERP em PHP e escreveu os primeiros
+PostgreSQL                        testes automatizados da empresa.
+Docker
+Git                             FORMAÇÃO ACADÊMICA
+IDIOMAS                         Tecnólogo em Análise e Desenvolvimento de
+                                Sistemas, PUC Minas
+Português - Nativo              2015 – 2017
+Inglês - Avançado
+                                PROJETOS
+CERTIFICAÇÕES
+                                Fila Zero
+Scrum Foundation Professional   Aplicativo de senhas para postos de saúde, feito em um
+(CertiProf, 2021)               fim de semana de hackathon.
+

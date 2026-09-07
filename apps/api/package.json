@@ -15,7 +15,9 @@
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run --project unit",
-    "test:integration": "vitest run --project integration"
+    "test:integration": "vitest run --project integration",
+    "corpus:generate": "node test/fixtures/resumes/corpus/generate.ts",
+    "corpus:extract": "node test/fixtures/resumes/corpus/extract.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "3.1127.0",
@@ -44,6 +46,7 @@
     "@types/node": "catalog:",
     "@types/pg": "^8.23.1",
     "eslint": "catalog:",
+    "playwright": "1.62.1",
     "typescript": "catalog:",
     "unplugin-swc": "^1.5.11",
     "vitest": "catalog:"

@@ -1,0 +1,115 @@
+{
+  "contact": {
+    "name": {
+      "value": "Grace Brewster Hopper",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "grace.hopper@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+1 (212) 555-0142",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/grace-hopper-",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/gracebh-example",
+      "confidence": "high"
+    },
+    "otherUrls": [
+      {
+        "value": "https://gracehopper.example.com",
+        "confidence": "high"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Grace Brewster Hopper",
+        "Staff Software Engineer",
+        "",
+        "CONTACT SUMMARY",
+        "",
+        "New York, NY Staff engineer working on compilers and developer",
+        "tooling. I like removing steps from other people's days.",
+        "+1 (212) 555-0142",
+        "",
+        "grace.hopper@example.com EXPERIENCE",
+        "linkedin.com/in/grace-hopper- Staff Software Engineer — Harvard Computation Co",
+        "example New York · 2019 – Present",
+        "",
+        "github.com/gracebh-example Lead the build tooling group.",
+        "Cut CI time in half by caching compiler outputs.",
+        "https://gracehopper.example.com",
+        "Senior Software Engineer — Eckert-Mauchly",
+        "Philadelphia · 2014 – 2019"
+      ]
+    },
+    {
+      "kind": "skills",
+      "heading": "SKILLS",
+      "lines": [
+        "Wrote the first optimising passes of the in-house",
+        "C++ compiler.",
+        "Rust",
+        "LLVM",
+        "Software Engineer — Remington Systems",
+        "Philadelphia · 2010 – 2014",
+        "Bazel",
+        "Python Maintained the COBOL runtime.",
+        "Linux"
+      ]
+    },
+    {
+      "kind": "education",
+      "heading": "EDUCATION",
+      "lines": [
+        "LANGUAGES PhD in Mathematics, Yale University",
+        "English - Native 2004 – 2010"
+      ]
+    },
+    {
+      "kind": "projects",
+      "heading": "PROJECTS",
+      "lines": [
+        "Moth",
+        "A tiny bug tracker that lives in the repository.",
+        "https://github.com/gracebh-example/moth"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/1",
+    "basicProfile": {
+      "headline": {
+        "value": "Staff Software Engineer",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "CONTACT SUMMARY New York, NY Staff engineer working on compilers and developer tooling. I like removing steps from other people's days. linkedin.com/in/grace-hopper- Staff Software Engineer — Harvard Computation Co example New York · 2019 – Present github.com/gracebh-example Lead the build tooling group. Cut CI time in half by caching compiler outputs. Senior Software Engineer — Eckert-Mauchly Philadelphia · 2014 – 2019",
+        "confidence": "low"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/grace-hopper-",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/gracebh-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [],
+    "education": [],
+    "projects": [],
+    "skills": [],
+    "languages": [],
+    "certifications": []
+  }
+}

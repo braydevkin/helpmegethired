@@ -1,0 +1,98 @@
+{
+  "contact": {
+    "name": {
+      "value": "Felipe Costa Nascimento",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "felipe.nascimento@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "(81) 3033-1234",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://www.linkedin.com/in/felipe-",
+      "confidence": "high"
+    },
+    "githubUrl": null,
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "contact",
+      "heading": "Contato",
+      "lines": [
+        "(81) 3033-1234",
+        "Felipe Costa Nascimento",
+        "felipe.nascimento@example.com Analista de Suporte Técnico na Serra Telecom",
+        "www.linkedin.com/in/felipe- Recife, Pernambuco, Brasil",
+        "nascimento-example"
+      ]
+    },
+    {
+      "kind": "summary",
+      "heading": "Resumo",
+      "lines": [
+        "Principais",
+        "competências Analista de suporte em transição para desenvolvimento. Estudo",
+        "Redes JavaScript à noite e automatizo o que posso no trabalho com",
+        "Python Python.",
+        "JavaScript"
+      ]
+    },
+    {
+      "kind": "experience",
+      "heading": "Experiência Profissional",
+      "lines": [
+        "Idiomas Serra Telecom",
+        "Português (Nativo) Analista de Suporte Técnico",
+        "Inglês (Básico) junho de 2021 – Atual",
+        "Recife",
+        "",
+        "Certificações Atende o segundo nível de suporte da rede de fibra.",
+        "CCNA Automatizou o relatório diário de chamados em Python.",
+        "",
+        "Prefeitura de Olinda",
+        "Estagiário de TI",
+        "fevereiro de 2020 – maio de 2021",
+        "Olinda",
+        "",
+        "Deu manutenção em estações de trabalho e na rede local."
+      ]
+    },
+    {
+      "kind": "education",
+      "heading": "Formação Acadêmica",
+      "lines": [
+        "IFPE",
+        "Tecnólogo em Redes de Computadores · (2018 – 2021)"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/1",
+    "basicProfile": {
+      "headline": {
+        "value": "nascimento-example",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "Principais competências Analista de suporte em transição para desenvolvimento. Estudo Redes JavaScript à noite e automatizo o que posso no trabalho com Python Python. JavaScript",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://www.linkedin.com/in/felipe-",
+        "confidence": "high"
+      },
+      "githubUrl": null
+    },
+    "experiences": [],
+    "education": [],
+    "projects": [],
+    "skills": [],
+    "languages": [],
+    "certifications": []
+  }
+}

@@ -1,0 +1,116 @@
+{
+  "contact": {
+    "name": {
+      "value": "Diego Alves Ferreira",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "diego.ferreira@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+55 41 99123-4567",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/diego-ferreira-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/diegoaf-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Diego Alves Ferreira",
+        "Engenheiro de Dados",
+        "Curitiba, PR — +55 41 99123-4567 — diego.ferreira@example.com",
+        "linkedin.com/in/diego-ferreira-example · github.com/diegoaf-example"
+      ]
+    },
+    {
+      "kind": "summary",
+      "heading": "Resumo",
+      "lines": [
+        "Engenheiro de dados focado em pipelines batch e streaming sobre Spark e Kafka, com",
+        "atenção especial a custo e a qualidade de dados."
+      ]
+    },
+    {
+      "kind": "experience",
+      "heading": "Experiência Profissional",
+      "lines": [
+        "abril de 2019 – Engenheiro de Dados Sênior, Pinheiro Analytics, Curitiba",
+        "Atual",
+        "Lidera a plataforma de dados que atende 40 analistas.",
+        "Reduziu 35% do custo de armazenamento ao reorganizar o data",
+        "lake em camadas.",
+        "março de 2016 – Analista de Dados, Cooperativa Araucária, Curitiba",
+        "março de 2019",
+        "Construiu os primeiros painéis de vendas em SQL e Python."
+      ]
+    },
+    {
+      "kind": "education",
+      "heading": "Formação Acadêmica",
+      "lines": [
+        "2012 – 2016 Bacharelado em Ciência da Computação, Universidade Federal",
+        "do Paraná"
+      ]
+    },
+    {
+      "kind": "skills",
+      "heading": "Habilidades",
+      "lines": [
+        "Python · SQL · Spark · Kafka · Airflow · AWS · dbt · PostgreSQL"
+      ]
+    },
+    {
+      "kind": "languages",
+      "heading": "Idiomas",
+      "lines": [
+        "Português - Nativo; Inglês - Fluente; Espanhol - Intermediário"
+      ]
+    },
+    {
+      "kind": "certifications",
+      "heading": "Certificações",
+      "lines": [
+        "2022 Databricks Certified Data Engineer Associate, Databricks",
+        "2021 AWS Certified Data Analytics, Amazon Web Services"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/1",
+    "basicProfile": {
+      "headline": {
+        "value": "Engenheiro de Dados",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "Engenheiro de dados focado em pipelines batch e streaming sobre Spark e Kafka, com atenção especial a custo e a qualidade de dados.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/diego-ferreira-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/diegoaf-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [],
+    "education": [],
+    "projects": [],
+    "skills": [],
+    "languages": [],
+    "certifications": []
+  }
+}

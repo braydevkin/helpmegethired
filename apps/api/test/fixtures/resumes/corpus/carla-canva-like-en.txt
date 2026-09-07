@@ -1,0 +1,36 @@
+   Carla Mendes Ribeiro
+   Product Designer & Front-end Developer
+
+Lisbon, Portugal   +351 912 345 678     carla.ribeiro@example.com
+
+linkedin.com/in/carla-ribeiro-example   https://carlaribeiro.example.com
+
+
+SUMMARY                                                              EDUCATION
+
+Designer who codes. I prototype in Figma, ship in React,             BA in Communication
+and measure what happens after.                                      Design, Universidade de
+                                                                     Lisboa
+                                                                     2014 – 2018
+EXPERIENCE
+Product Designer, Tagus Labs                                         SKILLS
+Lisbon · January 2022 – Present
+                                                                       Figma
+  Redesigned the onboarding flow, lifting activation from
+                                                                       React
+  31% to 47%.
+                                                                       Next.js
+  Maintain the design system used by three product
+  teams.                                                               TypeScript
+                                                                       CSS
+Front-end Developer, Azul Interactive                                  Accessibility
+Porto · September 2018 – December 2021
+                                                                       User research
+  Built marketing sites and web apps in React and Next.js
+  for retail clients.                                                LANGUAGES
+PROJECTS                                                               Portuguese - Native
+                                                                       English - Fluent
+Tile · A colour contrast checker for design tokens.
+                                                                       Spanish - Basic
+(https://carlaribeiro.example.com/tile)
+
