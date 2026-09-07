@@ -9,7 +9,8 @@ export const normalise = (text: string): string =>
 
 export const wordsOf = (line: string): string[] => line.trim().split(SPACES).filter((word) => word.length > 0);
 
-const hasLetters = (text: string): boolean => /\p{L}/u.test(text);
+// A cased character is one whose upper and lower forms differ; no pattern runs over the text.
+export const hasLetters = (text: string): boolean => [...text].some((character) => character.toLowerCase() !== character.toUpperCase());
 const hasLowercase = (text: string): boolean => /\p{Ll}/u.test(text);
 
 export const isAllCaps = (line: string): boolean => hasLetters(line) && !hasLowercase(line);

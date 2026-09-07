@@ -2,7 +2,7 @@ import type { DraftExperience, Field } from "@helpmegethired/shared";
 
 import { findDateRange, withoutDateRange, type DateRangeMatch } from "./dates";
 import { hasJobTitleWord } from "./dictionaries/job-titles";
-import { isBlank, trimTrailing, wordsOf } from "./text";
+import { hasLetters, isBlank, trimTrailing, wordsOf } from "./text";
 
 const HEADING_MAX_WORDS = 12;
 const HEADING_MAX_LINES = 2;
@@ -11,7 +11,6 @@ const SENTENCE_END = /[!?]$|\.$/u;
 const ABBREVIATION_MAX_LETTERS = 4;
 const PART_SEPARATOR = /\s*\|\s*|\s+[-–—]\s+|\s*,\s*|\s+(?:em|at|@|na|no)\s+|\s+·\s+/iu;
 const TRAILING_SEPARATORS = " \t|,·-–—";
-const HAS_LETTERS = /\p{L}/u;
 
 interface DatedLine {
   index: number;
@@ -97,7 +96,7 @@ function headingStartOf(block: readonly string[], dateIndex: number, previousDat
 function headingOnDateLine(line: string, match: DateRangeMatch): string[] {
   const rest = trimTrailing(withoutDateRange(line, match), TRAILING_SEPARATORS);
 
-  return HAS_LETTERS.test(rest) ? [rest] : [];
+  return hasLetters(rest) ? [rest] : [];
 }
 
 // A line with a date range starts an entry; the block is cut where each entry's heading
