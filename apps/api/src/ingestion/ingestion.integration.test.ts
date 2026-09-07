@@ -118,12 +118,14 @@ describe("profile ingestion", () => {
       expect(queue.jobs).toContainEqual({ ingestionId: ingestion.id, maxAttempts: MAX_ATTEMPTS });
     });
 
-    it("keeps no Ingestion when the job cannot be enqueued, so the Account stays free", async () => {
+    it("keeps the Ingestion queued without a job when the enqueue fails, for the reconciliation job", async () => {
       queue.failNextEnqueueWith(new Error("queue unavailable"));
 
-      await expect(service.start(accountId, threeSegments)).rejects.toThrow("queue unavailable");
+      const ingestion = await service.start(accountId, threeSegments);
 
-      await expect(service.start(accountId, threeSegments)).resolves.toMatchObject({ status: "queued" });
+      expect(ingestion.status).toBe("queued");
+      expect(queue.jobs).not.toContainEqual(expect.objectContaining({ ingestionId: ingestion.id }));
+      await expect(service.start(accountId, threeSegments)).rejects.toThrow(IngestionAlreadyActiveError);
     });
 
     it("rejects a second Ingestion for the same Account while one is active", async () => {

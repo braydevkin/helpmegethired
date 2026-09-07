@@ -3,9 +3,11 @@ import type { ZodError, ZodObject } from "zod";
 import {
   DatabaseEnvironmentSchema,
   EnvironmentSchema,
+  QueueEnvironmentSchema,
   StorageEnvironmentSchema,
   type DatabaseEnvironment,
   type Environment,
+  type QueueEnvironment,
   type StorageEnvironment,
 } from "./environment.schema";
 
@@ -22,6 +24,10 @@ export function validateEnvironment(variables: Record<string, unknown>): Environ
 
 export function validateDatabaseEnvironment(variables: Record<string, unknown>): DatabaseEnvironment {
   return parseWith(DatabaseEnvironmentSchema, variables);
+}
+
+export function validateQueueEnvironment(variables: Record<string, unknown>): QueueEnvironment {
+  return parseWith(QueueEnvironmentSchema, variables);
 }
 
 export function validateStorageEnvironment(variables: Record<string, unknown>): StorageEnvironment {

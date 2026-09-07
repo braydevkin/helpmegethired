@@ -17,6 +17,24 @@ x-storage-environment: &storage-environment
   S3_REGION: ${S3_REGION:?}
   PRESIGN_EXPIRES_SECONDS: ${PRESIGN_EXPIRES_SECONDS:?}
 
+x-api-environment: &api-environment
+  <<: *storage-environment
+  NODE_ENV: development
+  PORT: 3001
+  WEB_ORIGIN: http://localhost:${WEB_PORT:?}
+  DATABASE_URL: *database-url
+  REDIS_URL: redis://redis:6379
+
+x-api-dependencies: &api-dependencies
+  postgres:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+  migrate:
+    condition: service_completed_successfully
+  storage-init:
+    condition: service_completed_successfully
+
 services:
   postgres:
     image: pgvector/pgvector:pg17
@@ -30,6 +48,19 @@ services:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready --username $$POSTGRES_USER --dbname $$POSTGRES_DB"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--maxmemory-policy", "noeviction", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:?}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 10
@@ -92,29 +123,47 @@ services:
 
   api:
     <<: *api-image
-    environment:
-      <<: *storage-environment
-      NODE_ENV: development
-      PORT: 3001
-      WEB_ORIGIN: http://localhost:${WEB_PORT:?}
-      DATABASE_URL: *database-url
+    environment: *api-environment
     ports:
       - "${API_PORT:?}:3001"
     volumes:
       - ./apps/api/src:/workspace/apps/api/src
-    depends_on:
-      postgres:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
-      storage-init:
-        condition: service_completed_successfully
+    depends_on: *api-dependencies
     healthcheck:
       test: ["CMD", "node", "--eval", "fetch('http://localhost:3001/health').then((response) => process.exit(response.ok ? 0 : 1), () => process.exit(1))"]
       interval: 5s
       timeout: 3s
       retries: 12
       start_period: 30s
+
+  worker:
+    <<: *api-image
+    environment:
+      <<: *api-environment
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:?}
+    command: ["pnpm", "--filter", "api", "dev:worker"]
+    volumes:
+      - ./apps/api/src:/workspace/apps/api/src
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    depends_on: *api-dependencies
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/helpmegethired-worker.ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+
+  queue-dashboard:
+    image: ghcr.io/felixmosh/bull-board:9.8.0
+    command: ["--redis", "redis://redis:6379"]
+    ports:
+      - "127.0.0.1:${QUEUE_DASHBOARD_PORT:?}:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
 
   web:
     build:
@@ -147,3 +196,4 @@ services:
 volumes:
   postgres-data:
   storage-data:
+  redis-data:

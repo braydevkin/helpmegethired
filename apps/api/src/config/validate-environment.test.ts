@@ -4,6 +4,7 @@ import {
   EnvironmentValidationError,
   validateDatabaseEnvironment,
   validateEnvironment,
+  validateQueueEnvironment,
   validateStorageEnvironment,
 } from "./validate-environment";
 
@@ -20,12 +21,19 @@ const complete = {
   PORT: "8080",
   WEB_ORIGIN: "https://helpmegethired.example",
   DATABASE_URL: "postgresql://candidate:secret@postgres:5432/helpmegethired",
+  REDIS_URL: "redis://redis:6379",
+  WORKER_CONCURRENCY: "8",
   ...storage,
   S3_REGION: "eu-west-1",
   PRESIGN_EXPIRES_SECONDS: "120",
 };
 
-const required = { WEB_ORIGIN: complete.WEB_ORIGIN, DATABASE_URL: complete.DATABASE_URL, ...storage };
+const required = {
+  WEB_ORIGIN: complete.WEB_ORIGIN,
+  DATABASE_URL: complete.DATABASE_URL,
+  REDIS_URL: complete.REDIS_URL,
+  ...storage,
+};
 
 describe("validateEnvironment", () => {
   it("parses every variable into its typed value", () => {
@@ -34,6 +42,8 @@ describe("validateEnvironment", () => {
       PORT: 8080,
       WEB_ORIGIN: "https://helpmegethired.example",
       DATABASE_URL: complete.DATABASE_URL,
+      REDIS_URL: complete.REDIS_URL,
+      WORKER_CONCURRENCY: 8,
       ...storage,
       S3_REGION: "eu-west-1",
       PRESIGN_EXPIRES_SECONDS: 120,
@@ -44,6 +54,7 @@ describe("validateEnvironment", () => {
     expect(validateEnvironment(required)).toEqual({
       NODE_ENV: "development",
       PORT: 3001,
+      WORKER_CONCURRENCY: 4,
       S3_REGION: "us-east-1",
       PRESIGN_EXPIRES_SECONDS: 300,
       ...required,
@@ -68,6 +79,14 @@ describe("validateEnvironment", () => {
     ["a non-numeric PORT", { ...complete, PORT: "http" }, "PORT must be a number"],
     ["a fractional PORT", { ...complete, PORT: "80.5" }, "PORT must be a whole number"],
     ["a PORT above 65535", { ...complete, PORT: "70000" }, "PORT must be between 1 and 65535"],
+    ["a missing REDIS_URL", { ...complete, REDIS_URL: undefined }, "REDIS_URL is required"],
+    [
+      "a REDIS_URL for another store",
+      { ...complete, REDIS_URL: "amqp://rabbit:5672" },
+      "REDIS_URL must be a Redis connection URL",
+    ],
+    ["a non-numeric WORKER_CONCURRENCY", { ...complete, WORKER_CONCURRENCY: "many" }, "WORKER_CONCURRENCY must be a number"],
+    ["a WORKER_CONCURRENCY of zero", { ...complete, WORKER_CONCURRENCY: "0" }, "WORKER_CONCURRENCY must be at least 1"],
     ["an unknown NODE_ENV", { ...complete, NODE_ENV: "staging" }, "NODE_ENV Invalid option"],
     ["a missing S3_ENDPOINT", { ...complete, S3_ENDPOINT: undefined }, "S3_ENDPOINT is required"],
     ["a relative S3_PUBLIC_ENDPOINT", { ...complete, S3_PUBLIC_ENDPOINT: "storage:9000" }, "S3_PUBLIC_ENDPOINT must be an absolute HTTP URL"],
@@ -90,6 +109,7 @@ describe("validateEnvironment", () => {
     expect(message).toThrow("PORT must be between 1 and 65535");
     expect(message).toThrow("WEB_ORIGIN is required");
     expect(message).toThrow("DATABASE_URL is required");
+    expect(message).toThrow("REDIS_URL is required");
     expect(message).toThrow("S3_ENDPOINT is required");
   });
 });
@@ -117,5 +137,19 @@ describe("validateStorageEnvironment", () => {
     });
     expect(() => validateStorageEnvironment({})).toThrow("S3_BUCKET is required");
     expect(() => validateStorageEnvironment({})).not.toThrow("DATABASE_URL");
+  });
+});
+
+describe("validateQueueEnvironment", () => {
+  it("accepts the redis and rediss schemes", () => {
+    const secure = "rediss://queue.example:6380";
+
+    expect(validateQueueEnvironment({ REDIS_URL: secure })).toEqual({ REDIS_URL: secure, WORKER_CONCURRENCY: 4 });
+    expect(validateQueueEnvironment(complete)).toMatchObject({ REDIS_URL: complete.REDIS_URL });
+  });
+
+  it("needs only the queue variables", () => {
+    expect(() => validateQueueEnvironment({})).toThrow("REDIS_URL is required");
+    expect(() => validateQueueEnvironment({})).not.toThrow("DATABASE_URL");
   });
 });

@@ -200,7 +200,7 @@ start ──▶ ingestions (queued) + ingestion_segments (pending), one transact
 
 **Processors.** A `SegmentProcessor` implements `read`, `recognize`, and `save` for one Segment `kind`; the `SegmentProcessorRegistry` resolves the processor by kind. The resume kinds are listed under [Segments from sections](#segments-from-sections); the tests keep a scripted processor for the state machine.
 
-**Queue.** `IngestionQueue` is the abstraction (`enqueue`, `work`); `BullMqIngestionQueue` implements it on the `profile-ingestion` queue with exponential backoff between retries and failed jobs kept for inspection. The `QueueModule` provides the BullMQ connection from `REDIS_URL` and registers the two queues; only the [worker](#the-worker) registers processors.
+**Queue.** `IngestionQueue` is the abstraction (`enqueue`, `work`); `BullMqIngestionQueue` implements it on the `profile-ingestion` queue with exponential backoff between retries, completed jobs expired after a day, and failed jobs kept for inspection. The `QueueModule` builds two connection configurations from `REDIS_URL`: the producer one keeps the driver's finite retries and `enqueue` gives up after five seconds, so a request never hangs on a Redis outage and the Ingestion is logged for the reconciliation job; the consumer one retries for ever, which BullMQ requires for its blocking reads. Only the [worker](#the-worker) registers processors, and its consumer takes `WORKER_CONCURRENCY` jobs at a time under a 30-second lock renewed while the run is alive. A job whose lock expires is stalled: the queue re-delivers it up to `max_attempts - 1` times, one fewer than the row allows attempts because every re-delivery increments `attempts`, and a job stalled beyond that is failed in the queue and left to the reconciliation job. The tests run the state machine through a recording queue and two scenarios through the real one: a retry after a failed Step, and a re-delivery after a worker that holds the lock is closed without finishing.
 
 ### Resume upload and extraction (FR-02, TC-01)
 
@@ -381,7 +381,7 @@ The `e2e` package depends on `@helpmegethired/web`, so `pnpm turbo run test:e2e`
 
 ## Local runtime
 
-Docker Compose runs the whole monorepo. `docker compose up` brings up the long-running services and two one-shot steps from the root `docker-compose.yml`. CI uses the same compose file for integration and end-to-end tests. The object store (ADR-0021) is in place with #73; the queue (ADR-0020), the worker, and the queue dashboard arrive with #72.
+Docker Compose runs the whole monorepo. `docker compose up` brings up the long-running services and two one-shot steps from the root `docker-compose.yml`. CI uses the same compose file for integration and end-to-end tests.
 
 | Service | Image | Host port (default) | Health check |
 | --- | --- | --- | --- |
@@ -390,14 +390,14 @@ Docker Compose runs the whole monorepo. `docker compose up` brings up the long-r
 | `migrate` | same image as `api`, runs `pnpm db:migrate` and exits | none | exit code 0 |
 | `postgres` | `pgvector/pgvector:pg17` | `POSTGRES_PORT` (5432) | `pg_isready` |
 | `redis` | `redis:8-alpine`, `--maxmemory-policy noeviction`, append-only persistence | `REDIS_PORT` (6379) | `redis-cli ping` |
-| `worker` | same image as `api`, runs `pnpm --filter api dev:worker`, memory limit | none | the process is alive and both queues are connected |
+| `worker` | same image as `api`, runs `pnpm --filter api dev:worker`, 1 GB memory limit | none | the ready file the process writes once its consumers are registered exists |
 | `storage` | `rustfs/rustfs`, S3 API on 9000 and the console on 9001 | `STORAGE_PORT` (9000), `STORAGE_CONSOLE_PORT` (9001) | the S3 health endpoint answers |
 | `storage-init` | the S3 client image, creates the private `resumes` bucket with its CORS and exits | none | exit code 0 |
-| `queue-dashboard` | `ghcr.io/felixmosh/bull-board`, pointed at `redis` | `QUEUE_DASHBOARD_PORT` (3002) | `GET /` answers |
+| `queue-dashboard` | `ghcr.io/felixmosh/bull-board`, pointed at `redis` | `QUEUE_DASHBOARD_PORT` (3002), bound to `127.0.0.1` | `GET /` answers |
 
 The two dashboards are development tools: the queue dashboard shows every job of both queues with its attempts and failures, and the storage console shows the bucket. Neither is part of a deployed environment.
 
-- Configuration comes from a root `.env`, copied from `.env.example`. Every variable is required except `AUTH_RESEND_KEY` and `EMAIL_FROM`, which are blank by default: a missing required one stops `docker compose` with a message naming it. Inside the network the services keep fixed ports (`api:3001`, `web:3000`, `postgres:5432`); the `.env` variables only choose the host ports.
+- Configuration comes from a root `.env`, copied from `.env.example`. Every variable is required except `AUTH_RESEND_KEY` and `EMAIL_FROM`, which are blank by default: a missing required one stops `docker compose` with a message naming it. Inside the network the services keep fixed ports (`api:3001`, `web:3000`, `postgres:5432`, `redis:6379`); the `.env` variables only choose the host ports, and `WORKER_CONCURRENCY` sizes the worker.
 - The `api`, `worker`, and `migrate` containers receive `PORT`, `WEB_ORIGIN`, `DATABASE_URL`, `REDIS_URL`, and the `S3_*` variables from the compose file, so `apps/api/.env.example` is only needed when the API runs natively. Inside the network the database URL points at `postgres:5432`, the Redis URL at `redis:6379`, and `S3_ENDPOINT` at `storage:9000`; from the host they point at `localhost` with the `.env` ports. `S3_PUBLIC_ENDPOINT` is always the host address, because it is embedded in the presigned URL the browser uses.
 - The `web` container receives `API_URL=http://api:3001` and starts only after `api` is healthy. When the web app runs natively, `API_URL` defaults to `http://localhost:3001`.
 - The stack sends no real email. `web` receives `AUTH_RESEND_KEY` and `EMAIL_FROM` from `.env`, blank by default, so the code is printed in its logs and read from the development route; setting both in `.env` switches the local stack to Resend for a real delivery check.
