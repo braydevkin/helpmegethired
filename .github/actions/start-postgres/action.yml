@@ -1,14 +1,23 @@
-name: Start PostgreSQL
-description: Start the compose postgres service from .env.example and export DATABASE_URL for the host
+name: Start PostgreSQL and object storage
+description: Start the compose postgres and storage services from .env.example and export their host-side variables
 
 runs:
   using: composite
   steps:
-    - run: docker compose --env-file .env.example up --detach --wait postgres
+    - run: docker compose --env-file .env.example up --detach --wait postgres storage storage-init
       shell: bash
 
     - run: |
         set -a
         . ./.env.example
-        echo "DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}" >> "$GITHUB_ENV"
+        {
+          echo "DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}"
+          echo "S3_ENDPOINT=http://localhost:${STORAGE_PORT}"
+          echo "S3_PUBLIC_ENDPOINT=http://localhost:${STORAGE_PORT}"
+          echo "S3_BUCKET=${S3_BUCKET}"
+          echo "S3_ACCESS_KEY=${S3_ACCESS_KEY}"
+          echo "S3_SECRET_KEY=${S3_SECRET_KEY}"
+          echo "S3_REGION=${S3_REGION}"
+          echo "PRESIGN_EXPIRES_SECONDS=${PRESIGN_EXPIRES_SECONDS}"
+        } >> "$GITHUB_ENV"
       shell: bash

@@ -160,6 +160,15 @@ The database layer lives in `apps/api/src/database` and follows ADR-0012:
 - Repositories (for example `AccountRepository` in `auth`) are the only classes that query. They map rows to the types from `packages/shared`, so services and controllers never see column names.
 - `migrations/` holds one TypeScript module per migration with `up` and `down`, registered in `migrations/index.ts`. `migrator.ts` wraps Kysely's `Migrator`; `migrate.cli.ts` is the command behind `pnpm db:migrate` and `pnpm db:migrate:down`, which Turbo runs after building the API and its workspace dependencies. The first migration enables the `vector` extension and creates `accounts`; the second adds the password hash and creates `sessions`; the third creates `ingestions` and `ingestion_segments`; the fourth drops the password hash, adds the Account information and the email verification time to `accounts`, and creates `verification_tokens` for the one-time codes.
 
+### Object storage (FR-02)
+
+The `storage` module is the only code that talks to the object store, following ADR-0021:
+
+- `ObjectStorage` is the abstraction the resume routes, the extraction processor, and the reconciliation job depend on: `presignPut(key, size, sha256, contentType)` answers the URL, the headers the browser must send, and the expiry; `head(key)` answers the stored size or `undefined`; `getStream(key)` streams the bytes; `delete(key)` removes them. `S3ObjectStorage` is the one implementation, built on the AWS S3 client library, and nothing in it names a product.
+- `StorageModule` builds two `S3Client`s from the `S3_*` variables, both with path-style URLs and the SDK's own checksum handling limited to where the API requires it: the internal client on `S3_ENDPOINT` performs `head`, `getStream`, and `delete`; the public client on `S3_PUBLIC_ENDPOINT` only signs, because its address is the one embedded in the URL the browser uses.
+- The presigned `PUT` signs the content type, the content length, and the SHA-256 (`x-amz-checksum-sha256`, kept as a header rather than hoisted into the query string) and expires after `PRESIGN_EXPIRES_SECONDS`. A `PUT` whose size or checksum differs from the signed values fails the signature, and a body whose digest differs from the signed checksum is refused by the store, so a different file never lands under the key. `presignPut` returns those headers so the route hands them to the browser unchanged.
+- The integration test runs the four operations against the compose `storage` service with `fetch` as the browser.
+
 ### Profile ingestion (TC-03, TC-04, TC-05)
 
 Profile building is an **Ingestion**: one run for one Account from one source, split into ordered **Segments**, each of which goes through three **Steps**. The vocabulary is in [CONTEXT.md](../CONTEXT.md); the queue decision is ADR-0020. The `ingestion` module holds the state machine and its persistence; the resume Segment processors are described under [Resume upload and extraction](#resume-upload-and-extraction-fr-02-tc-01), the LinkedIn ones arrive with their own milestone.
@@ -372,7 +381,7 @@ The `e2e` package depends on `@helpmegethired/web`, so `pnpm turbo run test:e2e`
 
 ## Local runtime
 
-Docker Compose runs the whole monorepo. `docker compose up` brings up the long-running services and two one-shot steps from the root `docker-compose.yml`. CI uses the same compose file for integration and end-to-end tests. The queue (ADR-0020), the object store (ADR-0021), the worker, and their two dashboards arrive with #72 and #73; until then the stack is the first four rows.
+Docker Compose runs the whole monorepo. `docker compose up` brings up the long-running services and two one-shot steps from the root `docker-compose.yml`. CI uses the same compose file for integration and end-to-end tests. The object store (ADR-0021) is in place with #73; the queue (ADR-0020), the worker, and the queue dashboard arrive with #72.
 
 | Service | Image | Host port (default) | Health check |
 | --- | --- | --- | --- |
