@@ -3,9 +3,9 @@ import { Queue, Worker, type ConnectionOptions } from "bullmq";
 
 import { addBounded } from "../queue/bounded-add";
 import { CONSUMER_CONNECTION, PROFILE_INGESTION_QUEUE } from "../queue/queues";
+import { WORKER_SETTINGS, type WorkerSettings } from "../queue/worker-settings";
 import { INGESTION_JOB_NAME, jobOptionsFor } from "./ingestion-job-options";
 import { IngestionQueue, type IngestionJob, type IngestionJobHandler } from "./ingestion-queue";
-import { INGESTION_WORKER_SETTINGS, type IngestionWorkerSettings } from "./ingestion-worker-settings";
 import { MAX_ATTEMPTS } from "./ingestion.service";
 
 // Every re-delivery of a stalled job counts as an attempt on the Ingestion row, so the queue
@@ -20,7 +20,7 @@ export class BullMqIngestionQueue extends IngestionQueue implements OnModuleDest
   constructor(
     @Inject(PROFILE_INGESTION_QUEUE) private readonly queue: Queue<IngestionJob>,
     @Inject(CONSUMER_CONNECTION) private readonly connection: ConnectionOptions,
-    @Inject(INGESTION_WORKER_SETTINGS) private readonly settings: IngestionWorkerSettings,
+    @Inject(WORKER_SETTINGS) private readonly settings: WorkerSettings,
   ) {
     super();
   }

@@ -4,7 +4,6 @@ import { QueueModule } from "../queue/queue.module";
 import { BullMqIngestionQueue } from "./bullmq-ingestion.queue";
 import { IngestionQueue } from "./ingestion-queue";
 import { IngestionRunRepository } from "./ingestion-run.repository";
-import { ingestionWorkerSettingsProvider } from "./ingestion-worker-settings";
 import { IngestionRepository } from "./ingestion.repository";
 import { IngestionRunner } from "./ingestion.runner";
 import { IngestionService } from "./ingestion.service";
@@ -19,7 +18,6 @@ import { SegmentProcessorRegistry } from "./segment-processor.registry";
     IngestionRunner,
     IngestionService,
     SegmentProcessorRegistry,
-    ingestionWorkerSettingsProvider,
     { provide: SEGMENT_PROCESSORS, useValue: [] },
     { provide: IngestionQueue, useClass: BullMqIngestionQueue },
   ],

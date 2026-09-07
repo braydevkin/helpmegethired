@@ -23,6 +23,7 @@ const complete = {
   DATABASE_URL: "postgresql://candidate:secret@postgres:5432/helpmegethired",
   REDIS_URL: "redis://redis:6379",
   WORKER_CONCURRENCY: "8",
+  EXTRACTION_TIMEOUT_MS: "5000",
   ...storage,
   S3_REGION: "eu-west-1",
   PRESIGN_EXPIRES_SECONDS: "120",
@@ -44,6 +45,7 @@ describe("validateEnvironment", () => {
       DATABASE_URL: complete.DATABASE_URL,
       REDIS_URL: complete.REDIS_URL,
       WORKER_CONCURRENCY: 8,
+      EXTRACTION_TIMEOUT_MS: 5000,
       ...storage,
       S3_REGION: "eu-west-1",
       PRESIGN_EXPIRES_SECONDS: 120,
@@ -55,6 +57,7 @@ describe("validateEnvironment", () => {
       NODE_ENV: "development",
       PORT: 3001,
       WORKER_CONCURRENCY: 4,
+      EXTRACTION_TIMEOUT_MS: 30_000,
       S3_REGION: "us-east-1",
       PRESIGN_EXPIRES_SECONDS: 300,
       ...required,
@@ -87,6 +90,8 @@ describe("validateEnvironment", () => {
     ],
     ["a non-numeric WORKER_CONCURRENCY", { ...complete, WORKER_CONCURRENCY: "many" }, "WORKER_CONCURRENCY must be a number"],
     ["a WORKER_CONCURRENCY of zero", { ...complete, WORKER_CONCURRENCY: "0" }, "WORKER_CONCURRENCY must be at least 1"],
+    ["a non-numeric EXTRACTION_TIMEOUT_MS", { ...complete, EXTRACTION_TIMEOUT_MS: "soon" }, "EXTRACTION_TIMEOUT_MS must be a number"],
+    ["a zero EXTRACTION_TIMEOUT_MS", { ...complete, EXTRACTION_TIMEOUT_MS: "0" }, "EXTRACTION_TIMEOUT_MS must be above zero"],
     ["an unknown NODE_ENV", { ...complete, NODE_ENV: "staging" }, "NODE_ENV Invalid option"],
     ["a missing S3_ENDPOINT", { ...complete, S3_ENDPOINT: undefined }, "S3_ENDPOINT is required"],
     ["a relative S3_PUBLIC_ENDPOINT", { ...complete, S3_PUBLIC_ENDPOINT: "storage:9000" }, "S3_PUBLIC_ENDPOINT must be an absolute HTTP URL"],
@@ -144,7 +149,11 @@ describe("validateQueueEnvironment", () => {
   it("accepts the redis and rediss schemes", () => {
     const secure = "rediss://queue.example:6380";
 
-    expect(validateQueueEnvironment({ REDIS_URL: secure })).toEqual({ REDIS_URL: secure, WORKER_CONCURRENCY: 4 });
+    expect(validateQueueEnvironment({ REDIS_URL: secure })).toEqual({
+      REDIS_URL: secure,
+      WORKER_CONCURRENCY: 4,
+      EXTRACTION_TIMEOUT_MS: 30_000,
+    });
     expect(validateQueueEnvironment(complete)).toMatchObject({ REDIS_URL: complete.REDIS_URL });
   });
 

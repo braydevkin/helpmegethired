@@ -28,6 +28,7 @@
     "bullmq": "^6.3.4",
     "ioredis": "^5.11.1",
     "kysely": "^0.29.5",
+    "pdfjs-dist": "6.3.289",
     "pg": "^8.23.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",

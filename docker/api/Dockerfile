@@ -2,7 +2,11 @@
 
 FROM node:24-alpine AS workspace
 
-RUN corepack enable pnpm \
+# Alpine keeps one release of a package per branch, so a pinned version breaks the build on
+# the next security bump; the worker logs the installed version when it starts.
+# hadolint ignore=DL3018
+RUN apk add --no-cache poppler-utils \
+  && corepack enable pnpm \
   && mkdir /workspace \
   && chown node:node /workspace
 

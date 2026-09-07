@@ -14,7 +14,7 @@ import { CONSUMER_CONNECTION, PROFILE_INGESTION_QUEUE, QUEUE_PREFIX } from "../q
 import { WorkerModule } from "../worker/worker.module";
 import { INGESTION_JOB_NAME } from "./ingestion-job-options";
 import { type IngestionJob } from "./ingestion-queue";
-import { INGESTION_WORKER_SETTINGS } from "./ingestion-worker-settings";
+import { WORKER_SETTINGS } from "../queue/worker-settings";
 import { IngestionModule } from "./ingestion.module";
 import { IngestionRepository } from "./ingestion.repository";
 import { IngestionRunner } from "./ingestion.runner";
@@ -61,7 +61,7 @@ describe("profile ingestion through BullMQ", () => {
       .useValue([processor])
       .overrideProvider(QUEUE_PREFIX)
       .useValue(prefix)
-      .overrideProvider(INGESTION_WORKER_SETTINGS)
+      .overrideProvider(WORKER_SETTINGS)
       .useValue({ concurrency: 1, lockDurationMs: LOCK_DURATION_MS, stalledIntervalMs: STALLED_INTERVAL_MS })
       .compile();
 
@@ -106,7 +106,7 @@ describe("profile ingestion through BullMQ", () => {
     await producer.close();
   });
 
-  it("delivers the job to the worker, retries after a failure, and completes from where it stopped", async () => {
+  it("delivers the job to the worker, retries after a failure, and completes from where it stopped", { timeout: SETTLE_TIMEOUT_MS }, async () => {
     processor.failOnceAt("recognize", 1);
     await startConsumer();
 
@@ -123,12 +123,19 @@ describe("profile ingestion through BullMQ", () => {
     expect(processor.callsFor("save")).toEqual([0, 1, 2]);
   });
 
-  it("re-delivers the job of a worker that died mid-run and resumes from the first incomplete Segment", async () => {
+  it("re-delivers the job of a worker that died mid-run and resumes from the first incomplete Segment", { timeout: SETTLE_TIMEOUT_MS }, async () => {
     processor.hangOnceAt("recognize", 1);
+    // A worker's first stalled check claims the queue's check for its whole interval, and the
+    // default is 30 seconds; the dying worker must leave the claim to the consumer that follows.
     const dying = new Worker<IngestionJob>(
       producer.get<Queue>(PROFILE_INGESTION_QUEUE).name,
       (job) => producer.get(IngestionRunner).run(job.data.ingestionId),
-      { connection: producer.get<ConnectionOptions>(CONSUMER_CONNECTION), prefix, lockDuration: LOCK_DURATION_MS },
+      {
+        connection: producer.get<ConnectionOptions>(CONSUMER_CONNECTION),
+        prefix,
+        lockDuration: LOCK_DURATION_MS,
+        skipStalledCheck: true,
+      },
     );
     dying.on("error", () => undefined);
 

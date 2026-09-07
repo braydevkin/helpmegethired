@@ -3,7 +3,7 @@ import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { RESUME_MAX_SIZE_BYTES } from "@helpmegethired/shared";
+import { RESUME_MAX_PAGES, RESUME_MAX_SIZE_BYTES } from "@helpmegethired/shared";
 
 const SCANNED_DETECTION_MIN_BYTES = 50 * 1024;
 
@@ -117,6 +117,24 @@ function imageOnly(): Buffer {
   return serialise(onePageDocument(content, { resources: "/XObject << /Im1 5 0 R >>", extraObjects: [image] }), "/Root 1 0 R");
 }
 
+function tooManyPages(): Buffer {
+  const pageCount = RESUME_MAX_PAGES + 1;
+  const firstPageObject = 3;
+  const kids = Array.from({ length: pageCount }, (_, index) => `${firstPageObject + index} 0 R`).join(" ");
+  const pages = Array.from({ length: pageCount }, () => ({
+    dictionary: "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] >>",
+  }));
+
+  return serialise(
+    [
+      { dictionary: "<< /Type /Catalog /Pages 2 0 R >>" },
+      { dictionary: `<< /Type /Pages /Kids [${kids}] /Count ${pageCount} >>` },
+      ...pages,
+    ],
+    "/Root 1 0 R",
+  );
+}
+
 export function oversized(): Buffer {
   const padding = streamObject("", Buffer.alloc(RESUME_MAX_SIZE_BYTES + 1, 0x41));
 
@@ -185,6 +203,7 @@ const committedFixtures = {
   "embedded-javascript.pdf": embeddedJavascript,
   "image-only.pdf": imageOnly,
   "encrypted.pdf": encrypted,
+  "too-many-pages.pdf": tooManyPages,
 } as const;
 
 const generatedFixtures = { "oversized.pdf": oversized } as const;
