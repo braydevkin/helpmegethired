@@ -10,11 +10,13 @@ import { InterviewModule } from "./interview/interview.module";
 import { JobDescriptionsModule } from "./job-descriptions/job-descriptions.module";
 import { LearningsModule } from "./learnings/learnings.module";
 import { ProfileModule } from "./profile/profile.module";
+import { StorageModule } from "./storage/storage.module";
 
 @Module({
   imports: [
     EnvironmentModule,
     DatabaseModule,
+    StorageModule,
     HealthModule,
     AuthModule,
     ProfileModule,

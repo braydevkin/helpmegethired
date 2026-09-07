@@ -3,8 +3,10 @@ import type { ZodError, ZodObject } from "zod";
 import {
   DatabaseEnvironmentSchema,
   EnvironmentSchema,
+  StorageEnvironmentSchema,
   type DatabaseEnvironment,
   type Environment,
+  type StorageEnvironment,
 } from "./environment.schema";
 
 export class EnvironmentValidationError extends Error {
@@ -20,6 +22,10 @@ export function validateEnvironment(variables: Record<string, unknown>): Environ
 
 export function validateDatabaseEnvironment(variables: Record<string, unknown>): DatabaseEnvironment {
   return parseWith(DatabaseEnvironmentSchema, variables);
+}
+
+export function validateStorageEnvironment(variables: Record<string, unknown>): StorageEnvironment {
+  return parseWith(StorageEnvironmentSchema, variables);
 }
 
 function parseWith<Schema extends ZodObject>(schema: Schema, variables: Record<string, unknown>) {
