@@ -1,0 +1,100 @@
+export const SECTION_KINDS = [
+  "header",
+  "contact",
+  "summary",
+  "experience",
+  "education",
+  "skills",
+  "projects",
+  "languages",
+  "certifications",
+] as const;
+
+export type SectionKind = (typeof SECTION_KINDS)[number];
+
+// Headings as they read after normalisation (lowercase, no accents, no decorations), in
+// Portuguese and English. "header" is the text before the first heading and has no entry.
+export const SECTION_HEADERS: Record<Exclude<SectionKind, "header">, readonly string[]> = {
+  contact: ["contato", "contatos", "informacoes de contato", "dados de contato", "contact", "contact information", "contact details"],
+  summary: [
+    "resumo",
+    "resumo profissional",
+    "sobre",
+    "sobre mim",
+    "perfil",
+    "perfil profissional",
+    "objetivo",
+    "objetivo profissional",
+    "apresentacao",
+    "summary",
+    "professional summary",
+    "about",
+    "about me",
+    "profile",
+    "professional profile",
+    "objective",
+    "career objective",
+  ],
+  experience: [
+    "experiencia",
+    "experiencias",
+    "experiencia profissional",
+    "experiencias profissionais",
+    "historico profissional",
+    "trajetoria profissional",
+    "experience",
+    "experiences",
+    "work experience",
+    "professional experience",
+    "employment history",
+    "work history",
+    "career history",
+  ],
+  education: [
+    "formacao",
+    "formacao academica",
+    "educacao",
+    "escolaridade",
+    "education",
+    "academic background",
+    "academic education",
+    "education and training",
+  ],
+  skills: [
+    "habilidades",
+    "competencias",
+    "conhecimentos",
+    "tecnologias",
+    "habilidades tecnicas",
+    "competencias tecnicas",
+    "principais competencias",
+    "skills",
+    "technical skills",
+    "technologies",
+    "competencies",
+    "core competencies",
+    "tech stack",
+    "top skills",
+    "tools",
+  ],
+  projects: ["projetos", "projetos pessoais", "projects", "personal projects", "selected projects"],
+  languages: ["idiomas", "linguas", "languages"],
+  certifications: [
+    "certificacoes",
+    "certificados",
+    "cursos",
+    "cursos e certificacoes",
+    "certifications",
+    "certificates",
+    "licenses and certifications",
+    "licenses & certifications",
+    "courses",
+    "courses and certifications",
+  ],
+};
+
+const kindByHeading = new Map<string, SectionKind>(
+  Object.entries(SECTION_HEADERS).flatMap(([kind, headings]) => headings.map((heading) => [heading, kind as SectionKind])),
+);
+
+export const sectionKindOf = (normalisedHeading: string): SectionKind | undefined => kindByHeading.get(normalisedHeading);

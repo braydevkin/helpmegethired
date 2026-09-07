@@ -1,0 +1,13 @@
+{
+  "extractorVersion": "pdftotext/25.12.0",
+  "files": [
+    "ada-single-column-en.pdf",
+    "ada-single-column-pt.pdf",
+    "bruno-two-columns-pt.pdf",
+    "carla-canva-like-en.pdf",
+    "diego-latex-like-pt.pdf",
+    "elena-linkedin-export-en.pdf",
+    "felipe-linkedin-export-pt.pdf",
+    "grace-two-columns-en.pdf"
+  ]
+}

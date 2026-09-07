@@ -1,0 +1,32 @@
+Contato
+(81) 3033-1234
+                                Felipe Costa Nascimento
+felipe.nascimento@example.com   Analista de Suporte Técnico na Serra Telecom
+www.linkedin.com/in/felipe-     Recife, Pernambuco, Brasil
+nascimento-example
+                                Resumo
+Principais
+competências                    Analista de suporte em transição para desenvolvimento. Estudo
+Redes                           JavaScript à noite e automatizo o que posso no trabalho com
+Python                          Python.
+JavaScript
+                                Experiência Profissional
+Idiomas                         Serra Telecom
+Português (Nativo)              Analista de Suporte Técnico
+Inglês (Básico)                 junho de 2021 – Atual
+                                Recife
+
+Certificações                   Atende o segundo nível de suporte da rede de fibra.
+CCNA                            Automatizou o relatório diário de chamados em Python.
+
+                                Prefeitura de Olinda
+                                Estagiário de TI
+                                fevereiro de 2020 – maio de 2021
+                                Olinda
+
+                                Deu manutenção em estações de trabalho e na rede local.
+
+                                Formação Acadêmica
+                                IFPE
+                                Tecnólogo em Redes de Computadores · (2018 – 2021)
+

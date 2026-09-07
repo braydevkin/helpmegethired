@@ -1,0 +1,41 @@
+Contact
++49 30 901820
+                             Elena Petrova
+elena.petrova@example.com    Engineering Manager at Northwind Systems
+www.linkedin.com/in/elena-   Berlin, Germany
+petrova-example
+                             Summary
+Top Skills
+Engineering Management       Engineering manager for two platform teams. Before that, eight
+Go                           years as a backend engineer in payments. I care about clear
+                             ownership and boring infrastructure.
+PostgreSQL
+
+Languages
+                             Experience
+Russian (Native)             Northwind Systems
+English (Fluent)             Engineering Manager
+                             October 2020 – Present
+German (Intermediate)        Berlin
+
+                             Lead the platform and reliability teams, twelve engineers in
+                             total. Introduced quarterly reliability reviews.
+
+                             Northwind Systems
+                             Senior Software Engineer
+                             May 2017 – September 2020
+                             Berlin
+
+                             Designed the ledger service in Go on PostgreSQL.
+
+                             Baltic Pay
+                             Software Engineer
+                             January 2013 – April 2017
+                             Tallinn
+
+                             Built card processing integrations in Java.
+
+                             Education
+                             Tallinn University of Technology
+                             MSc, Computer Science · (2011 – 2013)
+

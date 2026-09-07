@@ -1,0 +1,132 @@
+{
+  "contact": {
+    "name": {
+      "value": "Ada Lovelace",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "ada.lovelace@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+44 20 7946 0958",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/ada-lovelace-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/ada-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Ada Lovelace",
+        "Engenheira de Software Sênior (Backend)",
+        "Londres, Reino Unido | +44 20 7946 0958 | ada.lovelace@example.com",
+        "linkedin.com/in/ada-lovelace-example · github.com/ada-example"
+      ]
+    },
+    {
+      "kind": "summary",
+      "heading": "RESUMO",
+      "lines": [
+        "Engenheira backend com dez anos construindo filas, pipelines de ingestão e os serviços ao",
+        "redor. Confortável em cuidar de um sistema do esquema ao plantão."
+      ]
+    },
+    {
+      "kind": "experience",
+      "heading": "EXPERIÊNCIA PROFISSIONAL",
+      "lines": [
+        "Engenheira de Software Sênior | Analytical Engines Ltd",
+        "Londres · mar 2021 – Atual",
+        "Responsável pela plataforma de ingestão que transforma documentos enviados em perfis",
+        "estruturados.",
+        "Reduziu o tempo mediano de processamento de 40 segundos para 6 ao mover a extração",
+        "para um pool de workers.",
+        "Mentora de quatro pessoas engenheiras e responsável pelas revisões de design do time",
+        "de dados.",
+        "Engenheira de Software | Difference Works",
+        "Manchester · jun 2016 – fev 2021",
+        "Construiu o serviço de cobrança em TypeScript sobre PostgreSQL, processando 2 milhões",
+        "de faturas por mês.",
+        "Introduziu testes de contrato entre a API e o aplicativo web."
+      ]
+    },
+    {
+      "kind": "education",
+      "heading": "FORMAÇÃO ACADÊMICA",
+      "lines": [
+        "Mestrado em Ciência da Computação, University of Cambridge",
+        "2014 – 2016",
+        "",
+        "Bacharelado em Matemática, University of Leeds",
+        "2011 – 2014"
+      ]
+    },
+    {
+      "kind": "skills",
+      "heading": "HABILIDADES",
+      "lines": [
+        "TypeScript, Node.js, PostgreSQL, Redis, Docker, Kubernetes, AWS, Terraform"
+      ]
+    },
+    {
+      "kind": "projects",
+      "heading": "PROJETOS",
+      "lines": [
+        "Difference Engine — https://github.com/ada-example/difference-engine",
+        "Uma calculadora mecânica de funções polinomiais, reconstruída como simulador web."
+      ]
+    },
+    {
+      "kind": "languages",
+      "heading": "IDIOMAS",
+      "lines": [
+        "Inglês - Nativo",
+        "Francês - Intermediário (B1)"
+      ]
+    },
+    {
+      "kind": "certifications",
+      "heading": "CERTIFICAÇÕES",
+      "lines": [
+        "AWS Solutions Architect Associate — Amazon Web Services, 2023"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/1",
+    "basicProfile": {
+      "headline": {
+        "value": "Engenheira de Software Sênior (Backend)",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "Engenheira backend com dez anos construindo filas, pipelines de ingestão e os serviços ao redor. Confortável em cuidar de um sistema do esquema ao plantão.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/ada-lovelace-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/ada-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [],
+    "education": [],
+    "projects": [],
+    "skills": [],
+    "languages": [],
+    "certifications": []
+  }
+}

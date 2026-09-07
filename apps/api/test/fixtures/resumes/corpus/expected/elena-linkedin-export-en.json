@@ -1,0 +1,111 @@
+{
+  "contact": {
+    "name": {
+      "value": "Elena Petrova",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "elena.petrova@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+49 30 901820",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://www.linkedin.com/in/elena-",
+      "confidence": "high"
+    },
+    "githubUrl": null,
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "contact",
+      "heading": "Contact",
+      "lines": [
+        "+49 30 901820",
+        "Elena Petrova",
+        "elena.petrova@example.com Engineering Manager at Northwind Systems",
+        "www.linkedin.com/in/elena- Berlin, Germany",
+        "petrova-example"
+      ]
+    },
+    {
+      "kind": "summary",
+      "heading": "Summary",
+      "lines": []
+    },
+    {
+      "kind": "skills",
+      "heading": "Top Skills",
+      "lines": [
+        "Engineering Management Engineering manager for two platform teams. Before that, eight",
+        "Go years as a backend engineer in payments. I care about clear",
+        "ownership and boring infrastructure.",
+        "PostgreSQL"
+      ]
+    },
+    {
+      "kind": "languages",
+      "heading": "Languages",
+      "lines": []
+    },
+    {
+      "kind": "experience",
+      "heading": "Experience",
+      "lines": [
+        "Russian (Native) Northwind Systems",
+        "English (Fluent) Engineering Manager",
+        "October 2020 – Present",
+        "German (Intermediate) Berlin",
+        "",
+        "Lead the platform and reliability teams, twelve engineers in",
+        "total. Introduced quarterly reliability reviews.",
+        "",
+        "Northwind Systems",
+        "Senior Software Engineer",
+        "May 2017 – September 2020",
+        "Berlin",
+        "",
+        "Designed the ledger service in Go on PostgreSQL.",
+        "",
+        "Baltic Pay",
+        "Software Engineer",
+        "January 2013 – April 2017",
+        "Tallinn",
+        "",
+        "Built card processing integrations in Java."
+      ]
+    },
+    {
+      "kind": "education",
+      "heading": "Education",
+      "lines": [
+        "Tallinn University of Technology",
+        "MSc, Computer Science · (2011 – 2013)"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/1",
+    "basicProfile": {
+      "headline": {
+        "value": "petrova-example",
+        "confidence": "medium"
+      },
+      "summary": null,
+      "linkedinUrl": {
+        "value": "https://www.linkedin.com/in/elena-",
+        "confidence": "high"
+      },
+      "githubUrl": null
+    },
+    "experiences": [],
+    "education": [],
+    "projects": [],
+    "skills": [],
+    "languages": [],
+    "certifications": []
+  }
+}
