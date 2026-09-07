@@ -420,7 +420,7 @@ Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow leve
   | Tool | Looks at | Configuration |
   | --- | --- | --- |
   | ESLint 9 | TypeScript and JavaScript | The repository's `eslint.config.*` files, so the findings match `pnpm lint` |
-  | Opengrep | Security and secrets, every language (Semgrep rules) | Codacy defaults minus two patterns; `*.test.ts`, `*.test.tsx`, and `e2e/` excluded in `.codacy.yml` because fixtures hold literal passwords |
+  | Opengrep | Security and secrets, every language (Semgrep rules) | Codacy defaults minus two patterns; `*.test.ts`, `*.test.tsx`, `e2e/`, and `apps/api/test/` (fixtures and their generators) excluded in `.codacy.yml` because fixtures hold literal passwords and legacy ciphers |
   | Trivy | Vulnerable dependencies | Codacy defaults |
   | Checkov | Docker Compose and GitHub Actions | Codacy defaults |
   | Hadolint | Dockerfiles | Codacy defaults |

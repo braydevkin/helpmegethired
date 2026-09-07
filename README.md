@@ -82,6 +82,7 @@ To run the apps natively against your own tooling instead, see the local setup i
 | [docs/product/vision.md](docs/product/vision.md) | Why the project exists, who it serves, what success looks like |
 | [docs/product/requirements.md](docs/product/requirements.md) | Functional requirements, application flow, technical constraints |
 | [docs/architecture.md](docs/architecture.md) | System architecture, monorepo layout, AI pipeline, data model |
+| [docs/security.md](docs/security.md) | Security requirements the code is held to: what is checked, where, with which limits |
 | [docs/workflow.md](docs/workflow.md) | Gitflow branching, how tasks are created, refined, built, reviewed, and released |
 | [Wiki](https://github.com/braydevkin/helpmegethired/wiki) | Design definitions, screenshots, and guides; the repository keeps what the code is held to |
 | [Wiki: Design: Account](https://github.com/braydevkin/helpmegethired/wiki/Design-Account) | The sign in and sign up design: screens, copy, tokens, components by stage, and open points |

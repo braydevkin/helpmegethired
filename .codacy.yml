@@ -10,6 +10,7 @@ exclude_paths:
   - "**/*.test.tsx"
   - "**/*.spec.ts"
   - "e2e/**"
+  - "apps/api/test/**"
 
 engines:
   lizard:
