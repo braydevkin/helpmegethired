@@ -10,7 +10,7 @@ import { AccountRepository } from "../auth/account.repository";
 import { AuthModule } from "../auth/auth.module";
 import { EnvironmentModule } from "../config/environment.module";
 import { DatabaseModule } from "../database/database.module";
-import { PROFILE_INGESTION_QUEUE, QUEUE_CONNECTION, QUEUE_PREFIX } from "../queue/queues";
+import { CONSUMER_CONNECTION, PROFILE_INGESTION_QUEUE, QUEUE_PREFIX } from "../queue/queues";
 import { WorkerModule } from "../worker/worker.module";
 import { INGESTION_JOB_NAME } from "./ingestion-job-options";
 import { type IngestionJob } from "./ingestion-queue";
@@ -128,7 +128,7 @@ describe("profile ingestion through BullMQ", () => {
     const dying = new Worker<IngestionJob>(
       producer.get<Queue>(PROFILE_INGESTION_QUEUE).name,
       (job) => producer.get(IngestionRunner).run(job.data.ingestionId),
-      { connection: producer.get<ConnectionOptions>(QUEUE_CONNECTION), prefix, lockDuration: LOCK_DURATION_MS },
+      { connection: producer.get<ConnectionOptions>(CONSUMER_CONNECTION), prefix, lockDuration: LOCK_DURATION_MS },
     );
     dying.on("error", () => undefined);
 

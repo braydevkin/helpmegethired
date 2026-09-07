@@ -1,7 +1,8 @@
 import { Inject, Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
 import { Queue, Worker, type ConnectionOptions } from "bullmq";
 
-import { PROFILE_INGESTION_QUEUE, QUEUE_CONNECTION } from "../queue/queues";
+import { withTimeout } from "../common/with-timeout";
+import { CONSUMER_CONNECTION, PROFILE_INGESTION_QUEUE } from "../queue/queues";
 import { INGESTION_JOB_NAME, jobOptionsFor } from "./ingestion-job-options";
 import { IngestionQueue, type IngestionJob, type IngestionJobHandler } from "./ingestion-queue";
 import { INGESTION_WORKER_SETTINGS, type IngestionWorkerSettings } from "./ingestion-worker-settings";
@@ -11,6 +12,10 @@ import { MAX_ATTEMPTS } from "./ingestion.service";
 // recovers a stalled job one time fewer than the row allows attempts.
 const STALLED_RECOVERIES = MAX_ATTEMPTS - 1;
 
+// The row is already committed when the job is added, so a Redis outage must cost the request
+// a bounded wait and a log line, never a hang.
+export const ENQUEUE_TIMEOUT_MS = 5_000;
+
 @Injectable()
 export class BullMqIngestionQueue extends IngestionQueue implements OnModuleDestroy {
   private readonly logger = new Logger(BullMqIngestionQueue.name);
@@ -18,14 +23,18 @@ export class BullMqIngestionQueue extends IngestionQueue implements OnModuleDest
 
   constructor(
     @Inject(PROFILE_INGESTION_QUEUE) private readonly queue: Queue<IngestionJob>,
-    @Inject(QUEUE_CONNECTION) private readonly connection: ConnectionOptions,
+    @Inject(CONSUMER_CONNECTION) private readonly connection: ConnectionOptions,
     @Inject(INGESTION_WORKER_SETTINGS) private readonly settings: IngestionWorkerSettings,
   ) {
     super();
   }
 
   async enqueue(job: IngestionJob): Promise<void> {
-    await this.queue.add(INGESTION_JOB_NAME, job, jobOptionsFor(job));
+    await withTimeout(
+      this.queue.add(INGESTION_JOB_NAME, job, jobOptionsFor(job)),
+      ENQUEUE_TIMEOUT_MS,
+      `Adding the job of Ingestion ${job.ingestionId} to ${this.queue.name}`,
+    );
   }
 
   async work(handler: IngestionJobHandler): Promise<void> {

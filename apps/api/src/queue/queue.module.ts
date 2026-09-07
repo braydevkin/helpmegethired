@@ -4,38 +4,41 @@ import { Queue, type ConnectionOptions } from "bullmq";
 
 import type { EnvironmentConfig } from "../config/environment.module";
 import {
+  CONSUMER_CONNECTION,
   DEFAULT_QUEUE_PREFIX,
+  PRODUCER_CONNECTION,
   PROFILE_INGESTION_QUEUE,
-  QUEUE_CONNECTION,
   QUEUE_NAMES,
   QUEUE_PREFIX,
   RESUME_EXTRACTION_QUEUE,
-  queueConnectionFor,
+  consumerConnectionFor,
+  producerConnectionFor,
   type QueueName,
 } from "./queues";
 
-const connectionProvider = {
-  provide: QUEUE_CONNECTION,
-  useFactory: (config: EnvironmentConfig) => queueConnectionFor(config.get("REDIS_URL", { infer: true })),
+const connectionProvider = (token: symbol, optionsFor: (redisUrl: string) => ConnectionOptions) => ({
+  provide: token,
+  useFactory: (config: EnvironmentConfig) => optionsFor(config.get("REDIS_URL", { infer: true })),
   inject: [ConfigService],
-};
+});
 
 const prefixProvider = { provide: QUEUE_PREFIX, useValue: DEFAULT_QUEUE_PREFIX };
 
 const queueProvider = (token: symbol, name: QueueName) => ({
   provide: token,
   useFactory: (connection: ConnectionOptions, prefix: string) => new Queue(name, { connection, prefix }),
-  inject: [QUEUE_CONNECTION, QUEUE_PREFIX],
+  inject: [PRODUCER_CONNECTION, QUEUE_PREFIX],
 });
 
 @Module({
   providers: [
-    connectionProvider,
+    connectionProvider(PRODUCER_CONNECTION, producerConnectionFor),
+    connectionProvider(CONSUMER_CONNECTION, consumerConnectionFor),
     prefixProvider,
     queueProvider(PROFILE_INGESTION_QUEUE, QUEUE_NAMES.profileIngestion),
     queueProvider(RESUME_EXTRACTION_QUEUE, QUEUE_NAMES.resumeExtraction),
   ],
-  exports: [QUEUE_CONNECTION, QUEUE_PREFIX, PROFILE_INGESTION_QUEUE, RESUME_EXTRACTION_QUEUE],
+  exports: [CONSUMER_CONNECTION, QUEUE_PREFIX, PROFILE_INGESTION_QUEUE, RESUME_EXTRACTION_QUEUE],
 })
 export class QueueModule implements OnApplicationShutdown {
   constructor(
