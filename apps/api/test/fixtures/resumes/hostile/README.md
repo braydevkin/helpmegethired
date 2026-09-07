@@ -10,6 +10,7 @@ The files the extraction tests (#75) feed the worker to prove the requirements i
 | `image-only.pdf` | One page holding a single image and no text, over the 50 KB scanned-detection threshold | `failed`, `scanned_pdf` |
 | `embedded-javascript.pdf` | A text PDF whose catalog opens with a JavaScript action | Extracts normally; the action never runs, because the extractor renders nothing |
 | `oversized.pdf` | A text PDF padded one byte past 5 MB | `failed`, `too_large` |
+| `too-many-pages.pdf` | Blank pages, one more than the 20 allowed | `failed`, `too_many_pages` |
 
 `oversized.pdf` is not committed: it is ignored by git and produced by `node generate.ts`, or in a test through the exported `oversized()` function. The encrypted file's password is exported as `ENCRYPTED_USER_PASSWORD` so a test can prove the file opens with it and is refused without it.
 

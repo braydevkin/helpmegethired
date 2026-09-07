@@ -141,6 +141,7 @@ services:
     environment:
       <<: *api-environment
       WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:?}
+      EXTRACTION_TIMEOUT_MS: ${EXTRACTION_TIMEOUT_MS:?}
     command: ["pnpm", "--filter", "api", "dev:worker"]
     volumes:
       - ./apps/api/src:/workspace/apps/api/src

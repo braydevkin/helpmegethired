@@ -17,6 +17,6 @@ import { UploadedResumeService } from "./uploaded-resume.service";
     UploadedResumeService,
     { provide: ResumeExtractionQueue, useClass: BullMqResumeExtractionQueue },
   ],
-  exports: [UploadedResumeService],
+  exports: [UploadedResumeService, ResumeExtractionQueue],
 })
 export class ResumesModule {}

@@ -40,6 +40,9 @@ jobs:
       - uses: ./.github/actions/setup-workspace
       - uses: ./.github/actions/start-services
 
+      - name: Install poppler for the extraction tests
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends poppler-utils
+
       - name: Apply and revert the migrations
         run: |
           pnpm db:migrate

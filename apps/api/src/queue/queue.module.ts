@@ -15,6 +15,7 @@ import {
   producerConnectionFor,
   type QueueName,
 } from "./queues";
+import { WORKER_SETTINGS, workerSettingsProvider } from "./worker-settings";
 
 const connectionProvider = (token: symbol, optionsFor: (redisUrl: string) => ConnectionOptions) => ({
   provide: token,
@@ -35,10 +36,11 @@ const queueProvider = (token: symbol, name: QueueName) => ({
     connectionProvider(PRODUCER_CONNECTION, producerConnectionFor),
     connectionProvider(CONSUMER_CONNECTION, consumerConnectionFor),
     prefixProvider,
+    workerSettingsProvider,
     queueProvider(PROFILE_INGESTION_QUEUE, QUEUE_NAMES.profileIngestion),
     queueProvider(RESUME_EXTRACTION_QUEUE, QUEUE_NAMES.resumeExtraction),
   ],
-  exports: [CONSUMER_CONNECTION, QUEUE_PREFIX, PROFILE_INGESTION_QUEUE, RESUME_EXTRACTION_QUEUE],
+  exports: [CONSUMER_CONNECTION, QUEUE_PREFIX, WORKER_SETTINGS, PROFILE_INGESTION_QUEUE, RESUME_EXTRACTION_QUEUE],
 })
 export class QueueModule implements OnApplicationShutdown {
   constructor(

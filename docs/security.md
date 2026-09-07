@@ -42,8 +42,9 @@ The MIME type is decided by the magic bytes in the worker, never by the file ext
 ### The extractor
 
 - Extraction runs only in the `worker` service, never in the API process, so a hostile file can exhaust the worker and nothing else.
-- `pdftotext` from poppler runs as a child process fed by the storage stream, with a timeout (`EXTRACTION_TIMEOUT_MS`, 30 s by default) and a memory limit on the container. A hung extraction is killed and retried; after the attempts the record is `failed` with `extraction_failed`.
-- `pdfjs-dist` is the fallback when poppler is unavailable or fails transiently. Neither extractor has network access, renders pages, or executes anything embedded in the file: JavaScript actions, links, and attachments are ignored.
+- The object is read into memory up to the size limit and refused one byte over it; the magic bytes and, through `pdfjs-dist` opening the document without rendering, the page count and the absence of encryption are checked before any child process sees the bytes.
+- `pdftotext` from poppler runs as a child process fed through its standard input, with a timeout (`EXTRACTION_TIMEOUT_MS`, 30 s by default) and the memory limit of the worker container. A hung extraction is killed and retried; after the attempts the record is `failed` with `extraction_failed`.
+- `pdfjs-dist` is the fallback when poppler cannot be started or stops for a reason that is not the document's. Neither extractor has network access, renders pages, or executes anything embedded in the file: JavaScript actions, links, and attachments are ignored.
 - Scanned detection: fewer than 200 non-blank characters on a file over 50 KB is `scanned_pdf`. OCR is out of this phase.
 
 ### Error codes
