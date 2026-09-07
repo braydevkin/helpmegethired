@@ -1,7 +1,7 @@
 import { Injectable, type OnModuleInit } from "@nestjs/common";
 
-import { IngestionQueue } from "./ingestion-queue";
-import { IngestionRunner } from "./ingestion.runner";
+import { IngestionQueue } from "../ingestion/ingestion-queue";
+import { IngestionRunner } from "../ingestion/ingestion.runner";
 
 @Injectable()
 export class IngestionWorker implements OnModuleInit {

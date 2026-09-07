@@ -1,13 +1,13 @@
 import { Module } from "@nestjs/common";
 
 import { QueueModule } from "../queue/queue.module";
+import { BullMqIngestionQueue } from "./bullmq-ingestion.queue";
 import { IngestionQueue } from "./ingestion-queue";
 import { IngestionRunRepository } from "./ingestion-run.repository";
+import { ingestionWorkerSettingsProvider } from "./ingestion-worker-settings";
 import { IngestionRepository } from "./ingestion.repository";
 import { IngestionRunner } from "./ingestion.runner";
 import { IngestionService } from "./ingestion.service";
-import { IngestionWorker } from "./ingestion.worker";
-import { PgBossIngestionQueue } from "./pg-boss-ingestion.queue";
 import { SEGMENT_PROCESSORS } from "./segment-processor";
 import { SegmentProcessorRegistry } from "./segment-processor.registry";
 
@@ -18,11 +18,11 @@ import { SegmentProcessorRegistry } from "./segment-processor.registry";
     IngestionRunRepository,
     IngestionRunner,
     IngestionService,
-    IngestionWorker,
     SegmentProcessorRegistry,
+    ingestionWorkerSettingsProvider,
     { provide: SEGMENT_PROCESSORS, useValue: [] },
-    { provide: IngestionQueue, useClass: PgBossIngestionQueue },
+    { provide: IngestionQueue, useClass: BullMqIngestionQueue },
   ],
-  exports: [IngestionService],
+  exports: [IngestionService, IngestionRunner, IngestionQueue],
 })
 export class IngestionModule {}

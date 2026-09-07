@@ -18,6 +18,7 @@
       "dependsOn": ["^build"],
       "env": [
         "DATABASE_URL",
+        "REDIS_URL",
         "S3_ENDPOINT",
         "S3_PUBLIC_ENDPOINT",
         "S3_BUCKET",

@@ -1,10 +1,10 @@
-name: Start PostgreSQL and object storage
-description: Start the compose postgres and storage services from .env.example and export their host-side variables
+name: Start the backing services
+description: Start the compose postgres, redis, and storage services from .env.example and export their host-side variables
 
 runs:
   using: composite
   steps:
-    - run: docker compose --env-file .env.example up --detach --wait postgres storage storage-init
+    - run: docker compose --env-file .env.example up --detach --wait postgres redis storage storage-init
       shell: bash
 
     - run: |
@@ -12,6 +12,7 @@ runs:
         . ./.env.example
         {
           echo "DATABASE_URL=postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@localhost:${POSTGRES_PORT}/${POSTGRES_DB}"
+          echo "REDIS_URL=redis://localhost:${REDIS_PORT}"
           echo "S3_ENDPOINT=http://localhost:${STORAGE_PORT}"
           echo "S3_PUBLIC_ENDPOINT=http://localhost:${STORAGE_PORT}"
           echo "S3_BUCKET=${S3_BUCKET}"

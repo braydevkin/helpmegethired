@@ -16,3 +16,4 @@ catalog:
 
 allowBuilds:
   "@swc/core": false
+  msgpackr-extract: false
