@@ -18,6 +18,7 @@ const INTERNATIONAL_PHONE = /(?<!\d)\+\d{1,3}[\s.-]?\(?\d{1,4}\)?(?:[\s.-]?\d{2,
 const LINKEDIN = /(?:https?:\/\/)?(?:[a-z]{2,3}\.)?linkedin\.com\/in\/[\p{L}\p{N}%._-]+/iu;
 const GITHUB = /(?:https?:\/\/)?(?:www\.)?github\.com\/[\p{L}\p{N}._-]+/iu;
 const ANY_URL = /(?:https?:\/\/|www\.)[^\s)>\]]+/giu;
+const SOME_URL = /(?:https?:\/\/|www\.)[^\s)>\]]+/iu;
 const TRAILING_URL_PUNCTUATION = /[.,;:)\]/]+$/u;
 
 const NAME_MIN_WORDS = 2;
@@ -55,7 +56,7 @@ export const looksLikeName = (line: string): boolean => {
 };
 
 export const isContactLine = (line: string): boolean =>
-  EMAIL.test(line) || BRAZILIAN_PHONE.test(line) || INTERNATIONAL_PHONE.test(line) || new RegExp(ANY_URL.source, "iu").test(line);
+  EMAIL.test(line) || BRAZILIAN_PHONE.test(line) || INTERNATIONAL_PHONE.test(line) || SOME_URL.test(line);
 
 // The name is the first header line that reads like one: two to five capitalised words, no
 // digit, no "@". It is medium because a headline such as "Senior Software Engineer" reads

@@ -22,6 +22,7 @@ describe("cleanText", () => {
   it("rejoins a word split by a hyphen at the line end", () => {
     expect(cleanText("desenvolvi-\nmento de software")).toBe("desenvolvimento de software");
     expect(cleanText("front-end\n- Node")).toBe("front-end\nNode");
+    expect(cleanText("desenvolvi-   \nmento")).toBe("desenvolvimento");
   });
 
   it("keeps the hyphen of a URL or an e-mail broken at the line end", () => {

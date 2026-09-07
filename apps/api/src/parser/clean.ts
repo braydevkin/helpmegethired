@@ -1,6 +1,6 @@
 const LINE_ENDINGS = /\r\n?/g;
 const FORM_FEED = /\f/g;
-const HYPHENATED_BREAK = /(\S*\p{Ll})-\n(\p{Ll}\S*)/gu;
+const HYPHENATED_BREAK = /(\S*\p{Ll})-[ \t]*\n(\p{Ll}\S*)/gu;
 const ADDRESS_MARKS = /[/@]/u;
 const BULLET = /^\s*[•●▪◦‣⁃∙·■□○►➢➤✓✔→*\-–—»]+(\s+|$)/u;
 const SPACES = /[ \t]{2,}/g;
