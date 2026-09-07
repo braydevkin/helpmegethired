@@ -6,7 +6,7 @@ import { join } from "node:path";
 import type { INestApplicationContext, ModuleMetadata } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { PDF_CONTENT_TYPE, RESUME_MAX_SIZE_BYTES, type Id } from "@helpmegethired/shared";
-import type { Queue } from "bullmq";
+import type { Job, Queue } from "bullmq";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 
 import { EnvironmentModule } from "../config/environment.module";
@@ -146,6 +146,21 @@ describe("resume extraction", () => {
     return rowOf(id);
   };
 
+  // The row fails before BullMQ records the job's last failure, so the job is awaited on its own.
+  const failedJob = async (id: Id): Promise<Job> => {
+    const queue = producer.get<Queue>(RESUME_EXTRACTION_QUEUE);
+
+    await until(async () => (await (await queue.getJob(id))?.isFailed()) ?? false);
+
+    const job = await queue.getJob(id);
+
+    if (!job) {
+      throw new Error(`No job ${id}`);
+    }
+
+    return job;
+  };
+
   const settled = async (id: Id): Promise<UploadedResumeRow> => {
     await until(async () => ["done", "failed"].includes((await rowOf(id)).status));
 
@@ -241,13 +256,12 @@ describe("resume extraction", () => {
     await producer.get(ResumeExtractionQueue).enqueue({ uploadedResumeId: record.id, maxAttempts: record.max_attempts });
 
     const row = await settled(record.id);
-    const job = await producer.get<Queue>(RESUME_EXTRACTION_QUEUE).getJob(record.id);
+    const job = await failedJob(record.id);
 
     expect(row).toMatchObject({ status: "failed", error_code: "extraction_failed", raw_text: null, attempts: EXTRACTION_MAX_ATTEMPTS });
     expect(row.error_message).toContain(`longer than ${HANG_TIMEOUT_MS} ms`);
     expect(await objectPresent(row)).toBe(false);
-    expect(job?.attemptsMade).toBe(EXTRACTION_MAX_ATTEMPTS);
-    expect(await job?.isFailed()).toBe(true);
+    expect(job.attemptsMade).toBe(EXTRACTION_MAX_ATTEMPTS);
   });
 
   it("falls back to pdfjs-dist when pdftotext is not installed", async () => {
