@@ -1,8 +1,10 @@
 import { Inject, Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
+import type { Id } from "@helpmegethired/shared";
 import type { ConnectionOptions, Queue } from "bullmq";
 
 import { addBounded } from "../queue/bounded-add";
 import { BullMqConsumer } from "../queue/bullmq-consumer";
+import { hasPendingJob } from "../queue/job-presence";
 import { retryingJobOptions } from "../queue/job-options";
 import { CONSUMER_CONNECTION, RESUME_EXTRACTION_QUEUE } from "../queue/queues";
 import { WORKER_SETTINGS, type WorkerSettings } from "../queue/worker-settings";
@@ -42,6 +44,10 @@ export class BullMqResumeExtractionQueue extends ResumeExtractionQueue implement
 
   work(handler: ResumeExtractionJobHandler): Promise<void> {
     return this.consumer.start(handler);
+  }
+
+  hasPendingJob(uploadedResumeId: Id): Promise<boolean> {
+    return hasPendingJob(this.queue, uploadedResumeId);
   }
 
   onModuleDestroy(): Promise<void> {

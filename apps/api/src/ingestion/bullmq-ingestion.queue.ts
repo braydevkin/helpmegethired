@@ -1,8 +1,10 @@
 import { Inject, Injectable, Logger, type OnModuleDestroy } from "@nestjs/common";
+import type { Id } from "@helpmegethired/shared";
 import type { ConnectionOptions, Queue } from "bullmq";
 
 import { addBounded } from "../queue/bounded-add";
 import { BullMqConsumer } from "../queue/bullmq-consumer";
+import { hasPendingJob } from "../queue/job-presence";
 import { CONSUMER_CONNECTION, PROFILE_INGESTION_QUEUE } from "../queue/queues";
 import { WORKER_SETTINGS, type WorkerSettings } from "../queue/worker-settings";
 import { INGESTION_JOB_NAME, jobOptionsFor } from "./ingestion-job-options";
@@ -28,6 +30,10 @@ export class BullMqIngestionQueue extends IngestionQueue implements OnModuleDest
 
   work(handler: IngestionJobHandler): Promise<void> {
     return this.consumer.start(handler);
+  }
+
+  hasPendingJob(ingestionId: Id): Promise<boolean> {
+    return hasPendingJob(this.queue, ingestionId);
   }
 
   onModuleDestroy(): Promise<void> {

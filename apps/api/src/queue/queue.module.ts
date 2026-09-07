@@ -10,6 +10,7 @@ import {
   PROFILE_INGESTION_QUEUE,
   QUEUE_NAMES,
   QUEUE_PREFIX,
+  RECONCILIATION_QUEUE,
   RESUME_EXTRACTION_QUEUE,
   consumerConnectionFor,
   producerConnectionFor,
@@ -39,16 +40,25 @@ const queueProvider = (token: symbol, name: QueueName) => ({
     workerSettingsProvider,
     queueProvider(PROFILE_INGESTION_QUEUE, QUEUE_NAMES.profileIngestion),
     queueProvider(RESUME_EXTRACTION_QUEUE, QUEUE_NAMES.resumeExtraction),
+    queueProvider(RECONCILIATION_QUEUE, QUEUE_NAMES.reconciliation),
   ],
-  exports: [CONSUMER_CONNECTION, QUEUE_PREFIX, WORKER_SETTINGS, PROFILE_INGESTION_QUEUE, RESUME_EXTRACTION_QUEUE],
+  exports: [
+    CONSUMER_CONNECTION,
+    QUEUE_PREFIX,
+    WORKER_SETTINGS,
+    PROFILE_INGESTION_QUEUE,
+    RESUME_EXTRACTION_QUEUE,
+    RECONCILIATION_QUEUE,
+  ],
 })
 export class QueueModule implements OnApplicationShutdown {
   constructor(
     @Inject(PROFILE_INGESTION_QUEUE) private readonly profileIngestion: Queue,
     @Inject(RESUME_EXTRACTION_QUEUE) private readonly resumeExtraction: Queue,
+    @Inject(RECONCILIATION_QUEUE) private readonly reconciliation: Queue,
   ) {}
 
   async onApplicationShutdown(): Promise<void> {
-    await Promise.all([this.profileIngestion.close(), this.resumeExtraction.close()]);
+    await Promise.all([this.profileIngestion.close(), this.resumeExtraction.close(), this.reconciliation.close()]);
   }
 }

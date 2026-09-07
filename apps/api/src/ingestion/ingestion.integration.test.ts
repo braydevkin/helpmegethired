@@ -47,6 +47,10 @@ class RecordingQueue extends IngestionQueue {
 
     return Promise.resolve();
   }
+
+  hasPendingJob(ingestionId: Id): Promise<boolean> {
+    return Promise.resolve(this.jobs.some((job) => job.ingestionId === ingestionId));
+  }
 }
 
 const threeSegments = ["first experience", "second experience", "third experience"].map((text) => ({

@@ -78,6 +78,36 @@ export class IngestionRunRepository {
     return row && toIngestion(row);
   }
 
+  async findActiveUpdatedBefore(cutoff: Date): Promise<Ingestion[]> {
+    const rows = await this.database
+      .selectFrom("ingestions")
+      .selectAll()
+      .where("status", "in", ["queued", "running"])
+      .where("updated_at", "<", cutoff)
+      .orderBy("updated_at")
+      .execute();
+
+    return rows.map(toIngestion);
+  }
+
+  // A stale Ingestion is queued again while it has an attempt left, otherwise it fails; one
+  // write, so two reconciliation runs cannot both act on it.
+  async settleStale(id: Id, message: string): Promise<Ingestion | undefined> {
+    const row = await this.database
+      .updateTable("ingestions")
+      .set({
+        status: sql<Ingestion["status"]>`case when attempts < max_attempts then 'queued' else 'failed' end`,
+        last_error: message,
+        ...updatedNow,
+      })
+      .where("id", "=", id)
+      .where("status", "in", ["queued", "running"])
+      .returningAll()
+      .executeTakeFirst();
+
+    return row && toIngestion(row);
+  }
+
   async recordStep(segmentId: Id, step: SegmentStep, output: unknown): Promise<Segment> {
     const row = await this.database
       .updateTable("ingestion_segments")

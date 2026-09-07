@@ -5,7 +5,7 @@ import { RESUME_MAX_PAGES, RESUME_MAX_SIZE_BYTES, type Id, type ResumeUploadErro
 import { describe, expect, it } from "vitest";
 
 import { UploadedResumeNotFoundError } from "../resumes/resume-errors";
-import { ObjectStorage, type PresignedUpload, type StoredObject } from "../storage/object-storage";
+import { ObjectStorage, type ListedObject, type PresignedUpload, type StoredObject } from "../storage/object-storage";
 import { corruptPdf, encryptedPdf } from "./extraction-errors";
 import { ExtractionHandover } from "./extraction-handover";
 import { PdfInspector, type PdfFacts } from "./pdf-inspector";
@@ -31,6 +31,8 @@ class InMemoryRecords {
       maxAttempts: 3,
       rawText: null,
       extractorVersion: null,
+      ingestionId: null,
+      createdAt: new Date(),
       errorCode: null,
       errorMessage: null,
       ...overrides,
@@ -122,6 +124,12 @@ class InMemoryStorage extends ObjectStorage {
     this.objects.delete(key);
 
     return Promise.resolve();
+  }
+
+  list(prefix: string): Promise<ListedObject[]> {
+    return Promise.resolve(
+      [...this.objects.keys()].filter((key) => key.startsWith(prefix)).map((key) => ({ key, lastModified: new Date() })),
+    );
   }
 }
 

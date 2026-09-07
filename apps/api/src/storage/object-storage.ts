@@ -10,9 +10,15 @@ export interface StoredObject {
   size: number;
 }
 
+export interface ListedObject {
+  key: string;
+  lastModified: Date;
+}
+
 export abstract class ObjectStorage {
   abstract presignPut(key: string, size: number, sha256: string, contentType: string): Promise<PresignedUpload>;
   abstract head(key: string): Promise<StoredObject | undefined>;
   abstract getStream(key: string): Promise<Readable>;
   abstract delete(key: string): Promise<void>;
+  abstract list(prefix: string): Promise<ListedObject[]>;
 }

@@ -164,7 +164,7 @@ The database layer lives in `apps/api/src/database` and follows ADR-0012:
 
 The `storage` module is the only code that talks to the object store, following ADR-0021:
 
-- `ObjectStorage` is the abstraction the resume routes, the extraction processor, and the reconciliation job depend on: `presignPut(key, size, sha256, contentType)` answers the URL, the headers the browser must send, and the expiry; `head(key)` answers the stored size or `undefined`; `getStream(key)` streams the bytes; `delete(key)` removes them. `S3ObjectStorage` is the one implementation, built on the AWS S3 client library, and nothing in it names a product.
+- `ObjectStorage` is the abstraction the resume routes, the extraction processor, and the reconciliation job depend on: `presignPut(key, size, sha256, contentType)` answers the URL, the headers the browser must send, and the expiry; `head(key)` answers the stored size or `undefined`; `getStream(key)` streams the bytes; `delete(key)` removes them; `list(prefix)` answers every key under a prefix with the time it was written, for the bucket sweep. `S3ObjectStorage` is the one implementation, built on the AWS S3 client library, and nothing in it names a product.
 - `StorageModule` builds two `S3Client`s from the `S3_*` variables, both with path-style URLs and the SDK's own checksum handling limited to where the API requires it: the internal client on `S3_ENDPOINT` performs `head`, `getStream`, and `delete`; the public client on `S3_PUBLIC_ENDPOINT` only signs, because its address is the one embedded in the URL the browser uses.
 - The presigned `PUT` signs the content type, the content length, and the SHA-256 (`x-amz-checksum-sha256`, kept as a header rather than hoisted into the query string) and expires after `PRESIGN_EXPIRES_SECONDS`. A `PUT` whose size or checksum differs from the signed values fails the signature, and a body whose digest differs from the signed checksum is refused by the store, so a different file never lands under the key. `presignPut` returns those headers so the route hands them to the browser unchanged.
 - The integration test runs the four operations against the compose `storage` service with `fetch` as the browser.
@@ -237,18 +237,19 @@ browser                 api                    object store          redis      
 
 `done` means the Profile is saved, not only the text extracted: the record stays `processing` while the Ingestion runs, and the upload page derives its "Building your profile" stage from the Ingestion's Progress. A `failed` record carries one error code, which the page turns into a message: `not_pdf`, `too_large`, `too_many_pages`, `encrypted_pdf`, `corrupt_pdf`, `scanned_pdf`, `upload_incomplete`, `extraction_failed` (retries exhausted on a transient error), and `profile_build_failed` (the Ingestion exhausted its attempts). `POST /resumes` never refuses a new upload; `complete` answers `409 ingestion_active` while the Account has another record `uploaded` or `processing` or an active Ingestion (TC-05). Uploading the same bytes twice (same Account, same SHA-256) answers the existing record and creates no second job. Both rules are indexes, not only checks: `uploaded_resumes_one_live_per_file_idx` is unique on `(account_id, sha256)` while the record is not `failed` or `expired`, so a rejected file can be uploaded again, and `uploaded_resumes_one_in_flight_per_account_idx` is unique on `account_id` while the record is `uploaded` or `processing`, so two concurrent `complete` calls cannot both pass. The `resumes` module maps its errors to HTTP in one exception filter: not found is `404`, and the two conflicts carry their code in the `ApiError` body.
 
-#### The two queues
+#### The three queues
 
 | Queue | One job per | Job id | Producer | Consumer |
 | --- | --- | --- | --- | --- |
 | `resume-extraction` | Uploaded Resume | the record id | `complete`, or the reconciliation job | the extraction processor on the worker |
 | `profile-ingestion` | Ingestion | the Ingestion id | the extraction processor, after it creates the Ingestion | the Ingestion runner on the worker |
+| `reconciliation` | interval | the job scheduler `reconciliation` | every worker, upserting the same scheduler at start | one worker at a time, one run at a time |
 
 The job id equal to the record id makes every add idempotent, and every processor begins by reading what is already persisted and skipping it, so a re-delivery after a crash, a stalled lock, or a reconciliation run never repeats work. Both rows carry `attempts` and `max_attempts`; the processor increments `attempts` in the write that marks the row `processing` or `running`, before doing any work, so a run killed without reporting still counts and the reconciliation job never re-enqueues past the limit. Backoff is exponential, and failed jobs are kept so the queue dashboard shows them. The enqueue always happens after the PostgreSQL transaction commits; an enqueue failure is logged and left to the reconciliation job, never surfaced as a request error.
 
 #### The worker
 
-`apps/api/src/worker.ts` is a second Nest entrypoint (`createApplicationContext(WorkerModule)`) that hosts every processor: extraction, the Ingestion runner, and the reconciliation job. It runs with `WORKER_CONCURRENCY` jobs at a time (default 4), renews the lock of every active job, and closes both queues on `SIGTERM`. The `worker` compose service is built from the API image with the same environment as `api`, no port, and a memory limit, so a hostile PDF can exhaust the worker and never the API. The API process registers no processor.
+`apps/api/src/worker.ts` is a second Nest entrypoint (`createApplicationContext(WorkerModule)`) that hosts every processor: extraction, the Ingestion runner, and the reconciliation job. It runs with `WORKER_CONCURRENCY` jobs at a time (default 4), renews the lock of every active job, and closes every queue on `SIGTERM`. The `worker` compose service is built from the API image with the same environment as `api`, no port, and a memory limit, so a hostile PDF can exhaust the worker and never the API. The API process registers no processor.
 
 #### Extraction
 
@@ -274,7 +275,7 @@ Every Profile row records the Ingestion that wrote it. The Profile reads the row
 
 #### Reconciliation
 
-A BullMQ repeatable job on the worker, every 5 minutes with a fixed repeat key so one instance exists however many workers run. It is what makes the state machine converge without a transactional enqueue:
+A BullMQ repeatable job on the worker, every 5 minutes with a fixed repeat key so one instance exists however many workers run. It is what makes the state machine converge without a transactional enqueue. Every worker upserts the same job scheduler (`reconciliation`) on the `reconciliation` queue when it starts, so replicas share one schedule and one of them consumes each run, one run at a time; the run reads the present from a `Clock` the tests replace. A row "with no job" is one whose queue has no job with its id in a state that will still be delivered (waiting, active, delayed, prioritized, or waiting for children). A `processing` record that already carries an Ingestion is the Ingestion's to settle, never re-enqueued for extraction. Each row is settled in one conditional write, so two runs cannot both act on it, and one row that cannot be settled is logged and left for the next run without stopping the others:
 
 | Rule | Condition | Action |
 | --- | --- | --- |
@@ -397,7 +398,7 @@ Docker Compose runs the whole monorepo. `docker compose up` brings up the long-r
 
 The two dashboards are development tools: the queue dashboard shows every job of both queues with its attempts and failures, and the storage console shows the bucket. Neither is part of a deployed environment.
 
-- Configuration comes from a root `.env`, copied from `.env.example`. Every variable is required except `AUTH_RESEND_KEY` and `EMAIL_FROM`, which are blank by default: a missing required one stops `docker compose` with a message naming it. Inside the network the services keep fixed ports (`api:3001`, `web:3000`, `postgres:5432`, `redis:6379`); the `.env` variables only choose the host ports, and `WORKER_CONCURRENCY` and `EXTRACTION_TIMEOUT_MS` tune the worker.
+- Configuration comes from a root `.env`, copied from `.env.example`. Every variable is required except `AUTH_RESEND_KEY` and `EMAIL_FROM`, which are blank by default: a missing required one stops `docker compose` with a message naming it. Inside the network the services keep fixed ports (`api:3001`, `web:3000`, `postgres:5432`, `redis:6379`); the `.env` variables only choose the host ports, and `WORKER_CONCURRENCY`, `EXTRACTION_TIMEOUT_MS`, and `STALE_PROCESSING_MINUTES` tune the worker.
 - The `api`, `worker`, and `migrate` containers receive `PORT`, `WEB_ORIGIN`, `DATABASE_URL`, `REDIS_URL`, and the `S3_*` variables from the compose file, so `apps/api/.env.example` is only needed when the API runs natively. Inside the network the database URL points at `postgres:5432`, the Redis URL at `redis:6379`, and `S3_ENDPOINT` at `storage:9000`; from the host they point at `localhost` with the `.env` ports. `S3_PUBLIC_ENDPOINT` is always the host address, because it is embedded in the presigned URL the browser uses.
 - The `web` container receives `API_URL=http://api:3001` and starts only after `api` is healthy. When the web app runs natively, `API_URL` defaults to `http://localhost:3001`.
 - The stack sends no real email. `web` receives `AUTH_RESEND_KEY` and `EMAIL_FROM` from `.env`, blank by default, so the code is printed in its logs and read from the development route; setting both in `.env` switches the local stack to Resend for a real delivery check.

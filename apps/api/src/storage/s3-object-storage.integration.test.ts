@@ -90,6 +90,16 @@ describe("object storage through S3", () => {
     expect(await readAll(await storage.getStream(key))).toEqual(bytes);
   });
 
+  it("lists the objects under a prefix with the time they were written", async () => {
+    const [prefix] = key.split(/(?<=\/)[^/]+\.pdf$/);
+    const listed = await storage.list(prefix ?? "");
+
+    expect(listed.map((object) => object.key)).toEqual([key]);
+    expect(listed[0]?.lastModified).toBeInstanceOf(Date);
+    expect(Math.abs(Date.now() - (listed[0]?.lastModified.getTime() ?? 0))).toBeLessThan(60_000);
+    expect(await storage.list(`resumes/${randomUUID()}/`)).toEqual([]);
+  });
+
   it("deletes the object so it heads as absent", async () => {
     await storage.delete(key);
 
