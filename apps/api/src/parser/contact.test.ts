@@ -52,7 +52,7 @@ describe("looksLikeName", () => {
     expect(looksLikeName(line)).toBe(true);
   });
 
-  it.each(["Ada", "Senior Software Engineer at Acme Corp Ltd", "ada@example.com", "Engineer 2", "Experience", "Backend | Node.js"])(
+  it.each(["Ada", "Senior Software Engineer at Acme Corp Ltd", "ada@example.com", "Engineer 2", "Experience", "Backend | Node.js", "SUMMARY EDUCATION"])(
     "refuses %s",
     (line) => {
       expect(looksLikeName(line)).toBe(false);

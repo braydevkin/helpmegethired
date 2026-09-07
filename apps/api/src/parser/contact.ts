@@ -37,6 +37,9 @@ const first = (text: string, pattern: RegExp): string | undefined => pattern.exe
 const isNameWord = (word: string): boolean =>
   NAME_CONNECTORS.has(word.toLowerCase()) || (/^\p{Lu}[\p{L}'.-]*$/u.test(word) && !/\d/u.test(word));
 
+const isHeadingWord = (word: string): boolean => sectionKindOf(normalise(word)) !== undefined;
+
+// Two headings side by side, as two columns produce, read like a name and are not one.
 export const looksLikeName = (line: string): boolean => {
   const words = wordsOf(line);
 
@@ -46,7 +49,8 @@ export const looksLikeName = (line: string): boolean => {
     !/[@\d|:]/u.test(line) &&
     sectionKindOf(normalise(line)) === undefined &&
     words.every(isNameWord) &&
-    words.some((word) => !NAME_CONNECTORS.has(word.toLowerCase()))
+    words.some((word) => !NAME_CONNECTORS.has(word.toLowerCase())) &&
+    !words.every(isHeadingWord)
   );
 };
 

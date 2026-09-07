@@ -10,7 +10,7 @@ export function canvaLike(person: Person): string {
     person.name,
     `
     body { font-family: Georgia, "Times New Roman", serif; }
-    .band { background: #1f6f8b; color: white; padding: 14pt 16pt; margin: -18mm -18mm 8pt; }
+    .band { background: #1f6f8b; color: white; padding: 14pt 16pt; margin: 0 0 8pt; }
     .band h1 { color: white; font-family: Helvetica, Arial, sans-serif; }
     .band .headline { font-size: 12pt; opacity: 0.9; margin-top: 4pt; }
     .row { display: flex; gap: 14pt; font-size: 9.5pt; color: #333; margin-bottom: 8pt; flex-wrap: wrap; }

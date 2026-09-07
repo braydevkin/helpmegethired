@@ -1,7 +1,7 @@
 {
   "contact": {
     "name": {
-      "value": "SUMMARY EDUCATION",
+      "value": "Carla Mendes Ribeiro",
       "confidence": "medium"
     },
     "email": {
@@ -33,16 +33,17 @@
       "kind": "header",
       "heading": null,
       "lines": [
-        "uct Designer & Front-end Developer",
+        "Carla Mendes Ribeiro",
+        "Product Designer & Front-end Developer",
         "",
-        "Lisbon, Portugal +351 912 345 678 carla.ribeiro@example.com linkedin.com/in/carla-ribeiro-example",
+        "Lisbon, Portugal +351 912 345 678 carla.ribeiro@example.com",
         "",
-        "https://carlaribeiro.example.com",
+        "linkedin.com/in/carla-ribeiro-example https://carlaribeiro.example.com",
         "",
         "SUMMARY EDUCATION",
         "",
-        "Designer who codes. I prototype in Figma, ship in React, and BA in Communication",
-        "measure what happens after. Design, Universidade de",
+        "Designer who codes. I prototype in Figma, ship in React, BA in Communication",
+        "and measure what happens after. Design, Universidade de",
         "Lisboa",
         "2014 – 2018"
       ]
@@ -54,30 +55,23 @@
         "Product Designer, Tagus Labs SKILLS",
         "Lisbon · January 2022 – Present",
         "Figma",
-        "Redesigned the onboarding flow, lifting activation from 31% to React",
-        "47%.",
+        "Redesigned the onboarding flow, lifting activation from",
+        "React",
+        "31% to 47%.",
         "Next.js",
-        "Maintain the design system used by three product teams.",
-        "TypeScript",
-        "Front-end Developer, Azul Interactive CSS",
-        "Porto · September 2018 – December 2021 Accessibility",
-        "Built marketing sites and web apps in React and Next.js for retail User research",
-        "clients."
-      ]
-    },
-    {
-      "kind": "languages",
-      "heading": "LANGUAGES",
-      "lines": []
-    },
-    {
-      "kind": "projects",
-      "heading": "PROJECTS",
-      "lines": [
-        "Portuguese - Native",
-        "Tile · A colour contrast checker for design tokens. English - Fluent",
-        "(https://carlaribeiro.example.com/tile)",
-        "Spanish - Basic"
+        "Maintain the design system used by three product",
+        "teams. TypeScript",
+        "CSS",
+        "Front-end Developer, Azul Interactive Accessibility",
+        "Porto · September 2018 – December 2021",
+        "User research",
+        "Built marketing sites and web apps in React and Next.js",
+        "for retail clients. LANGUAGES",
+        "PROJECTS Portuguese - Native",
+        "English - Fluent",
+        "Tile · A colour contrast checker for design tokens.",
+        "Spanish - Basic",
+        "(https://carlaribeiro.example.com/tile)"
       ]
     }
   ],
@@ -85,11 +79,11 @@
     "parserVersion": "rules/1",
     "basicProfile": {
       "headline": {
-        "value": "uct Designer & Front-end Developer",
+        "value": "Product Designer & Front-end Developer",
         "confidence": "medium"
       },
       "summary": {
-        "value": "Designer who codes. I prototype in Figma, ship in React, and BA in Communication measure what happens after. Design, Universidade de Lisboa 2014 – 2018",
+        "value": "SUMMARY EDUCATION Designer who codes. I prototype in Figma, ship in React, BA in Communication and measure what happens after. Design, Universidade de Lisboa 2014 – 2018",
         "confidence": "low"
       },
       "linkedinUrl": {
