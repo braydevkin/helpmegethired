@@ -46,7 +46,7 @@ export class S3ObjectStorage extends ObjectStorage {
       unhoistableHeaders: new Set([CHECKSUM_SHA256_HEADER]),
     });
 
-    return { url, headers: uploadHeaders(sha256, contentType), expiresAt };
+    return { url, headers: uploadHeaders(size, sha256, contentType), expiresAt };
   }
 
   async head(key: string): Promise<StoredObject | undefined> {

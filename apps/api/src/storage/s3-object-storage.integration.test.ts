@@ -56,7 +56,8 @@ describe("object storage through S3", () => {
   });
 
   it("refuses a PUT whose size differs from the signed one", async () => {
-    const response = await put(bytes.subarray(0, bytes.length - 1));
+    const shorter = bytes.subarray(0, bytes.length - 1);
+    const response = await put(shorter, { ...presigned.headers, "content-length": String(shorter.length) });
 
     expect(response.ok).toBe(false);
     expect(await storage.head(key)).toBeUndefined();

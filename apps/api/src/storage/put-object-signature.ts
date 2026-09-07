@@ -24,9 +24,10 @@ export function putObjectInput(
   };
 }
 
-export function uploadHeaders(sha256: string, contentType: string): Record<string, string> {
+export function uploadHeaders(size: number, sha256: string, contentType: string): Record<string, string> {
   return {
     [CONTENT_TYPE_HEADER]: contentType,
+    [CONTENT_LENGTH_HEADER]: String(size),
     [CHECKSUM_SHA256_HEADER]: sha256HexToBase64(sha256),
   };
 }

@@ -27,15 +27,14 @@ describe("putObjectInput", () => {
 
 describe("uploadHeaders", () => {
   it("names the headers the browser must send with the signed values", () => {
-    expect(uploadHeaders(sha256, "application/pdf")).toEqual({
+    expect(uploadHeaders(bytes.length, sha256, "application/pdf")).toEqual({
       "content-type": "application/pdf",
+      "content-length": String(bytes.length),
       "x-amz-checksum-sha256": sha256HexToBase64(sha256),
     });
   });
 
-  it("only names headers that are part of the signature", () => {
-    for (const header of Object.keys(uploadHeaders(sha256, "application/pdf"))) {
-      expect(PUT_SIGNED_HEADERS.has(header)).toBe(true);
-    }
+  it("names every header that is part of the signature and no other", () => {
+    expect(new Set(Object.keys(uploadHeaders(bytes.length, sha256, "application/pdf")))).toEqual(PUT_SIGNED_HEADERS);
   });
 });
