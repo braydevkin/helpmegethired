@@ -225,9 +225,9 @@ describe("reconciliation", () => {
     await backdate("uploaded_resumes", record.id, 3 * MINUTE_MS);
     consumers.push(await build([WorkerModule]));
 
-    const report = await job.run();
+    // The consumer schedules its own runs, so whichever run promotes first is the right outcome.
+    await job.run();
 
-    expect(report.promoted).toBeGreaterThanOrEqual(1);
     await until(async () => ["done", "failed"].includes((await rowOf(record.id)).status));
     expect(await rowOf(record.id)).toMatchObject({ status: "done", error_code: null });
     expect(await storage.head(record.object_key)).toBeUndefined();
