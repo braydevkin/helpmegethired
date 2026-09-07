@@ -29,7 +29,7 @@ describe("profile ingestion through pg-boss", () => {
     const deadline = Date.now() + COMPLETION_TIMEOUT_MS;
 
     for (;;) {
-      const progress = await service.progressOf(ingestionId);
+      const progress = await service.progressOf(accountId, ingestionId);
 
       if (progress.status === "completed" || progress.status === "failed" || Date.now() > deadline) {
         return progress;
@@ -76,7 +76,7 @@ describe("profile ingestion through pg-boss", () => {
       const progress = await untilSettled(ingestion.id);
 
       expect(progress).toMatchObject({ status: "completed", percentage: 100, segments: { total: 3, saved: 3 } });
-      expect(await repository.findById(ingestion.id)).toMatchObject({ attempts: 2, lastError: null });
+      expect(await repository.findById(accountId, ingestion.id)).toMatchObject({ attempts: 2, lastError: null });
       expect(processor.callsFor("read")).toEqual([0, 1, 2]);
       expect(processor.callsFor("recognize")).toEqual([0, 1, 1, 2]);
       expect(processor.callsFor("save")).toEqual([0, 1, 2]);

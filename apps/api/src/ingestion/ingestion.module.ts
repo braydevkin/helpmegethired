@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 
 import { QueueModule } from "../queue/queue.module";
 import { IngestionQueue } from "./ingestion-queue";
+import { IngestionRunRepository } from "./ingestion-run.repository";
 import { IngestionRepository } from "./ingestion.repository";
 import { IngestionRunner } from "./ingestion.runner";
 import { IngestionService } from "./ingestion.service";
@@ -14,6 +15,7 @@ import { SegmentProcessorRegistry } from "./segment-processor.registry";
   imports: [QueueModule],
   providers: [
     IngestionRepository,
+    IngestionRunRepository,
     IngestionRunner,
     IngestionService,
     IngestionWorker,
