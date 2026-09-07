@@ -7,7 +7,7 @@ import { IngestionQueue } from "../ingestion/ingestion-queue";
 import { IngestionRunRepository } from "../ingestion/ingestion-run.repository";
 import { RESUME_OBJECT_PREFIX } from "../resumes/resume-object-key";
 import { ResumeExtractionQueue } from "../resumes/resume-extraction-queue";
-import { ObjectStorage } from "../storage/object-storage";
+import { ObjectStorage, type ListedObject } from "../storage/object-storage";
 import { RECONCILIATION_SETTINGS, type ReconciliationSettings } from "./reconciliation-settings";
 
 export interface ReconciliationReport {
@@ -21,6 +21,8 @@ export interface ReconciliationReport {
   objectsDeleted: number;
 }
 
+// Keys are looked up in batches well under PostgreSQL's parameter limit, whatever the page size.
+const SWEEP_BATCH_SIZE = 500;
 const STALE_RUN_MESSAGE = "No active job while processing";
 const STALE_INGESTION_MESSAGE = "No active job while queued or running";
 const SWEPT_OBJECT_STATUSES = new Set(["expired", "failed"]);
@@ -156,7 +158,21 @@ export class ReconciliationJob {
 
   private async sweepBucket(now: number, report: ReconciliationReport): Promise<void> {
     const cutoff = now - this.settings.orphanObjectAgeMs;
-    const aged = (await this.storage.list(RESUME_OBJECT_PREFIX)).filter((object) => object.lastModified.getTime() < cutoff);
+    let aged: ListedObject[] = [];
+
+    for await (const page of this.storage.list(RESUME_OBJECT_PREFIX)) {
+      aged.push(...page.filter((object) => object.lastModified.getTime() < cutoff));
+
+      while (aged.length >= SWEEP_BATCH_SIZE) {
+        await this.sweepObjects(aged.slice(0, SWEEP_BATCH_SIZE), report);
+        aged = aged.slice(SWEEP_BATCH_SIZE);
+      }
+    }
+
+    await this.sweepObjects(aged, report);
+  }
+
+  private async sweepObjects(aged: readonly ListedObject[], report: ReconciliationReport): Promise<void> {
     const statuses = await this.resumes.statusesByObjectKey(aged.map((object) => object.key));
 
     for (const object of aged) {

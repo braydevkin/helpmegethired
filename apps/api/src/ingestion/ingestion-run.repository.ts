@@ -9,6 +9,13 @@ import { statusAfter } from "./segment-state";
 
 const updatedNow = { updated_at: sql<Date>`now()` };
 
+// An attempt that ends without completing is queued again while one is left, otherwise failed.
+const queuedAgainOrFailed = (error: string) => ({
+  status: sql<Ingestion["status"]>`case when attempts < max_attempts then 'queued' else 'failed' end`,
+  last_error: error,
+  ...updatedNow,
+});
+
 function outputColumnsOf(step: SegmentStep, output: unknown) {
   switch (step) {
     case "read":
@@ -66,11 +73,7 @@ export class IngestionRunRepository {
   async failAttempt(id: Id, error: string): Promise<Ingestion | undefined> {
     const row = await this.database
       .updateTable("ingestions")
-      .set({
-        status: sql<Ingestion["status"]>`case when attempts < max_attempts then 'queued' else 'failed' end`,
-        last_error: error,
-        ...updatedNow,
-      })
+      .set(queuedAgainOrFailed(error))
       .where("id", "=", id)
       .returningAll()
       .executeTakeFirst();
@@ -90,16 +93,11 @@ export class IngestionRunRepository {
     return rows.map(toIngestion);
   }
 
-  // A stale Ingestion is queued again while it has an attempt left, otherwise it fails; one
-  // write, so two reconciliation runs cannot both act on it.
+  // One conditional write, so two reconciliation runs cannot both act on a stale Ingestion.
   async settleStale(id: Id, message: string): Promise<Ingestion | undefined> {
     const row = await this.database
       .updateTable("ingestions")
-      .set({
-        status: sql<Ingestion["status"]>`case when attempts < max_attempts then 'queued' else 'failed' end`,
-        last_error: message,
-        ...updatedNow,
-      })
+      .set(queuedAgainOrFailed(message))
       .where("id", "=", id)
       .where("status", "in", ["queued", "running"])
       .returningAll()

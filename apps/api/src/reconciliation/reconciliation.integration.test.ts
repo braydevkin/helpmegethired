@@ -210,8 +210,8 @@ describe("reconciliation", () => {
   });
 
   afterAll(async () => {
-    for (const object of await storage.list(RESUME_OBJECT_PREFIX)) {
-      await storage.delete(object.key);
+    for await (const page of storage.list(RESUME_OBJECT_PREFIX)) {
+      await Promise.all(page.map((object) => storage.delete(object.key)));
     }
 
     await Promise.all([extractionQueue, ingestionQueue, producer.get<Queue>(RECONCILIATION_QUEUE)].map((queue) => queue.obliterate({ force: true })));

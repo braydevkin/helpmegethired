@@ -126,10 +126,8 @@ class InMemoryStorage extends ObjectStorage {
     return Promise.resolve();
   }
 
-  list(prefix: string): Promise<ListedObject[]> {
-    return Promise.resolve(
-      [...this.objects.keys()].filter((key) => key.startsWith(prefix)).map((key) => ({ key, lastModified: new Date() })),
-    );
+  async *list(prefix: string): AsyncIterable<ListedObject[]> {
+    yield [...this.objects.keys()].filter((key) => key.startsWith(prefix)).map((key) => ({ key, lastModified: new Date() }));
   }
 }
 

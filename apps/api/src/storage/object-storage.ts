@@ -20,5 +20,6 @@ export abstract class ObjectStorage {
   abstract head(key: string): Promise<StoredObject | undefined>;
   abstract getStream(key: string): Promise<Readable>;
   abstract delete(key: string): Promise<void>;
-  abstract list(prefix: string): Promise<ListedObject[]>;
+  // One page of the store at a time, so a bucket of any size is walked in bounded memory.
+  abstract list(prefix: string): AsyncIterable<ListedObject[]>;
 }

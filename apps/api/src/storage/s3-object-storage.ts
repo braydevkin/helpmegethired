@@ -85,8 +85,7 @@ export class S3ObjectStorage extends ObjectStorage {
     await this.clients.internal.send(new DeleteObjectCommand({ Bucket: this.bucket, Key: key }));
   }
 
-  async list(prefix: string): Promise<ListedObject[]> {
-    const objects: ListedObject[] = [];
+  async *list(prefix: string): AsyncIterable<ListedObject[]> {
     let continuationToken: string | undefined;
 
     do {
@@ -94,15 +93,11 @@ export class S3ObjectStorage extends ObjectStorage {
         new ListObjectsV2Command({ Bucket: this.bucket, Prefix: prefix, ContinuationToken: continuationToken }),
       );
 
-      for (const { Key, LastModified } of page.Contents ?? []) {
-        if (Key !== undefined && LastModified !== undefined) {
-          objects.push({ key: Key, lastModified: LastModified });
-        }
-      }
+      yield (page.Contents ?? []).flatMap(({ Key, LastModified }) =>
+        Key !== undefined && LastModified !== undefined ? [{ key: Key, lastModified: LastModified }] : [],
+      );
 
       continuationToken = page.IsTruncated ? page.NextContinuationToken : undefined;
     } while (continuationToken);
-
-    return objects;
   }
 }
