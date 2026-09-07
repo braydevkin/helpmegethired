@@ -11,6 +11,9 @@ import {
   type UploadedResumeStatus,
 } from "@helpmegethired/shared";
 
+import { pollUntil, type PollingPlan } from "../common/poll-until";
+import { lockAccount } from "../database/account-lock";
+import { TransactionRunner } from "../database/transaction-runner";
 import { IngestionRepository } from "../ingestion/ingestion.repository";
 import { ObjectStorage } from "../storage/object-storage";
 import { ResumeExtractionQueue } from "./resume-extraction-queue";
@@ -26,22 +29,16 @@ export interface UploadRequestOutcome {
   created: boolean;
 }
 
-export interface ObjectPresenceCheck {
-  attempts: number;
-  retryDelayMs: number;
-}
-
 // A store without read-after-write consistency can still be catching up when the browser
 // reports the upload finished; three looks half a second apart cover it.
-export const OBJECT_PRESENCE_CHECK: ObjectPresenceCheck = { attempts: 3, retryDelayMs: 500 };
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+export const OBJECT_PRESENCE_CHECK: PollingPlan = { attempts: 3, delayMs: 500 };
 
 @Injectable()
 export class UploadedResumeService {
   private readonly logger = new Logger(UploadedResumeService.name);
 
   constructor(
+    private readonly transactions: TransactionRunner,
     private readonly repository: UploadedResumeRepository,
     private readonly ingestions: IngestionRepository,
     private readonly storage: ObjectStorage,
@@ -72,11 +69,7 @@ export class UploadedResumeService {
 
     await this.assertObjectPresent(resume);
 
-    if (await this.ingestions.hasActive(accountId)) {
-      throw new UploadInFlightError(accountId);
-    }
-
-    const uploaded = await this.repository.markUploaded(accountId, id);
+    const uploaded = await this.markUploadedUnlessIngesting(accountId, id);
 
     if (!uploaded) {
       return this.withProgress(await this.stored(accountId, id));
@@ -93,8 +86,10 @@ export class UploadedResumeService {
 
   async list(accountId: Id, status?: UploadedResumeStatus): Promise<UploadedResume[]> {
     const resumes = await this.repository.list(accountId, status);
+    const ingestionIds = resumes.flatMap((resume) => (resume.ingestionId ? [resume.ingestionId] : []));
+    const progress = await this.ingestions.progressOfEach(accountId, ingestionIds);
 
-    return Promise.all(resumes.map((resume) => this.withProgress(resume)));
+    return resumes.map((resume) => toUploadedResume(resume, (resume.ingestionId && progress.get(resume.ingestionId)) || null));
   }
 
   private async createOrReuse(accountId: Id, upload: ResumeUpload): Promise<StoredResume> {
@@ -127,19 +122,28 @@ export class UploadedResumeService {
   }
 
   private async assertObjectPresent(resume: StoredResume): Promise<void> {
-    for (let attempt = 1; attempt <= OBJECT_PRESENCE_CHECK.attempts; attempt += 1) {
-      const object = await this.storage.head(resume.objectKey);
+    const present = await pollUntil(
+      async () => (await this.storage.head(resume.objectKey))?.size === resume.sizeBytes,
+      OBJECT_PRESENCE_CHECK,
+    );
 
-      if (object?.size === resume.sizeBytes) {
-        return;
-      }
-
-      if (attempt < OBJECT_PRESENCE_CHECK.attempts) {
-        await sleep(OBJECT_PRESENCE_CHECK.retryDelayMs);
-      }
+    if (!present) {
+      throw new UploadIncompleteError(resume.id);
     }
+  }
 
-    throw new UploadIncompleteError(resume.id);
+  // The Account row is locked for the check and the update, and Ingestion creation takes the
+  // same lock, so an Ingestion cannot start between the two (TC-05).
+  private markUploadedUnlessIngesting(accountId: Id, id: Id): Promise<StoredResume | undefined> {
+    return this.transactions.run(async (transaction) => {
+      await lockAccount(accountId, transaction);
+
+      if (await this.ingestions.hasActive(accountId, transaction)) {
+        throw new UploadInFlightError(accountId);
+      }
+
+      return this.repository.markUploaded(accountId, id, transaction);
+    });
   }
 
   // The row is committed before the job is added; a failed enqueue is logged and left to the

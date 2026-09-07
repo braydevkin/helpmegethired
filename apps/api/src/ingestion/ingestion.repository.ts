@@ -1,6 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
 import type { Id, Ingestion, IngestionProgress } from "@helpmegethired/shared";
 
+import { lockAccount } from "../database/account-lock";
 import { DATABASE, type Database } from "../database/database";
 import { isUniqueViolation } from "../database/database-errors";
 import { IngestionAlreadyActiveError } from "./ingestion-errors";
@@ -21,6 +22,8 @@ export class IngestionRepository {
     transaction: Database,
   ): Promise<Ingestion> {
     try {
+      await lockAccount(accountId, transaction);
+
       const row = await transaction
         .insertInto("ingestions")
         .values({ account_id: accountId, status: "queued", max_attempts: maxAttempts, last_error: null })
@@ -65,8 +68,8 @@ export class IngestionRepository {
     return row && toIngestion(row);
   }
 
-  async hasActive(accountId: Id): Promise<boolean> {
-    const active = await this.database
+  async hasActive(accountId: Id, executor: Database = this.database): Promise<boolean> {
+    const active = await executor
       .selectFrom("ingestions")
       .select("id")
       .where("account_id", "=", accountId)
@@ -77,22 +80,44 @@ export class IngestionRepository {
   }
 
   async progressOf(accountId: Id, id: Id): Promise<IngestionProgress | undefined> {
-    const ingestion = await this.findById(accountId, id);
+    return (await this.progressOfEach(accountId, [id])).get(id);
+  }
 
-    if (!ingestion) {
-      return undefined;
+  async progressOfEach(accountId: Id, ids: readonly Id[]): Promise<Map<Id, IngestionProgress>> {
+    if (ids.length === 0) {
+      return new Map();
+    }
+
+    const ingestions = await this.database
+      .selectFrom("ingestions")
+      .select(["id", "status"])
+      .where("account_id", "=", accountId)
+      .where("id", "in", ids)
+      .execute();
+
+    if (ingestions.length === 0) {
+      return new Map();
     }
 
     const segments = await this.database
       .selectFrom("ingestion_segments")
-      .select("status")
-      .where("ingestion_id", "=", ingestion.id)
+      .select(["ingestion_id", "status"])
+      .where(
+        "ingestion_id",
+        "in",
+        ingestions.map((ingestion) => ingestion.id),
+      )
       .execute();
 
-    return progressOf(
-      ingestion.id,
-      ingestion.status,
-      segments.map((segment) => segment.status),
+    return new Map(
+      ingestions.map((ingestion) => [
+        ingestion.id,
+        progressOf(
+          ingestion.id,
+          ingestion.status,
+          segments.filter((segment) => segment.ingestion_id === ingestion.id).map((segment) => segment.status),
+        ),
+      ]),
     );
   }
 }

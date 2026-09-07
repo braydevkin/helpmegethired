@@ -99,9 +99,9 @@ export class UploadedResumeRepository {
 
   // Answers undefined when the record is no longer pending, so a concurrent completion is
   // noticed instead of repeated.
-  async markUploaded(accountId: Id, id: Id): Promise<StoredResume | undefined> {
+  async markUploaded(accountId: Id, id: Id, executor: Database = this.database): Promise<StoredResume | undefined> {
     try {
-      const row = await this.database
+      const row = await executor
         .updateTable("uploaded_resumes")
         .set({ status: "uploaded", updated_at: sql<Date>`now()` })
         .where("account_id", "=", accountId)
