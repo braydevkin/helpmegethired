@@ -40,11 +40,20 @@ const numericYearMonth = (date: string): YearMonth | undefined => {
   return numeric ? `${numeric[2]}-${pad(Number(numeric[1]))}` : undefined;
 };
 
-const wordedYearMonth = (date: string): YearMonth | undefined => {
-  const worded = /^(\p{L}+)\.?\s+(?:(?:de|of)\s+)?(\d{4})$/iu.exec(normalise(date));
-  const month = worded ? (MONTHS[worded[1] ?? ""] ?? MONTHS[(worded[1] ?? "").slice(0, 3)]) : undefined;
+const WORDED_DATE = /^(\p{L}+)\.?\s+(?:(?:de|of)\s+)?(\d{4})$/iu;
 
-  return worded && month !== undefined ? `${worded[2]}-${pad(month)}` : undefined;
+const monthNumberOf = (word: string): number | undefined => MONTHS[word] ?? MONTHS[word.slice(0, 3)];
+
+const wordedYearMonth = (date: string): YearMonth | undefined => {
+  const worded = WORDED_DATE.exec(normalise(date));
+
+  if (!worded) {
+    return undefined;
+  }
+
+  const month = monthNumberOf(worded[1] ?? "");
+
+  return month === undefined ? undefined : `${worded[2]}-${pad(month)}`;
 };
 
 // A year alone starts in January and ends in December, so a whole year counts twelve months.
