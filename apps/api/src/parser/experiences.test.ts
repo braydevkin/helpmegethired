@@ -29,6 +29,14 @@ describe("extractExperiences", () => {
     });
   });
 
+  it("keeps a heading that ends with a company abbreviation", () => {
+    const [entry] = extractExperiences(["Engineer | Acme", "2019 - 2021", "Shipped it.", "Backend Engineer | Difference Works Ltd.", "2021 - 2023"]);
+    const second = extractExperiences(["Engineer | Acme", "2019 - 2021", "Shipped it.", "Backend Engineer | Difference Works Ltd.", "2021 - 2023"])[1];
+
+    expect(entry?.description?.value).toBe("Shipped it.");
+    expect(second).toMatchObject({ role: { value: "Backend Engineer" }, company: { value: "Difference Works Ltd." } });
+  });
+
   it("finds the title on either side of the separator with high confidence", () => {
     const [pipe, comma] = extractExperiences(["Senior Engineer | Acme", "2019 - 2021", "", "Acme, Senior Engineer", "2017 - 2019"]);
 

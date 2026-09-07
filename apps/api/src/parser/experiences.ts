@@ -7,7 +7,8 @@ import { isBlank, wordsOf } from "./text";
 const HEADING_MAX_WORDS = 12;
 const HEADING_MAX_LINES = 2;
 const HEADING_MAX_PARTS = 3;
-const SENTENCE_END = /[.!?]$/u;
+const SENTENCE_END = /[!?]$|\.$/u;
+const ABBREVIATION_MAX_LETTERS = 4;
 const PART_SEPARATOR = /\s*\|\s*|\s+[-–—]\s+|\s*,\s*|\s+(?:em|at|@|na|no)\s+|\s+·\s+/iu;
 const TRAILING_SEPARATOR = /[\s|,·\-–—]+$/u;
 const HAS_LETTERS = /\p{L}/u;
@@ -25,10 +26,21 @@ interface RawEntry {
 
 const field = <Value>(value: Value, confidence: Field<Value>["confidence"]): Field<Value> => ({ value, confidence });
 
+// A final period ends a sentence unless it closes a short capitalised abbreviation such as
+// "Ltd." or "S.A.", which a company name often carries.
+const isAbbreviation = (word: string): boolean =>
+  word.endsWith(".") && /^\p{Lu}/u.test(word) && word.replace(/\./gu, "").length <= ABBREVIATION_MAX_LETTERS;
+
+const endsAsSentence = (line: string): boolean => {
+  const last = wordsOf(line).at(-1) ?? "";
+
+  return SENTENCE_END.test(last) && !isAbbreviation(last);
+};
+
 // A heading line is short and not a sentence, which tells "Backend Engineer | Acme" from a
 // bullet of the previous entry's description.
 const isHeadingLine = (line: string): boolean =>
-  !isBlank(line) && wordsOf(line).length <= HEADING_MAX_WORDS && !SENTENCE_END.test(line.trim());
+  !isBlank(line) && wordsOf(line).length <= HEADING_MAX_WORDS && !endsAsSentence(line.trim());
 
 // A short line naming a role and a company after a sentence opens an entry even when no
 // blank line and no date line does, as a volunteer position listed without dates.
@@ -68,52 +80,40 @@ function blocksOf(lines: readonly string[]): string[][] {
   return blocks;
 }
 
-// A line with a date range starts an entry. Its heading is the one or two short lines right
-// before it, or, when nothing precedes it, the rest of the date line itself, as a resume
-// that puts the dates first does. What follows up to the next heading is the description.
-function datedEntries(block: readonly string[], dated: readonly DatedLine[]): RawEntry[] {
-  const entries: RawEntry[] = [];
-  let consumedUpTo = -1;
+// The heading of a dated entry is the one or two short lines right before its date line,
+// never reaching back past the previous entry's date line.
+function headingStartOf(block: readonly string[], dateIndex: number, previousDateIndex: number): number {
+  let start = dateIndex;
 
-  dated.forEach((current, position) => {
-    const headingLines: string[] = [];
-
-    for (let index = current.index - 1; index > consumedUpTo && headingLines.length < HEADING_MAX_LINES; index -= 1) {
-      const line = block[index];
-
-      if (line === undefined || !isHeadingLine(line)) {
-        break;
-      }
-
-      headingLines.unshift(line);
-    }
-
-    const headingStart = current.index - headingLines.length;
-    const previous = entries.at(-1);
-
-    if (previous) {
-      previous.descriptionLines = block.slice(dated[position - 1]!.index + 1, headingStart);
-    }
-
-    if (headingLines.length === 0) {
-      const rest = withoutDateRange(block[current.index] ?? "", current.match).replace(TRAILING_SEPARATOR, "");
-
-      if (HAS_LETTERS.test(rest)) {
-        headingLines.push(rest);
-      }
-    }
-
-    entries.push({ headingLines, match: current.match, descriptionLines: [] });
-    consumedUpTo = current.index;
-  });
-
-  const last = entries.at(-1);
-
-  if (last && dated.at(-1)) {
-    last.descriptionLines = block.slice(dated.at(-1)!.index + 1);
+  while (start - 1 > previousDateIndex && dateIndex - start < HEADING_MAX_LINES && isHeadingLine(block[start - 1] ?? "")) {
+    start -= 1;
   }
 
-  return entries;
+  return start;
+}
+
+// When nothing precedes the date line, the heading is the rest of that line, as a resume
+// that puts the dates first lays it out.
+function headingOnDateLine(line: string, match: DateRangeMatch): string[] {
+  const rest = withoutDateRange(line, match).replace(TRAILING_SEPARATOR, "");
+
+  return HAS_LETTERS.test(rest) ? [rest] : [];
+}
+
+// A line with a date range starts an entry; the block is cut where each entry's heading
+// starts, and what follows a date line up to the next cut is the description.
+function datedEntries(block: readonly string[], dated: readonly DatedLine[]): RawEntry[] {
+  const starts = dated.map((current, position) => headingStartOf(block, current.index, dated[position - 1]?.index ?? -1));
+
+  return dated.map((current, position) => {
+    const headingLines = block.slice(starts[position], current.index);
+
+    return {
+      headingLines: headingLines.length > 0 ? headingLines : headingOnDateLine(block[current.index] ?? "", current.match),
+      match: current.match,
+      descriptionLines: block.slice(current.index + 1, starts[position + 1] ?? block.length),
+    };
+  });
 }
 
 function rawEntriesOf(block: readonly string[]): RawEntry[] {

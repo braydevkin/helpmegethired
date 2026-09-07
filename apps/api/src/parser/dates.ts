@@ -34,28 +34,29 @@ const RANGE = new RegExp(`(?<![\\p{L}\\d/])(?:(${SINCE})(${DATE})|(${DATE})${SEP
 
 const pad = (month: number): string => String(month).padStart(2, "0");
 
-// A year alone starts in January and ends in December, so a whole year counts twelve months.
-function yearMonthOf(date: string, edge: "start" | "end"): YearMonth {
+const numericYearMonth = (date: string): YearMonth | undefined => {
   const numeric = /^(\d{1,2})\/(\d{4})$/u.exec(date);
 
-  if (numeric) {
-    return `${numeric[2]}-${pad(Number(numeric[1]))}`;
-  }
+  return numeric ? `${numeric[2]}-${pad(Number(numeric[1]))}` : undefined;
+};
 
+const wordedYearMonth = (date: string): YearMonth | undefined => {
   const worded = /^(\p{L}+)\.?\s+(?:(?:de|of)\s+)?(\d{4})$/iu.exec(normalise(date));
+  const month = worded ? (MONTHS[worded[1] ?? ""] ?? MONTHS[(worded[1] ?? "").slice(0, 3)]) : undefined;
 
-  if (worded) {
-    const month = MONTHS[worded[1] ?? ""] ?? MONTHS[(worded[1] ?? "").slice(0, 3)];
+  return worded && month !== undefined ? `${worded[2]}-${pad(month)}` : undefined;
+};
 
-    if (month !== undefined) {
-      return `${worded[2]}-${pad(month)}`;
-    }
-  }
-
-  return `${date.slice(-4)}-${edge === "start" ? "01" : "12"}`;
-}
+// A year alone starts in January and ends in December, so a whole year counts twelve months.
+const yearMonthOf = (date: string, edge: "start" | "end"): YearMonth =>
+  numericYearMonth(date) ?? wordedYearMonth(date) ?? `${date.slice(-4)}-${edge === "start" ? "01" : "12"}`;
 
 const isOpenEnd = (text: string): boolean => new RegExp(`^${OPEN_END}$`, "iu").test(normalise(text));
+
+const periodOf = ([, since, sinceDate, start, end]: RegExpExecArray): Period =>
+  since
+    ? { start: yearMonthOf(sinceDate ?? "", "start"), end: null }
+    : { start: yearMonthOf(start ?? "", "start"), end: isOpenEnd(end ?? "") ? null : yearMonthOf(end ?? "", "end") };
 
 // The first date range on the line, in Portuguese or English: month names or their
 // abbreviations, MM/YYYY, or a year, joined by a dash, "a", "até", or "to", or open-ended
@@ -63,16 +64,7 @@ const isOpenEnd = (text: string): boolean => new RegExp(`^${OPEN_END}$`, "iu").t
 export function findDateRange(line: string): DateRangeMatch | undefined {
   const match = RANGE.exec(line);
 
-  if (!match || match.index === undefined) {
-    return undefined;
-  }
-
-  const [whole, since, sinceDate, start, end] = match;
-  const period: Period = since
-    ? { start: yearMonthOf(sinceDate ?? "", "start"), end: null }
-    : { start: yearMonthOf(start ?? "", "start"), end: isOpenEnd(end ?? "") ? null : yearMonthOf(end ?? "", "end") };
-
-  return { period, index: match.index, length: whole.length };
+  return match ? { period: periodOf(match), index: match.index, length: match[0].length } : undefined;
 }
 
 export const withoutDateRange = (line: string, match: DateRangeMatch): string =>
