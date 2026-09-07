@@ -2,7 +2,8 @@ import type { Queue } from "bullmq";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { TimeoutError } from "../common/with-timeout";
-import { BullMqIngestionQueue, ENQUEUE_TIMEOUT_MS } from "./bullmq-ingestion.queue";
+import { ENQUEUE_TIMEOUT_MS } from "../queue/bounded-add";
+import { BullMqIngestionQueue } from "./bullmq-ingestion.queue";
 import type { IngestionJob } from "./ingestion-queue";
 
 const job: IngestionJob = { ingestionId: "0d4a1f64-1a5e-4f0e-9d2b-2f1c0d6a7b8c", maxAttempts: 3 };

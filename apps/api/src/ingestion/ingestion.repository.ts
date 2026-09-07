@@ -65,6 +65,17 @@ export class IngestionRepository {
     return row && toIngestion(row);
   }
 
+  async hasActive(accountId: Id): Promise<boolean> {
+    const active = await this.database
+      .selectFrom("ingestions")
+      .select("id")
+      .where("account_id", "=", accountId)
+      .where("status", "in", ["queued", "running"])
+      .executeTakeFirst();
+
+    return active !== undefined;
+  }
+
   async progressOf(accountId: Id, id: Id): Promise<IngestionProgress | undefined> {
     const ingestion = await this.findById(accountId, id);
 

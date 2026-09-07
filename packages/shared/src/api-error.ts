@@ -11,6 +11,7 @@ export const ApiErrorSchema = z.object({
   statusCode: z.number().int().min(400).max(599),
   message: z.string(),
   error: z.string().optional(),
+  code: z.string().optional(),
   issues: z.array(ValidationIssueSchema).optional(),
 });
 

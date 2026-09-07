@@ -1,5 +1,10 @@
 import type { ColumnType, Generated, Insertable, Selectable } from "kysely";
-import type { IngestionStatus, SegmentStatus } from "@helpmegethired/shared";
+import type {
+  IngestionStatus,
+  ResumeUploadErrorCode,
+  SegmentStatus,
+  UploadedResumeStatus,
+} from "@helpmegethired/shared";
 
 export interface AccountsTable {
   id: Generated<string>;
@@ -67,10 +72,34 @@ export interface IngestionSegmentsTable {
 export type IngestionSegmentRow = Selectable<IngestionSegmentsTable>;
 export type NewIngestionSegmentRow = Insertable<IngestionSegmentsTable>;
 
+export interface UploadedResumesTable {
+  id: string;
+  account_id: string;
+  sha256: string;
+  file_name: string;
+  size_bytes: number;
+  object_key: string;
+  status: Generated<UploadedResumeStatus>;
+  error_code: ResumeUploadErrorCode | null;
+  error_message: string | null;
+  raw_text: string | null;
+  extractor_version: string | null;
+  attempts: Generated<number>;
+  max_attempts: number;
+  ingestion_id: string | null;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+  finished_at: Date | null;
+}
+
+export type UploadedResumeRow = Selectable<UploadedResumesTable>;
+export type NewUploadedResumeRow = Insertable<UploadedResumesTable>;
+
 export interface DatabaseSchema {
   accounts: AccountsTable;
   sessions: SessionsTable;
   verification_tokens: VerificationTokensTable;
   ingestions: IngestionsTable;
   ingestion_segments: IngestionSegmentsTable;
+  uploaded_resumes: UploadedResumesTable;
 }

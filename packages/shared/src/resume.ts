@@ -1,7 +1,8 @@
 import { z } from "zod";
 
+import { IngestionProgressSchema } from "./ingestion.js";
 import { IdSchema, TextSchema, TimestampSchema } from "./primitives.js";
-import { PDF_CONTENT_TYPE } from "./resume-upload.js";
+import { PDF_CONTENT_TYPE, ResumeUploadErrorCodeSchema, Sha256Schema } from "./resume-upload.js";
 
 const ResumeIdentity = {
   id: IdSchema,
@@ -9,12 +10,20 @@ const ResumeIdentity = {
   createdAt: TimestampSchema,
 };
 
+export const UploadedResumeStatusSchema = z.enum(["pending", "uploaded", "processing", "done", "failed", "expired"]);
+export type UploadedResumeStatus = z.infer<typeof UploadedResumeStatusSchema>;
+
 export const UploadedResumeSchema = z.object({
   ...ResumeIdentity,
   source: z.literal("upload"),
   fileName: TextSchema,
   contentType: z.literal(PDF_CONTENT_TYPE),
   sizeBytes: z.int().positive(),
+  sha256: Sha256Schema,
+  status: UploadedResumeStatusSchema,
+  errorCode: ResumeUploadErrorCodeSchema.nullable(),
+  finishedAt: TimestampSchema.nullable(),
+  progress: IngestionProgressSchema.nullable(),
 });
 
 export const RebuiltResumeSchema = z.object({

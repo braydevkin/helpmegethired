@@ -14,6 +14,22 @@ describe("ResumeSchema", () => {
     expect(RebuiltResumeSchema.safeParse(rebuiltResume).success).toBe(true);
   });
 
+  it("accepts a processing upload carrying the Progress of its Ingestion", () => {
+    const processing = {
+      ...uploadedResume,
+      status: "processing",
+      progress: { ingestionId: "0f8fad5b-d9cb-469f-a165-70867728950e", status: "running", percentage: 44, segments: { total: 3, saved: 1 } },
+    };
+
+    expect(UploadedResumeSchema.safeParse(processing).success).toBe(true);
+  });
+
+  it("accepts a failed upload carrying its error code and finish time", () => {
+    const failed = { ...uploadedResume, status: "failed", errorCode: "scanned_pdf", finishedAt: "2026-09-02T10:02:00.000Z" };
+
+    expect(UploadedResumeSchema.safeParse(failed).success).toBe(true);
+  });
+
   it("narrows on the source discriminator", () => {
     const parsed = ResumeSchema.parse(rebuiltResume);
     if (parsed.source !== "rebuild") {
@@ -27,6 +43,10 @@ describe("ResumeSchema", () => {
     ["an upload that is not a PDF", { ...uploadedResume, contentType: "application/msword" }],
     ["an upload with zero bytes", { ...uploadedResume, sizeBytes: 0 }],
     ["an upload with a fractional size", { ...uploadedResume, sizeBytes: 12.5 }],
+    ["an upload with an unknown status", { ...uploadedResume, status: "scanning" }],
+    ["an upload with an error code the page cannot show", { ...uploadedResume, errorCode: "virus_found" }],
+    ["an upload without its checksum", without(uploadedResume, "sha256")],
+    ["an upload whose progress lacks the segments", { ...uploadedResume, progress: { ingestionId: uploadedResume.id, status: "running", percentage: 40 } }],
     ["a rebuild without a job description", without(rebuiltResume, "jobDescriptionId")],
     ["a rebuild with empty content", { ...rebuiltResume, content: "" }],
     ["a rebuild carrying upload fields", { ...rebuiltResume, source: "upload" }],

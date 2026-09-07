@@ -8,5 +8,6 @@ export * from "./project.js";
 export * from "./profile.js";
 export * from "./resume.js";
 export * from "./resume-upload.js";
+export * from "./resume-routes.js";
 export * from "./ingestion.js";
 export * from "./health.js";

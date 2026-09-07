@@ -10,6 +10,7 @@ import { InterviewModule } from "./interview/interview.module";
 import { JobDescriptionsModule } from "./job-descriptions/job-descriptions.module";
 import { LearningsModule } from "./learnings/learnings.module";
 import { ProfileModule } from "./profile/profile.module";
+import { ResumesModule } from "./resumes/resumes.module";
 import { StorageModule } from "./storage/storage.module";
 
 @Module({
@@ -21,6 +22,7 @@ import { StorageModule } from "./storage/storage.module";
     AuthModule,
     ProfileModule,
     IngestionModule,
+    ResumesModule,
     JobDescriptionsModule,
     AnalysisModule,
     LearningsModule,
