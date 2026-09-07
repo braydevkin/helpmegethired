@@ -23,14 +23,12 @@ const MONTHS: Record<string, number> = {
   dec: 12, dez: 12, december: 12, dezembro: 12,
 };
 
-const MONTH_WORD = "(?:jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)[\\p{L}]*\\.?";
-const YEAR = "(?:19|20)\\d{2}";
-const DATE = `(?:${MONTH_WORD}(?:\\s+(?:de|of))?\\s+${YEAR}|(?:0?[1-9]|1[0-2])\\/${YEAR}|${YEAR})`;
-const OPEN_END = "(?:atual|atualmente|presente|present|current|currently|hoje|now|today|o momento)";
-const SEPARATOR = "\\s*(?:-|–|—|a|até|ate|to)\\s*";
-const SINCE = "(?:desde|since)\\s+";
-
-const RANGE = new RegExp(`(?<![\\p{L}\\d/])(?:(${SINCE})(${DATE})|(${DATE})${SEPARATOR}(${DATE}|${OPEN_END}))(?![\\p{L}\\d/])`, "iu");
+// One literal, with the date alternative written out three times, because a pattern built
+// from strings is what static analysis treats as tainted; the pieces are, in order, a month
+// name or abbreviation with its year, MM/YYYY, and a year alone.
+const RANGE =
+  /(?<![\p{L}\d/])(?:(desde|since)\s+((?:(?:jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)\p{L}*\.?(?:\s+(?:de|of))?\s+(?:19|20)\d{2}|(?:0?[1-9]|1[0-2])\/(?:19|20)\d{2}|(?:19|20)\d{2}))|((?:(?:jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)\p{L}*\.?(?:\s+(?:de|of))?\s+(?:19|20)\d{2}|(?:0?[1-9]|1[0-2])\/(?:19|20)\d{2}|(?:19|20)\d{2}))\s*(?:-|–|—|a|até|ate|to)\s*((?:(?:jan|fev|feb|mar|abr|apr|mai|may|jun|jul|ago|aug|set|sep|out|oct|nov|dez|dec)\p{L}*\.?(?:\s+(?:de|of))?\s+(?:19|20)\d{2}|(?:0?[1-9]|1[0-2])\/(?:19|20)\d{2}|(?:19|20)\d{2})|atual|atualmente|presente|present|current|currently|hoje|now|today|o momento))(?![\p{L}\d/])/iu;
+const OPEN_END = /^(?:atual|atualmente|presente|present|current|currently|hoje|now|today|o momento)$/iu;
 
 const pad = (month: number): string => String(month).padStart(2, "0");
 
@@ -60,7 +58,7 @@ const wordedYearMonth = (date: string): YearMonth | undefined => {
 const yearMonthOf = (date: string, edge: "start" | "end"): YearMonth =>
   numericYearMonth(date) ?? wordedYearMonth(date) ?? `${date.slice(-4)}-${edge === "start" ? "01" : "12"}`;
 
-const isOpenEnd = (text: string): boolean => new RegExp(`^${OPEN_END}$`, "iu").test(normalise(text));
+const isOpenEnd = (text: string): boolean => OPEN_END.test(normalise(text));
 
 const periodOf = ([, since, sinceDate, start, end]: RegExpExecArray): Period =>
   since
