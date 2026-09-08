@@ -317,7 +317,7 @@ Parser quality is measured against a corpus of résumés with expected output, a
 
 #### Client contract
 
-Every route is Candidate-owned: another Account's id answers `404` everywhere. Schemas live in `packages/shared` (`UploadedResumeSchema`, `ResumeUploadSchema`, `ProfileSchema`, and the error codes).
+Every route is Candidate-owned: another Account's id answers `404` everywhere. Schemas live in `packages/shared` (`UploadedResumeSchema`, `ResumeUploadSchema`, `ProfileSchema`, and the error codes). The whole contract, these routes plus the Account and health ones, is the OpenAPI 3.1 document `apps/api/openapi/openapi.json`, generated from those schemas by `pnpm --filter @helpmegethired/api openapi` and checked against the code by the CI `lint` job (ADR-0022); Swagger UI serves it at `GET /docs` outside production, where the Session token is pasted as the bearer, and the wiki guide [Guide: Walk the upload API](https://github.com/braydevkin/helpmegethired/wiki/Guide-Walk-the-upload-API) walks it by hand.
 
 | Route | Answers |
 | --- | --- |
@@ -384,7 +384,7 @@ One database serves both relational data and vector search.
 
 Integration tests need the compose `postgres`, `redis`, and `storage` services and the API's `DATABASE_URL`, `REDIS_URL`, and `S3_*` variables: `pnpm test:integration` reads them from the environment or from `apps/api/.env`. The parser's snapshot suite is unit level and runs without Docker. The API's Vitest global setup creates a database named `helpmegethired_test_<id>` on that server, migrates it to the latest version, hands its URL to the test workers, and drops it when the run ends. Test files run one at a time because they share that database. The migration test reverts and reapplies the last migration, so every migration must have a working `down`. The web app's integration project runs the Auth.js adapter against the database `DATABASE_URL` names, which must already be migrated (`pnpm db:migrate`), as CI does before the integration job.
 
-The `e2e` package depends on `@helpmegethired/web`, so `pnpm turbo run test:e2e` builds the web app first and Playwright starts it with `next start` on port 3100. Setting `E2E_BASE_URL` points the tests at an already running stack instead. Browsers are installed once with `pnpm --filter e2e exec playwright install chromium`.
+The `e2e` package depends on `@helpmegethired/web`, so `pnpm turbo run test:e2e` builds the web app first and Playwright starts it with `next start` on port 3100. Setting `E2E_BASE_URL` points the tests at an already running stack instead, and `E2E_API_URL` (default `http://localhost:3001`) names the API for the upload scenario `resume-upload.api.spec.ts`, which signs in through the web app, reads the Session cookie, and takes a synthetic corpus PDF to a confirmed Profile and a hostile file to `failed` with its code, against the compose stack in CI. Browsers are installed once with `pnpm --filter e2e exec playwright install chromium`.
 
 ## Local runtime
 

@@ -1,54 +1,13 @@
 import { expect, test, type Page } from "@playwright/test";
 
-const freshEmail = () => `${crypto.randomUUID()}@candidate.example`;
+import { completeIdentity, freshEmail, lastCodeFor, requestCode, submitCode, verifyEmail } from "./helpers/sign-in.js";
+
 const CODE_REJECTED = "That code is not valid or has expired. Request a new one.";
-
-async function requestCode(page: Page, path: string, email: string) {
-  await page.goto(path);
-  await page.getByLabel("Email address").fill(email);
-  await page.getByRole("button", { name: "Send my code" }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Check your inbox");
-}
-
-async function lastCodeFor(page: Page, email: string): Promise<string> {
-  const response = await page.request.get(`/development/verification-code?email=${encodeURIComponent(email)}`);
-
-  expect(response.ok()).toBe(true);
-
-  const { code } = (await response.json()) as { code: string };
-
-  return code;
-}
-
-async function submitCode(page: Page, code: string) {
-  await page.getByLabel("Verification digit").first().pressSequentially(code);
-  await page.getByRole("button", { name: "Verify and continue" }).click();
-}
-
-async function verifyEmail(page: Page, path: string, email: string): Promise<string> {
-  await requestCode(page, path, email);
-
-  const code = await lastCodeFor(page, email);
-
-  await submitCode(page, code);
-
-  return code;
-}
 
 async function expectIdentityStep(page: Page, email: string) {
   await expect(page).toHaveURL(/\/sign-up$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Tell us who you are");
   await expect(page.getByLabel("Email")).toHaveValue(email);
-}
-
-async function completeIdentity(page: Page, name = "Ada") {
-  await page.getByLabel("Name", { exact: true }).fill(name);
-  await page.getByLabel("Last name").fill("Lovelace");
-  await page.getByLabel("Phone").fill("912 345 678");
-  await page.getByRole("button", { name: "Create my account" }).click();
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText(`You're in, ${name}`);
-  await page.getByRole("link", { name: "Go to my dashboard" }).click();
-  await expect(page).toHaveURL(/\/journey$/);
 }
 
 async function signOut(page: Page) {

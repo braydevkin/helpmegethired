@@ -4,6 +4,7 @@ import { AnalysisModule } from "./analysis/analysis.module";
 import { AuthModule } from "./auth/auth.module";
 import { EnvironmentModule } from "./config/environment.module";
 import { DatabaseModule } from "./database/database.module";
+import { DocsModule } from "./docs/docs.module";
 import { HealthModule } from "./health/health.module";
 import { IngestionModule } from "./ingestion/ingestion.module";
 import { InterviewModule } from "./interview/interview.module";
@@ -19,6 +20,7 @@ import { StorageModule } from "./storage/storage.module";
     DatabaseModule,
     StorageModule,
     HealthModule,
+    DocsModule,
     AuthModule,
     ProfileModule,
     IngestionModule,
