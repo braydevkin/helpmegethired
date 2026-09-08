@@ -1,0 +1,5 @@
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--stat-tile-min-width), 1fr));
+  gap: var(--profile-grid-gap);
+}

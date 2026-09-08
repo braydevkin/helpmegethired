@@ -7,10 +7,12 @@ import type { Candidate } from "./candidate";
 export interface JourneyFrameProps {
   candidate: Candidate;
   stepLabel: string;
+  heading?: ReactNode;
+  sidebar?: ReactNode;
   children: ReactNode;
 }
 
-export function JourneyFrame({ candidate, stepLabel, children }: JourneyFrameProps) {
+export function JourneyFrame({ candidate, stepLabel, heading, sidebar, children }: JourneyFrameProps) {
   return (
     <SiteTemplate
       stepLabel={stepLabel}
@@ -20,6 +22,8 @@ export function JourneyFrame({ candidate, stepLabel, children }: JourneyFramePro
           <button type="submit">Sign out</button>
         </form>
       }
+      heading={heading}
+      sidebar={sidebar}
     >
       {children}
     </SiteTemplate>

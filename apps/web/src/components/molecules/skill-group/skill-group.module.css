@@ -1,0 +1,17 @@
+.name {
+  font-size: var(--text-group-name);
+  line-height: var(--leading-control);
+  font-weight: 800;
+  letter-spacing: var(--tracking-group-name);
+  text-transform: uppercase;
+  color: var(--color-text-secondary);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--chip-gap);
+  margin: 12px 0 0;
+  padding: 0;
+  list-style: none;
+}

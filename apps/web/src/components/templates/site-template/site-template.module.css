@@ -81,6 +81,27 @@
   animation: var(--rise-in);
 }
 
+.wideColumn {
+  max-width: var(--profile-column-width);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, var(--profile-sidebar-width)) minmax(0, 1fr);
+  gap: var(--profile-grid-gap);
+  align-items: start;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--profile-grid-gap);
+}
+
+.wideMain {
+  padding: var(--profile-main-padding);
+}
+
 @media (width <= 719px) {
   .main {
     padding: var(--upload-main-padding-narrow);
@@ -88,6 +109,16 @@
 
   .step {
     display: none;
+  }
+}
+
+@media (width <= 899px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .wideMain {
+    padding: var(--profile-main-padding-narrow);
   }
 }
 

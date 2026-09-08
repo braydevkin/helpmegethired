@@ -7,10 +7,11 @@ import { signUpAndReadSessionToken } from "./helpers/sign-in.js";
 const fixture = join(import.meta.dirname, "../../apps/api/test/fixtures/resumes/corpus/ada-single-column-en.pdf");
 const SETTLE_TIMEOUT_MS = 120_000;
 
-test("a Candidate uploads a résumé, watches the percentage reach 100, and lands on the Profile page", async ({ page }) => {
+test("a Candidate uploads a résumé, watches the percentage reach 100, and reviews and confirms the Profile", async ({ page }) => {
   test.setTimeout(SETTLE_TIMEOUT_MS * 2);
 
-  await signUpAndReadSessionToken(page);
+  const { email } = await signUpAndReadSessionToken(page);
+
   await page.goto("/journey");
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Upload your résumé");
@@ -29,6 +30,17 @@ test("a Candidate uploads a résumé, watches the percentage reach 100, and land
 
   await page.getByRole("link", { name: "Review my profile" }).click();
   await expect(page).toHaveURL(/\/journey\/profile$/);
+
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ada Lovelace");
+  await expect(page.getByRole("region", { name: "Contact" }).getByText(email)).toBeVisible();
+  await expect(page.getByRole("region", { name: "Experience" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Skills" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Confirm profile" }).click();
+  await expect(page.getByText("Profile confirmed · the LinkedIn step is next")).toBeVisible();
+
+  await page.goto("/journey");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ada Lovelace");
 });
 
 test("a PNG is refused in the browser with the designed message", async ({ page }) => {

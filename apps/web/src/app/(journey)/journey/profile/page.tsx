@@ -1,28 +1,22 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { Button } from "../../../../components/atoms/button/button";
-import { ScreenHeading } from "../../../../components/molecules/screen-heading/screen-heading";
+import { profileClient } from "../../../../lib/profile-client";
 import { RESUME_STEP_PATH } from "../../../paths";
 import { requireCandidate } from "../candidate";
-import { JourneyFrame } from "../journey-frame";
+import { ProfileStep } from "./profile-step";
 
 export const metadata: Metadata = { title: "Your profile | Help Me Get Hired" };
 
-// The Profile page arrives with its own task (#70); the upload step needs somewhere to land.
+// Without a completed Ingestion there is no Profile to review, so the journey sends the
+// Candidate back to the upload step.
 export default async function ProfilePage() {
   const candidate = await requireCandidate();
+  const profile = await profileClient.get(candidate.token);
 
-  return (
-    <JourneyFrame candidate={candidate} stepLabel="Step 2 · Your profile">
-      <ScreenHeading
-        size="large"
-        eyebrow="Coming up"
-        title="Your profile"
-        lead="The Profile review page arrives with the next task. Your Profile is built and waiting for it."
-      />
-      <Button variant="secondary" href={RESUME_STEP_PATH}>
-        Back to the résumé step
-      </Button>
-    </JourneyFrame>
-  );
+  if (!profile.source) {
+    redirect(RESUME_STEP_PATH);
+  }
+
+  return <ProfileStep candidate={candidate} profile={profile} />;
 }

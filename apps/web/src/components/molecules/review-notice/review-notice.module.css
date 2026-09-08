@@ -1,0 +1,13 @@
+.title {
+  font-size: var(--text-entry-title);
+  line-height: var(--leading-entry-title);
+  font-weight: 700;
+  color: var(--color-warning-title);
+}
+
+.detail {
+  margin-top: 2px;
+  font-size: var(--text-entry-detail);
+  line-height: var(--leading-entry-detail);
+  color: var(--color-warning-text);
+}

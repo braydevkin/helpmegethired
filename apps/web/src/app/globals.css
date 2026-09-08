@@ -117,6 +117,17 @@
   --color-error-border: #f5c6c0;
   --color-error-text: #8e2b20;
 
+  --color-chip-bg: #f0f6f2;
+  --color-chip-border: #dde9e2;
+  --color-chip-text: #2c4438;
+  --color-project-bg: #fcfdfc;
+  --color-warning-bg: #fff8e6;
+  --color-warning-border: #f0dfb0;
+  --color-warning: #9c6b08;
+  --color-warning-title: #4a3306;
+  --color-warning-text: #6b4a08;
+  --color-warning-value: #8a5a05;
+
   --text-upload-title: 38px;
   --text-percentage: 22px;
   --text-drop-title: 18px;
@@ -153,6 +164,68 @@
   --notice-mark-size: 20px;
   --avatar-size: 30px;
   --space-notice-gap: 16px;
+
+  --text-profile-title: 38px;
+  --text-stat-value: 28px;
+  --text-completeness-value: 20px;
+  --text-section-heading: 19px;
+  --text-headline: 17px;
+  --text-position: 16.5px;
+  --text-project-name: 15.5px;
+  --text-entry-title: 14.5px;
+  --text-entry-detail: 13.5px;
+  --text-entry-meta: 13px;
+  --text-group-name: 12.5px;
+
+  --leading-profile-title: 1.06;
+  --leading-entry-title: 1.35;
+  --leading-entry-detail: 1.5;
+  --leading-description: 1.55;
+
+  --tracking-profile-title: -0.035em;
+  --tracking-stat-value: -0.04em;
+  --tracking-completeness: -0.03em;
+  --tracking-section-heading: -0.02em;
+  --tracking-position: -0.015em;
+  --tracking-group-name: 0.08em;
+
+  --profile-column-width: 1060px;
+  --profile-sidebar-width: 300px;
+  --profile-grid-gap: 18px;
+  --profile-sidebar-gap: 16px;
+  --profile-main-padding: 36px 24px 72px;
+  --profile-main-padding-narrow: 20px 20px 56px;
+
+  --header-button-height: 46px;
+  --header-button-padding-primary: 0 22px;
+  --header-button-padding-secondary: 0 20px;
+  --radius-header-button: 11px;
+  --radius-stat-tile: 16px;
+  --radius-review-notice: 16px;
+  --radius-project-card: 14px;
+
+  --main-card-padding: 24px;
+  --stat-tile-padding: 18px 20px;
+  --stat-tile-min-width: 150px;
+  --project-card-padding: 18px;
+  --project-card-min-width: 240px;
+  --review-notice-padding: 18px 20px;
+  --review-mark-size: 22px;
+  --timeline-dot-size: 10px;
+  --timeline-line-width: 2px;
+  --chip-padding: 7px 12px;
+  --chip-padding-compact: 6px 11px;
+  --chip-gap: 8px;
+
+  --space-title-gap: 8px;
+  --space-title-block: 26px;
+  --space-header-actions: 10px;
+  --space-completeness-bar: 14px;
+  --space-contact-row: 14px;
+  --space-language-row: 12px;
+  --space-section-entries: 20px;
+  --space-timeline-entry: 22px;
+  --space-skill-group: 18px;
 }
 
 @keyframes rise-in {

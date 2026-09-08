@@ -1,0 +1,28 @@
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.label {
+  font-size: var(--text-group-name);
+  line-height: var(--leading-control);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}
+
+.value {
+  overflow-wrap: anywhere;
+  font-size: var(--text-entry-title);
+  line-height: var(--leading-entry-title);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.link {
+  color: var(--color-brand);
+}
+
+.missing {
+  color: var(--color-warning-value);
+}

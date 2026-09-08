@@ -2,9 +2,13 @@ import type { UploadedResume } from "@helpmegethired/shared";
 
 import { resumeClient } from "../../../../lib/resume-client";
 import { PROFILE_PATH } from "../../../paths";
-import { requireCandidate } from "../candidate";
+import type { Candidate } from "../candidate";
 import { JourneyFrame } from "../journey-frame";
 import { ResumeUploadFlow } from "./resume-upload-flow";
+
+export interface ResumeStepProps {
+  candidate: Candidate;
+}
 
 const SHOWN_ON_LOAD = new Set<UploadedResume["status"]>(["uploaded", "processing", "done", "failed"]);
 
@@ -16,8 +20,7 @@ async function newestShownResume(token: string): Promise<UploadedResume | null> 
   return newest && SHOWN_ON_LOAD.has(newest.status) ? newest : null;
 }
 
-export async function ResumeStep() {
-  const candidate = await requireCandidate();
+export async function ResumeStep({ candidate }: ResumeStepProps) {
   const initialResume = await newestShownResume(candidate.token);
 
   return (

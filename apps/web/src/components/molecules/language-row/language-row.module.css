@@ -1,0 +1,19 @@
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.name {
+  font-size: var(--text-entry-title);
+  line-height: var(--leading-control);
+  font-weight: 700;
+}
+
+.level {
+  font-size: var(--text-entry-meta);
+  line-height: var(--leading-control);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}

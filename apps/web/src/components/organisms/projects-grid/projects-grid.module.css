@@ -1,0 +1,8 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(var(--project-card-min-width), 1fr));
+  gap: var(--profile-grid-gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
