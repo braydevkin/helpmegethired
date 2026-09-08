@@ -24,7 +24,9 @@ test("a Candidate uploads a résumé, watches the percentage reach 100, and revi
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your profile is ready");
   await expect(page.getByTestId("profile-data-count")).toHaveText("11 of 11");
 
-  await page.reload();
+  // `/journey` has moved on to the Profile review by now, so the done state is read at the
+  // upload step's own route.
+  await page.goto("/journey/resume");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your profile is ready");
   await expect(page.getByTestId("upload-percentage")).toHaveText("100%");
 
@@ -41,6 +43,7 @@ test("a Candidate uploads a résumé, watches the percentage reach 100, and revi
 
   await page.goto("/journey");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ada Lovelace");
+  await expect(page.getByText("Profile confirmed · the LinkedIn step is next")).toBeVisible();
 });
 
 test("a PNG is refused in the browser with the designed message", async ({ page }) => {
