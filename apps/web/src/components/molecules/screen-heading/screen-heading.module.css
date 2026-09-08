@@ -23,3 +23,18 @@
   color: var(--color-ink);
   font-weight: 700;
 }
+
+.large .title {
+  font-size: var(--text-upload-title);
+  line-height: var(--leading-upload-title);
+  letter-spacing: var(--tracking-upload-title);
+}
+
+.large .lead {
+  font-size: var(--text-upload-lead);
+  line-height: var(--leading-upload-lead);
+}
+
+.large + * {
+  margin-top: -2px;
+}

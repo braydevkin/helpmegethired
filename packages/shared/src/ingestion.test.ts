@@ -44,7 +44,7 @@ describe("IngestionProgressSchema", () => {
     ingestionId: ingestion.id,
     status: "running",
     percentage: 44,
-    segments: { total: 3, saved: 1 },
+    segments: { total: 3, saved: 1, savedKinds: ["header"] },
   };
 
   it("accepts a percentage between 0 and 100 with the segment counts", () => {

@@ -14,19 +14,21 @@ export function statusAfter(step: SegmentStep): SegmentStatus {
   return statusReachedBy[step];
 }
 
-export function progressOf(
-  ingestionId: string,
-  status: IngestionStatus,
-  segmentStatuses: readonly SegmentStatus[],
-): IngestionProgress {
-  const total = segmentStatuses.length;
-  const completedSteps = segmentStatuses.reduce((sum, segment) => sum + stepsCompletedBy[segment], 0);
+export interface SegmentProgress {
+  kind: string;
+  status: SegmentStatus;
+}
+
+export function progressOf(ingestionId: string, status: IngestionStatus, segments: readonly SegmentProgress[]): IngestionProgress {
+  const total = segments.length;
+  const completedSteps = segments.reduce((sum, segment) => sum + stepsCompletedBy[segment.status], 0);
   const percentage = total === 0 ? 100 : Math.floor((100 * completedSteps) / (SEGMENT_STEPS.length * total));
+  const saved = segments.filter((segment) => segment.status === "saved");
 
   return {
     ingestionId,
     status,
     percentage,
-    segments: { total, saved: segmentStatuses.filter((segment) => segment === "saved").length },
+    segments: { total, saved: saved.length, savedKinds: saved.map((segment) => segment.kind) },
   };
 }

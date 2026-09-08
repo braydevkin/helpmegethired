@@ -106,6 +106,53 @@
   --form-card-max-width-wide: 480px;
 
   --measure: 40rem;
+
+  --color-page: #f7faf8;
+  --color-card-border: #e7ede9;
+  --color-text-secondary: #54685d;
+  --color-text-disabled: #9aafa3;
+  --color-drop-border: #c9dbd1;
+  --color-bar-track: #edf3ef;
+  --color-error-bg: #fdecea;
+  --color-error-border: #f5c6c0;
+  --color-error-text: #8e2b20;
+
+  --text-upload-title: 38px;
+  --text-percentage: 22px;
+  --text-drop-title: 18px;
+  --text-upload-lead: 16.5px;
+  --text-stage-title: 15px;
+  --text-tip-title: 14.5px;
+  --text-file-meta: 13.5px;
+  --text-card-label: 12.5px;
+  --text-stage-mark: 11px;
+  --text-row-mark: 9px;
+
+  --leading-upload-title: 1.08;
+  --leading-upload-lead: 1.55;
+  --tracking-upload-title: -0.035em;
+
+  --radius-card: 18px;
+  --radius-tip-card: 14px;
+  --radius-file-mark: 10px;
+  --card-padding: 22px 24px;
+  --tip-card-padding: 18px;
+  --drop-zone-padding: 52px 32px;
+  --notice-padding: 13px 16px;
+  --site-header-padding: 18px 28px;
+  --upload-main-padding: 44px 24px 64px;
+  --upload-main-padding-narrow: 20px 20px 48px;
+  --upload-column-width: 880px;
+
+  --fill-bar-height: 8px;
+  --stage-dot-size: 22px;
+  --row-dot-size: 16px;
+  --drop-icon-size: 60px;
+  --file-mark-width: 44px;
+  --file-mark-height: 52px;
+  --notice-mark-size: 20px;
+  --avatar-size: 30px;
+  --space-notice-gap: 16px;
 }
 
 @keyframes rise-in {

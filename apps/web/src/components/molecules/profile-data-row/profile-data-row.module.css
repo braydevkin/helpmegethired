@@ -1,0 +1,28 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.unfound {
+  opacity: 0.4;
+}
+
+.label {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-tip-title);
+  line-height: var(--leading-control);
+  font-weight: 600;
+}
+
+.value {
+  max-width: 52%;
+  overflow: hidden;
+  font-size: var(--text-file-meta);
+  line-height: var(--leading-control);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

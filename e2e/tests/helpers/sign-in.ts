@@ -2,8 +2,11 @@ import { expect, type Page } from "@playwright/test";
 
 export const freshEmail = () => `${crypto.randomUUID()}@candidate.example`;
 
+// The form is only handled by the server action once React has hydrated; under load a click
+// before that submits the form natively, so the helper waits for the page to settle first.
 export async function requestCode(page: Page, path: string, email: string) {
   await page.goto(path);
+  await page.waitForLoadState("networkidle");
   await page.getByLabel("Email address").fill(email);
   await page.getByRole("button", { name: "Send my code" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Check your inbox");

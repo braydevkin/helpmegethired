@@ -1,0 +1,19 @@
+.card {
+  padding: var(--tip-card-padding);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-tip-card);
+  background: var(--color-surface);
+}
+
+.title {
+  margin-bottom: 6px;
+  font-size: var(--text-tip-title);
+  line-height: var(--leading-control);
+  font-weight: 700;
+}
+
+.body {
+  font-size: var(--text-file-meta);
+  line-height: var(--leading-lead);
+  color: var(--color-text-secondary);
+}

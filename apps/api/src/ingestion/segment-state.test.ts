@@ -27,23 +27,27 @@ describe("statusAfter", () => {
 
 describe("progressOf", () => {
   it("counts every completed step of every segment", () => {
-    const progress = progressOf(ingestionId, "running", ["saved", "read", "pending"]);
+    const progress = progressOf(ingestionId, "running", [
+      { kind: "header", status: "saved" },
+      { kind: "experience", status: "read" },
+      { kind: "skills", status: "pending" },
+    ]);
 
     expect(progress).toEqual({
       ingestionId,
       status: "running",
       percentage: 44,
-      segments: { total: 3, saved: 1 },
+      segments: { total: 3, saved: 1, savedKinds: ["header"] },
     });
   });
 
   it("reaches 100 only when every segment is saved", () => {
-    expect(progressOf(ingestionId, "running", ["saved", "recognized"]).percentage).toBe(83);
-    expect(progressOf(ingestionId, "completed", ["saved", "saved"]).percentage).toBe(100);
+    expect(progressOf(ingestionId, "running", [{ kind: "header", status: "saved" }, { kind: "skills", status: "recognized" }]).percentage).toBe(83);
+    expect(progressOf(ingestionId, "completed", [{ kind: "header", status: "saved" }, { kind: "skills", status: "saved" }]).percentage).toBe(100);
   });
 
   it("starts at 0 for untouched segments", () => {
-    expect(progressOf(ingestionId, "queued", ["pending", "pending"]).percentage).toBe(0);
+    expect(progressOf(ingestionId, "queued", [{ kind: "header", status: "pending" }, { kind: "skills", status: "pending" }]).percentage).toBe(0);
   });
 
   it("treats an ingestion without segments as complete", () => {

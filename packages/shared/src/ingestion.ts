@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { IdSchema, TimestampSchema } from "./primitives.js";
+import { IdSchema, TextSchema, TimestampSchema, listOf } from "./primitives.js";
 
 // Where an Ingestion's Segments come from; a completed Ingestion replaces the earlier ones of
 // its source and never touches what another source wrote.
@@ -35,9 +35,12 @@ export const IngestionProgressSchema = z.object({
   ingestionId: IdSchema,
   status: IngestionStatusSchema,
   percentage: z.number().int().min(0).max(100),
+  // The kind of every saved Segment, in position order, so a page can tick the Profile parts
+  // as they are written.
   segments: z.object({
     total: z.number().int().nonnegative(),
     saved: z.number().int().nonnegative(),
+    savedKinds: listOf(TextSchema),
   }),
 });
 

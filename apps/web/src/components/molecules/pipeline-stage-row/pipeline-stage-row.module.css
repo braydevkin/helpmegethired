@@ -1,0 +1,22 @@
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.title {
+  font-size: var(--text-stage-title);
+  line-height: var(--leading-control);
+  font-weight: 700;
+}
+
+.waiting {
+  color: var(--color-text-disabled);
+}
+
+.detail {
+  margin-top: 4px;
+  font-size: var(--text-eyebrow);
+  line-height: var(--leading-hint);
+  color: var(--color-text-secondary);
+}

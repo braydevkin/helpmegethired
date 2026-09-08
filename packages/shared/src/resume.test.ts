@@ -18,7 +18,7 @@ describe("ResumeSchema", () => {
     const processing = {
       ...uploadedResume,
       status: "processing",
-      progress: { ingestionId: "0f8fad5b-d9cb-469f-a165-70867728950e", status: "running", percentage: 44, segments: { total: 3, saved: 1 } },
+      progress: { ingestionId: "0f8fad5b-d9cb-469f-a165-70867728950e", status: "running", percentage: 44, segments: { total: 3, saved: 1, savedKinds: ["header"] } },
     };
 
     expect(UploadedResumeSchema.safeParse(processing).success).toBe(true);

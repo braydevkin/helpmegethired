@@ -19,7 +19,7 @@ const uploadedResume: UploadedResume = {
 };
 
 describe("etagOf", () => {
-  const progress = { ingestionId: "0f8fad5b-d9cb-469f-a165-70867728950e", status: "running" as const, percentage: 44, segments: { total: 3, saved: 1 } };
+  const progress = { ingestionId: "0f8fad5b-d9cb-469f-a165-70867728950e", status: "running" as const, percentage: 44, segments: { total: 3, saved: 1, savedKinds: ["header"] } };
 
   it("is a quoted opaque tag that stays the same for the same state", () => {
     expect(etagOf(uploadedResume)).toMatch(/^"[0-9a-f]{40}"$/);

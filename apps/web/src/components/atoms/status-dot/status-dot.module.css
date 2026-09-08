@@ -1,0 +1,47 @@
+.dot {
+  display: grid;
+  flex: none;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  border: var(--control-border-width) solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-brand);
+  font-weight: 800;
+  line-height: var(--leading-control);
+}
+
+.stage {
+  width: var(--stage-dot-size);
+  height: var(--stage-dot-size);
+  font-size: var(--text-stage-mark);
+}
+
+.row {
+  width: var(--row-dot-size);
+  height: var(--row-dot-size);
+  border: none;
+  background: var(--color-bar-track);
+  color: var(--color-surface);
+  font-size: var(--text-row-mark);
+}
+
+.done {
+  border-color: var(--color-brand);
+  background: var(--color-brand);
+  color: var(--color-surface);
+}
+
+.active {
+  border-color: var(--color-brand);
+  background: var(--color-brand-tint);
+}
+
+.failed {
+  border-color: var(--color-error);
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+}
+
+.row.waiting {
+  color: transparent;
+}
