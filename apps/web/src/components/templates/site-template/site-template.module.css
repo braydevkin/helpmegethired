@@ -1,0 +1,98 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: var(--color-page);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: var(--site-header-padding);
+  border-bottom: 1px solid var(--color-card-border);
+  background: var(--color-surface);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand .mark {
+  width: 28px;
+  height: 28px;
+  background: var(--color-brand);
+  color: var(--color-surface);
+  font-size: 14px;
+}
+
+.name {
+  font-size: var(--text-stage-title);
+  font-weight: 700;
+  letter-spacing: var(--tracking-brand-name);
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.step {
+  font-size: var(--text-eyebrow);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.email {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.account > form button {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: var(--text-eyebrow);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.account > form button:hover {
+  color: var(--color-ink);
+}
+
+.main {
+  flex: 1;
+  padding: var(--upload-main-padding);
+}
+
+.column {
+  max-width: var(--upload-column-width);
+  margin: 0 auto;
+  animation: var(--rise-in);
+}
+
+@media (width <= 719px) {
+  .main {
+    padding: var(--upload-main-padding-narrow);
+  }
+
+  .step {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .column {
+    animation: none;
+  }
+}

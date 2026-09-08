@@ -1,0 +1,8 @@
+.label {
+  font-size: var(--text-card-label);
+  line-height: var(--leading-control);
+  font-weight: 800;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}

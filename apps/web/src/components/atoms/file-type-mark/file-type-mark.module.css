@@ -1,0 +1,14 @@
+.mark {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: var(--file-mark-width);
+  height: var(--file-mark-height);
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-file-mark);
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+  font-size: var(--text-stage-mark);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}

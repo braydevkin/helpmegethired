@@ -287,7 +287,7 @@ describe("profile ingestion", () => {
         ingestionId: ingestion.id,
         status: "queued",
         percentage: 44,
-        segments: { total: 3, saved: 1 },
+        segments: { total: 3, saved: 1, savedKinds: ["scripted"] },
       });
     });
   });

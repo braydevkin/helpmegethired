@@ -131,12 +131,13 @@ export class IngestionRepository {
 
     const segments = await this.database
       .selectFrom("ingestion_segments")
-      .select(["ingestion_id", "status"])
+      .select(["ingestion_id", "kind", "status"])
       .where(
         "ingestion_id",
         "in",
         ingestions.map((ingestion) => ingestion.id),
       )
+      .orderBy("position")
       .execute();
 
     return new Map(
@@ -145,7 +146,7 @@ export class IngestionRepository {
         progressOf(
           ingestion.id,
           ingestion.status,
-          segments.filter((segment) => segment.ingestion_id === ingestion.id).map((segment) => segment.status),
+          segments.filter((segment) => segment.ingestion_id === ingestion.id).map(({ kind, status }) => ({ kind, status })),
         ),
       ]),
     );
