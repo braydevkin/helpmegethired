@@ -94,7 +94,7 @@ const paths: OpenApiDocument["paths"] = {
       summary: "Liveness of the API",
       description: "Answers without a Session. Compose and the deployment target use it as the health check.",
       operationId: "getHealth",
-      security: [],
+      security: [{}],
       responses: { "200": json("The API is up", ref("HealthStatus")) },
     },
   },

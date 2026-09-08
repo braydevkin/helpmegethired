@@ -3,7 +3,7 @@ import { z } from "zod";
 import { BasicProfileSchema } from "./basic-profile.js";
 import { ExperienceSchema } from "./experience.js";
 import { IngestionSourceSchema } from "./ingestion.js";
-import { IdSchema, TextSchema, TimestampSchema } from "./primitives.js";
+import { IdSchema, TextSchema, TimestampSchema, listOf } from "./primitives.js";
 import { CertificationSchema, EducationSchema, LanguageSchema, SkillSchema } from "./profile-parts.js";
 import { ProjectSchema } from "./project.js";
 
@@ -41,14 +41,14 @@ export type ProfileSource = z.infer<typeof ProfileSourceSchema>;
 export const ProfileSchema = z.object({
   accountId: IdSchema,
   basicProfile: BasicProfileSchema,
-  experiences: z.array(ExperienceSchema),
-  education: z.array(EducationSchema),
-  projects: z.array(ProjectSchema),
-  skills: z.array(SkillSchema),
-  languages: z.array(LanguageSchema),
-  certifications: z.array(CertificationSchema),
+  experiences: listOf(ExperienceSchema),
+  education: listOf(EducationSchema),
+  projects: listOf(ProjectSchema),
+  skills: listOf(SkillSchema),
+  languages: listOf(LanguageSchema),
+  certifications: listOf(CertificationSchema),
   yearsOfExperience: z.int().nonnegative(),
-  reviewFlags: z.array(ReviewFlagSchema),
+  reviewFlags: listOf(ReviewFlagSchema),
   source: ProfileSourceSchema.nullable(),
   confirmedAt: TimestampSchema.nullable(),
 });

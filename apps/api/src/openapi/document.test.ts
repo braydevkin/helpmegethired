@@ -71,13 +71,32 @@ describe("the OpenAPI document", () => {
     expect(JSON.stringify(responseSchemaOf(conflict ?? {}))).toContain('"enum":["upload_incomplete","ingestion_active"]');
   });
 
-  it("requires the Session on every route but health", () => {
+  it("requires the Session on every route but health, which declares security optional", () => {
     expect(document.security).toEqual([{ session: [] }]);
     expect(document.components.securitySchemes.session).toMatchObject({ type: "http", scheme: "bearer" });
 
     for (const { path, operation } of operations) {
-      expect(operation.security ?? document.security).toEqual(path === "/health" ? [] : [{ session: [] }]);
+      expect(operation.security ?? document.security).toEqual(path === "/health" ? [{}] : [{ session: [] }]);
     }
+  });
+
+  it("bounds every list it describes", () => {
+    const unbounded = (value: unknown, at: string): string[] => {
+      if (Array.isArray(value)) {
+        return value.flatMap((item, index) => unbounded(item, `${at}[${index}]`));
+      }
+
+      if (typeof value !== "object" || value === null) {
+        return [];
+      }
+
+      const record = value as Record<string, unknown>;
+      const here = record.type === "array" && record.maxItems === undefined ? [at] : [];
+
+      return [...here, ...Object.entries(record).flatMap(([key, nested]) => unbounded(nested, `${at}.${key}`))];
+    };
+
+    expect(unbounded(document.components.schemas, "components.schemas")).toEqual([]);
   });
 
   it("is what the committed openapi.json holds", () => {

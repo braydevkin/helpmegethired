@@ -43,7 +43,9 @@
         "summary": "Liveness of the API",
         "description": "Answers without a Session. Compose and the deployment target use it as the health check.",
         "operationId": "getHealth",
-        "security": [],
+        "security": [
+          {}
+        ],
         "responses": {
           "200": {
             "description": "The API is up",
@@ -703,7 +705,7 @@
             "type": "string"
           },
           "issues": {
-            "maxItems": 100,
+            "maxItems": 1000,
             "type": "array",
             "items": {
               "type": "object",
@@ -1124,6 +1126,7 @@
         "additionalProperties": false
       },
       "UploadedResumeList": {
+        "maxItems": 1000,
         "type": "array",
         "items": {
           "type": "object",
@@ -1350,6 +1353,7 @@
             "additionalProperties": false
           },
           "experiences": {
+            "maxItems": 1000,
             "type": "array",
             "items": {
               "type": "object",
@@ -1419,6 +1423,7 @@
                 },
                 "skills": {
                   "default": [],
+                  "maxItems": 1000,
                   "type": "array",
                   "items": {
                     "type": "string",
@@ -1438,6 +1443,7 @@
             }
           },
           "education": {
+            "maxItems": 1000,
             "type": "array",
             "items": {
               "type": "object",
@@ -1517,6 +1523,7 @@
             }
           },
           "projects": {
+            "maxItems": 1000,
             "type": "array",
             "items": {
               "type": "object",
@@ -1554,6 +1561,7 @@
                 },
                 "skills": {
                   "default": [],
+                  "maxItems": 1000,
                   "type": "array",
                   "items": {
                     "type": "string",
@@ -1572,6 +1580,7 @@
             }
           },
           "skills": {
+            "maxItems": 1000,
             "type": "array",
             "items": {
               "type": "object",
@@ -1604,6 +1613,7 @@
             }
           },
           "languages": {
+            "maxItems": 1000,
             "type": "array",
             "items": {
               "type": "object",
@@ -1638,6 +1648,7 @@
             }
           },
           "certifications": {
+            "maxItems": 1000,
             "type": "array",
             "items": {
               "type": "object",
@@ -1690,6 +1701,7 @@
             "maximum": 9007199254740991
           },
           "reviewFlags": {
+            "maxItems": 1000,
             "type": "array",
             "items": {
               "type": "object",
