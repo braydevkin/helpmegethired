@@ -22,6 +22,15 @@ describe("labelled lines", () => {
     ]);
   });
 
+  it("ends a labelled paragraph at the next labelled line", () => {
+    const { labelled } = partitionLabelled(["Idiomas: Português (nativo)", "Certificações: CCNA (Cisco, 2017)"], "summary");
+
+    expect(labelled).toEqual([
+      { kind: "languages", text: "Português (nativo)" },
+      { kind: "certifications", text: "CCNA (Cisco, 2017)" },
+    ]);
+  });
+
   it("collects the section's own lines and the labelled paragraphs found elsewhere", () => {
     const sections = [
       { kind: "experience" as const, heading: "Experience", lines: ["Engineer at Acme", "Certifications: CKA (CNCF, 2022)"] },

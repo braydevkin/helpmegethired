@@ -58,6 +58,12 @@ describe("extractEducation", () => {
     expect(entry).toMatchObject({ institution: { value: "FGV", confidence: "high" }, degree: { value: "MBA" }, fieldOfStudy: null });
   });
 
+  it("does not read a grade or an exam acronym as the institution", () => {
+    const [entry] = extractEducation(["BSc in Physics, GPA 3.8, University of Leeds", "2011 – 2014"]);
+
+    expect(entry).toMatchObject({ institution: { value: "University of Leeds", confidence: "high" }, degree: { value: "BSc" }, fieldOfStudy: { value: "Physics" } });
+  });
+
   it("keeps both parts low when no degree word decides", () => {
     const [entry] = extractEducation(["Universidade de Lisboa | Engenharia de Software", "2015 – 2019"]);
 

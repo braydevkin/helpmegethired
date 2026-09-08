@@ -32,12 +32,16 @@ const INSTITUTION_WORDS = [
 ];
 const institutionWords = new Set(INSTITUTION_WORDS);
 const ACRONYM = /^\p{Lu}{2,7}$/u;
+const SCORE_ACRONYMS = new Set(["GPA", "CGPA", "GRE", "GMAT", "SAT", "ACT", "TOEFL", "IELTS", "ENEM", "CR", "CRA"]);
 
 const startsLowercase = (line: string): boolean => /^\p{Ll}/u.test(line.trim());
 
-// An institution names itself with a known word or with an acronym such as "UFSC" or "IFPE".
+// An institution names itself with a known word or with an acronym such as "UFSC" or "IFPE";
+// a grade or an exam written in capitals, as "GPA 3.8", is neither.
+const isInstitutionAcronym = (word: string): boolean => ACRONYM.test(word) && !SCORE_ACRONYMS.has(word);
+
 const readsAsInstitution = (part: string): boolean =>
-  wordsOf(part).some((word) => institutionWords.has(normalise(word)) || ACRONYM.test(word));
+  wordsOf(part).some((word) => institutionWords.has(normalise(word)) || isInstitutionAcronym(word));
 
 // An education heading wraps rather than describes: a following line that starts lowercase,
 // and every short line after the date line, continues the heading text.

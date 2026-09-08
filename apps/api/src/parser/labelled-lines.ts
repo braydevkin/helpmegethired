@@ -27,12 +27,15 @@ interface ParagraphEnd {
   next: number;
 }
 
-// A labelled line and the lines wrapped under it up to the next blank line are one paragraph.
+const continuesParagraph = (line: string | undefined): boolean => line !== undefined && !isBlank(line) && labelKindOf(line) === undefined;
+
+// A labelled line and the lines wrapped under it, up to the next blank line or the next
+// labelled line, are one paragraph.
 function paragraphFrom(lines: readonly string[], start: number): ParagraphEnd {
   const paragraph = [afterLabel(lines[start] ?? "")];
   let next = start + 1;
 
-  while (next < lines.length && !isBlank(lines[next])) {
+  while (continuesParagraph(lines[next])) {
     paragraph.push((lines[next] ?? "").trim());
     next += 1;
   }
