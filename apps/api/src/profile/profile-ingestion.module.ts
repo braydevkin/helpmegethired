@@ -1,9 +1,10 @@
-import { Module, type OnModuleInit } from "@nestjs/common";
+import { Inject, Module, type OnModuleInit } from "@nestjs/common";
 
 import { AuthModule } from "../auth/auth.module";
 import { ExtractionModule } from "../extraction/extraction.module";
 import { IngestionObservers } from "../ingestion/ingestion-observer";
 import { IngestionModule } from "../ingestion/ingestion.module";
+import type { AnySegmentProcessor } from "../ingestion/segment-processor";
 import { SegmentProcessorRegistry } from "../ingestion/segment-processor.registry";
 import { ProfileModule } from "./profile.module";
 import { ResumeIngestionObserver } from "./resume-ingestion.observer";
@@ -15,7 +16,9 @@ import { LanguagesSegmentProcessor } from "./segments/languages.processor";
 import { ProjectSegmentProcessor } from "./segments/project.processor";
 import { SkillsSegmentProcessor } from "./segments/skills.processor";
 
-const PROCESSORS = [
+const RESUME_SEGMENT_PROCESSORS = Symbol("RESUME_SEGMENT_PROCESSORS");
+
+const PROCESSOR_CLASSES = [
   HeaderSegmentProcessor,
   ExperienceSegmentProcessor,
   EducationSegmentProcessor,
@@ -28,24 +31,26 @@ const PROCESSORS = [
 // Loaded by the worker only: the API never runs a Segment.
 @Module({
   imports: [AuthModule, IngestionModule, ExtractionModule, ProfileModule],
-  providers: [...PROCESSORS, ResumeIngestionObserver],
+  providers: [
+    ...PROCESSOR_CLASSES,
+    ResumeIngestionObserver,
+    {
+      provide: RESUME_SEGMENT_PROCESSORS,
+      useFactory: (...processors: AnySegmentProcessor[]) => processors,
+      inject: PROCESSOR_CLASSES,
+    },
+  ],
 })
 export class ProfileIngestionModule implements OnModuleInit {
   constructor(
     private readonly registry: SegmentProcessorRegistry,
     private readonly observers: IngestionObservers,
     private readonly observer: ResumeIngestionObserver,
-    private readonly header: HeaderSegmentProcessor,
-    private readonly experience: ExperienceSegmentProcessor,
-    private readonly education: EducationSegmentProcessor,
-    private readonly project: ProjectSegmentProcessor,
-    private readonly skills: SkillsSegmentProcessor,
-    private readonly languages: LanguagesSegmentProcessor,
-    private readonly certifications: CertificationsSegmentProcessor,
+    @Inject(RESUME_SEGMENT_PROCESSORS) private readonly processors: AnySegmentProcessor[],
   ) {}
 
   onModuleInit(): void {
-    for (const processor of [this.header, this.experience, this.education, this.project, this.skills, this.languages, this.certifications]) {
+    for (const processor of this.processors) {
       this.registry.register(processor);
     }
 

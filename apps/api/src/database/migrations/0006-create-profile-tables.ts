@@ -31,72 +31,88 @@ const withPeriod = <Table extends string>(builder: CreateTableBuilder<Table>) =>
     .addColumn("period_start", "text", (column) => column.check(yearMonth("period_start")))
     .addColumn("period_end", "text", (column) => column.check(yearMonth("period_end")));
 
+async function addSourceAndCompletionToIngestions(database: Kysely<unknown>): Promise<void> {
+  await database.schema
+    .alterTable("ingestions")
+    .addColumn("source", "text", (column) => column.notNull().defaultTo("upload").check(sql`source in (${knownSources})`))
+    .addColumn("completed_at", "timestamptz")
+    .execute();
+  await database.schema.alterTable("ingestions").alterColumn("source", (column) => column.dropDefault()).execute();
+  await database.schema
+    .createIndex("ingestions_completed_per_source_idx")
+    .on("ingestions")
+    .columns(["account_id", "source", "completed_at"])
+    .execute();
+}
+
+async function createBasicProfiles(database: Kysely<unknown>): Promise<void> {
+  await withProfileRowColumns(database.schema.createTable("basic_profiles"))
+    .addColumn("headline", "text")
+    .addColumn("summary", "text")
+    .addColumn("linkedin_url", "text")
+    .addColumn("github_url", "text")
+    .addColumn("confirmed_at", "timestamptz")
+    .addUniqueConstraint("basic_profiles_one_per_ingestion_key", ["source_ingestion_id"])
+    .execute();
+}
+
+async function createHistoryTables(database: Kysely<unknown>): Promise<void> {
+  await withPeriod(withOrder(withProfileRowColumns(database.schema.createTable("experiences"))))
+    .addColumn("company", "text")
+    .addColumn("role", "text", (column) => column.notNull())
+    .addColumn("description", "text")
+    .addColumn("skills", "jsonb", (column) => column.notNull())
+    .execute();
+
+  await withPeriod(withOrder(withProfileRowColumns(database.schema.createTable("education"))))
+    .addColumn("institution", "text", (column) => column.notNull())
+    .addColumn("degree", "text")
+    .addColumn("field_of_study", "text")
+    .execute();
+
+  await withOrder(withProfileRowColumns(database.schema.createTable("projects")))
+    .addColumn("name", "text", (column) => column.notNull())
+    .addColumn("description", "text")
+    .addColumn("url", "text")
+    .addColumn("skills", "jsonb", (column) => column.notNull())
+    .execute();
+}
+
+async function createListTables(database: Kysely<unknown>): Promise<void> {
+  await withOrder(withProfileRowColumns(database.schema.createTable("skills")))
+    .addColumn("name", "text", (column) => column.notNull())
+    .addColumn("category", "text", (column) => column.notNull().check(sql`category in (${knownCategories})`))
+    .execute();
+
+  await withOrder(withProfileRowColumns(database.schema.createTable("languages")))
+    .addColumn("name", "text", (column) => column.notNull())
+    .addColumn("level", "text")
+    .execute();
+
+  await withOrder(withProfileRowColumns(database.schema.createTable("certifications")))
+    .addColumn("name", "text", (column) => column.notNull())
+    .addColumn("issuer", "text")
+    .addColumn("year", "integer", (column) => column.check(sql`year between 1900 and 2100`))
+    .execute();
+}
+
+async function indexProfileTablesByIngestion(database: Kysely<unknown>): Promise<void> {
+  for (const table of ["basic_profiles", ...PROFILE_PART_TABLES]) {
+    await database.schema
+      .createIndex(`${table}_account_ingestion_idx`)
+      .on(table)
+      .columns(["account_id", "source_ingestion_id"])
+      .execute();
+  }
+}
+
 export const createProfileTables: Migration = {
   async up(database: Kysely<unknown>) {
-    await database.schema
-      .alterTable("ingestions")
-      .addColumn("source", "text", (column) => column.notNull().defaultTo("upload").check(sql`source in (${knownSources})`))
-      .addColumn("completed_at", "timestamptz")
-      .execute();
-    await database.schema.alterTable("ingestions").alterColumn("source", (column) => column.dropDefault()).execute();
-    await database.schema
-      .createIndex("ingestions_completed_per_source_idx")
-      .on("ingestions")
-      .columns(["account_id", "source", "completed_at"])
-      .execute();
-
-    await withProfileRowColumns(database.schema.createTable("basic_profiles"))
-      .addColumn("headline", "text")
-      .addColumn("summary", "text")
-      .addColumn("linkedin_url", "text")
-      .addColumn("github_url", "text")
-      .addColumn("confirmed_at", "timestamptz")
-      .addUniqueConstraint("basic_profiles_one_per_ingestion_key", ["source_ingestion_id"])
-      .execute();
-
-    await withPeriod(withOrder(withProfileRowColumns(database.schema.createTable("experiences"))))
-      .addColumn("company", "text")
-      .addColumn("role", "text", (column) => column.notNull())
-      .addColumn("description", "text")
-      .addColumn("skills", "jsonb", (column) => column.notNull())
-      .execute();
-
-    await withPeriod(withOrder(withProfileRowColumns(database.schema.createTable("education"))))
-      .addColumn("institution", "text", (column) => column.notNull())
-      .addColumn("degree", "text")
-      .addColumn("field_of_study", "text")
-      .execute();
-
-    await withOrder(withProfileRowColumns(database.schema.createTable("projects")))
-      .addColumn("name", "text", (column) => column.notNull())
-      .addColumn("description", "text")
-      .addColumn("url", "text")
-      .addColumn("skills", "jsonb", (column) => column.notNull())
-      .execute();
-
-    await withOrder(withProfileRowColumns(database.schema.createTable("skills")))
-      .addColumn("name", "text", (column) => column.notNull())
-      .addColumn("category", "text", (column) => column.notNull().check(sql`category in (${knownCategories})`))
-      .execute();
-
-    await withOrder(withProfileRowColumns(database.schema.createTable("languages")))
-      .addColumn("name", "text", (column) => column.notNull())
-      .addColumn("level", "text")
-      .execute();
-
-    await withOrder(withProfileRowColumns(database.schema.createTable("certifications")))
-      .addColumn("name", "text", (column) => column.notNull())
-      .addColumn("issuer", "text")
-      .addColumn("year", "integer", (column) => column.check(sql`year between 1900 and 2100`))
-      .execute();
-
-    for (const table of ["basic_profiles", ...PROFILE_PART_TABLES]) {
-      await database.schema
-        .createIndex(`${table}_account_ingestion_idx`)
-        .on(table)
-        .columns(["account_id", "source_ingestion_id"])
-        .execute();
-    }
+    await addSourceAndCompletionToIngestions(database);
+    await createBasicProfiles(database);
+    await createHistoryTables(database);
+    await createListTables(database);
+    await indexProfileTablesByIngestion(database);
   },
 
   async down(database: Kysely<unknown>) {

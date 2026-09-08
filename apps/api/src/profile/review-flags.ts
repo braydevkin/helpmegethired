@@ -24,45 +24,43 @@ function flagsOfEntry<Entry extends object>(part: ProfilePart, entry: Recognised
 
 const isResumeKind = (kind: string): kind is ResumeSegmentKind => (RESUME_SEGMENT_KINDS as readonly string[]).includes(kind);
 
+const lowSkills = (recognized: unknown): ReviewFlag[] =>
+  RecognizedByKindSchema.skills
+    .parse(recognized)
+    .skills.flatMap((skill) => (skill.confidence === REVIEW_BAR ? [{ part: "skill" as const, entry: skill.name, field: "name", reason: "low_confidence" as const }] : []));
+
+const headerFlags = (recognized: unknown): ReviewFlag[] => {
+  const header = RecognizedByKindSchema.header.parse(recognized);
+  const mismatches: ReviewFlag[] = (["name", "email"] as const)
+    .filter((field) => header.accountMismatch[field])
+    .map((field) => ({ part: "basicProfile", entry: null, field, reason: "account_mismatch" }));
+
+  return [...flagsOfEntry("basicProfile", header.basicProfile, null), ...mismatches];
+};
+
+const flagsByKind: Record<ResumeSegmentKind, (recognized: unknown) => ReviewFlag[]> = {
+  header: headerFlags,
+  experience: (recognized) =>
+    RecognizedByKindSchema.experience.parse(recognized).experiences.flatMap((entry) => flagsOfEntry("experience", entry, entry.role.value)),
+  education: (recognized) =>
+    RecognizedByKindSchema.education.parse(recognized).education.flatMap((entry) => flagsOfEntry("education", entry, entry.institution.value)),
+  project: (recognized) => RecognizedByKindSchema.project.parse(recognized).projects.flatMap((entry) => flagsOfEntry("project", entry, entry.name.value)),
+  skills: lowSkills,
+  languages: (recognized) =>
+    RecognizedByKindSchema.languages.parse(recognized).languages.flatMap((entry) => flagsOfEntry("language", entry, entry.name.value)),
+  certifications: (recognized) =>
+    RecognizedByKindSchema.certifications
+      .parse(recognized)
+      .certifications.flatMap((entry) => flagsOfEntry("certification", entry, entry.name.value)),
+};
+
+// Only a saved Segment of a resume kind whose output still reads as expected contributes.
 function flagsOfSegment(segment: Segment): ReviewFlag[] {
   if (!isResumeKind(segment.kind) || segment.status !== "saved") {
     return [];
   }
 
-  const parsed = RecognizedByKindSchema[segment.kind].safeParse(segment.recognized);
-
-  if (!parsed.success) {
-    return [];
-  }
-
-  switch (segment.kind) {
-    case "header": {
-      const header = RecognizedByKindSchema.header.parse(segment.recognized);
-      const mismatches: ReviewFlag[] = (["name", "email"] as const)
-        .filter((field) => header.accountMismatch[field])
-        .map((field) => ({ part: "basicProfile", entry: null, field, reason: "account_mismatch" }));
-
-      return [...flagsOfEntry("basicProfile", header.basicProfile, null), ...mismatches];
-    }
-    case "experience":
-      return RecognizedByKindSchema.experience.parse(segment.recognized).experiences.flatMap((entry) => flagsOfEntry("experience", entry, entry.role.value));
-    case "education":
-      return RecognizedByKindSchema.education
-        .parse(segment.recognized)
-        .education.flatMap((entry) => flagsOfEntry("education", entry, entry.institution.value));
-    case "project":
-      return RecognizedByKindSchema.project.parse(segment.recognized).projects.flatMap((entry) => flagsOfEntry("project", entry, entry.name.value));
-    case "skills":
-      return RecognizedByKindSchema.skills
-        .parse(segment.recognized)
-        .skills.flatMap((skill) => (skill.confidence === REVIEW_BAR ? [{ part: "skill" as const, entry: skill.name, field: "name", reason: "low_confidence" as const }] : []));
-    case "languages":
-      return RecognizedByKindSchema.languages.parse(segment.recognized).languages.flatMap((entry) => flagsOfEntry("language", entry, entry.name.value));
-    case "certifications":
-      return RecognizedByKindSchema.certifications
-        .parse(segment.recognized)
-        .certifications.flatMap((entry) => flagsOfEntry("certification", entry, entry.name.value));
-  }
+  return RecognizedByKindSchema[segment.kind].safeParse(segment.recognized).success ? flagsByKind[segment.kind](segment.recognized) : [];
 }
 
 // The fields the Candidate should look at, read from the Segments' recognized output: the
