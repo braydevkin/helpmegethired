@@ -6,22 +6,21 @@ import { Public } from "../auth/public.decorator";
 import { openApiDocument, type OpenApiDocument } from "../openapi/document";
 import { DOCS_ENABLED } from "./docs-enabled";
 
-export const ASSETS_PATH = "docs/assets";
-
 // The only files of Swagger UI the page needs, served from the package the API ships with.
 const ASSET_FILES = new Set(["swagger-ui.css", "swagger-ui-bundle.js"]);
 
-// The page loads Swagger UI from the assets the API serves itself, never from a CDN.
+// The page loads Swagger UI from the assets the API serves itself, never from a CDN. Nothing
+// is interpolated into it.
 const page = `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <title>Help Me Get Hired API</title>
-<link rel="stylesheet" href="/${ASSETS_PATH}/swagger-ui.css">
+<link rel="stylesheet" href="/docs/assets/swagger-ui.css">
 </head>
 <body>
 <div id="swagger-ui"></div>
-<script src="/${ASSETS_PATH}/swagger-ui-bundle.js"></script>
+<script src="/docs/assets/swagger-ui-bundle.js"></script>
 <script>
 window.ui = SwaggerUIBundle({
   url: "/docs/openapi.json",

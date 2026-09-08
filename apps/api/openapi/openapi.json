@@ -703,6 +703,7 @@
             "type": "string"
           },
           "issues": {
+            "maxItems": 100,
             "type": "array",
             "items": {
               "type": "object",

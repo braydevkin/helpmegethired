@@ -66,6 +66,9 @@ jobs:
 
       - run: pnpm --filter e2e exec playwright install --with-deps chromium
 
+      - name: Build the shared schemas the API scenario validates with
+        run: pnpm --filter @helpmegethired/shared build
+
       - name: Run Playwright against the stack
         run: |
           . ./.env.example
