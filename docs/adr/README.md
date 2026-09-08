@@ -29,6 +29,7 @@ Use [template.md](template.md). Number sequentially. Status is one of `Proposed`
 | [0019](0019-codacy-review-scope.md) | Codacy reviews production code only, gates at medium severity, and reviews once | Accepted |
 | [0020](0020-bullmq-on-redis-with-a-separate-worker.md) | BullMQ on Redis with a separate worker for the ingestion queues | Accepted |
 | [0021](0021-s3-compatible-object-storage-with-rustfs.md) | S3-compatible object storage for Uploaded Resumes, with RustFS as the local store | Accepted |
+| [0022](0022-openapi-from-shared-schemas-with-swagger-ui-in-development.md) | OpenAPI generated from the shared Zod schemas, served by Swagger UI in development | Accepted |
 
 ## Pending decisions
 

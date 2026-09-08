@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { TimestampSchema } from "./primitives.js";
+import { TimestampSchema, listOf } from "./primitives.js";
 import { UploadedResumeSchema, UploadedResumeStatusSchema } from "./resume.js";
 
 export const PresignedUploadSchema = z.object({
@@ -27,6 +27,6 @@ export const UploadedResumeListQuerySchema = z.object({
 
 export type UploadedResumeListQuery = z.infer<typeof UploadedResumeListQuerySchema>;
 
-export const UploadedResumeListSchema = z.array(UploadedResumeSchema);
+export const UploadedResumeListSchema = listOf(UploadedResumeSchema);
 
 export type UploadedResumeList = z.infer<typeof UploadedResumeListSchema>;
