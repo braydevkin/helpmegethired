@@ -31,7 +31,15 @@
         "Cientista de Dados",
         "Brasília, DF | (61) 99333-4455 | yara.oliveira@example.com",
         "linkedin.com/in/yara-oliveira-example · github.com/yaraso-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
@@ -40,7 +48,15 @@
         "Cientista de dados no setor público, com modelos de risco em produção desde 2021.",
         "",
         "Idiomas: Português (Nativo), Inglês (Avançado), Espanhol (Intermediário)"
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 11
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 10
+      }
     },
     {
       "kind": "education",
@@ -51,7 +67,15 @@
         "",
         "Bacharelado em Estatística, Universidade de Brasília",
         "2016 – 2020"
-      ]
+      ],
+      "range": {
+        "start": 11,
+        "end": 18
+      },
+      "linesRange": {
+        "start": 12,
+        "end": 17
+      }
     },
     {
       "kind": "experience",
@@ -64,14 +88,30 @@
         "Estagiária de Pesquisa | Universidade de Brasília",
         "Brasília · ago 2019 – mar 2021",
         "Limpou e documentou bases do censo escolar em Pandas."
-      ]
+      ],
+      "range": {
+        "start": 18,
+        "end": 27
+      },
+      "linesRange": {
+        "start": 19,
+        "end": 26
+      }
     },
     {
       "kind": "skills",
       "heading": "HABILIDADES",
       "lines": [
         "Python, scikit-learn, XGBoost, Pandas, Streamlit, SQL"
-      ]
+      ],
+      "range": {
+        "start": 27,
+        "end": 31
+      },
+      "linesRange": {
+        "start": 29,
+        "end": 30
+      }
     },
     {
       "kind": "projects",
@@ -79,7 +119,15 @@
       "lines": [
         "Evasão Zero — https://github.com/yaraso-example/evasao-zero",
         "Painel aberto com os indicadores de evasão por município."
-      ]
+      ],
+      "range": {
+        "start": 31,
+        "end": 34
+      },
+      "linesRange": {
+        "start": 32,
+        "end": 34
+      }
     }
   ],
   "draft": {

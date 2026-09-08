@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
-import type { Id, Ingestion, IngestionProgress } from "@helpmegethired/shared";
+import type { Id, Ingestion, IngestionProgress, IngestionSource } from "@helpmegethired/shared";
 
+import type { Database } from "../database/database";
 import { TransactionRunner } from "../database/transaction-runner";
 import { IngestionNotFoundError } from "./ingestion-errors";
 import { IngestionQueue } from "./ingestion-queue";
@@ -8,6 +9,16 @@ import { IngestionRepository } from "./ingestion.repository";
 import type { NewSegment } from "./segment";
 
 export const MAX_ATTEMPTS = 3;
+
+export interface NewIngestion {
+  accountId: Id;
+  source: IngestionSource;
+  segments: readonly NewSegment[];
+}
+
+// Work the caller wants committed together with the new Ingestion, such as linking it to
+// the Uploaded Resume it came from.
+export type WithNewIngestion = (ingestion: Ingestion, transaction: Database) => Promise<void>;
 
 @Injectable()
 export class IngestionService {
@@ -19,10 +30,14 @@ export class IngestionService {
     private readonly queue: IngestionQueue,
   ) {}
 
-  async start(accountId: Id, segments: readonly NewSegment[]): Promise<Ingestion> {
-    const ingestion = await this.transactions.run((transaction) =>
-      this.repository.create(accountId, segments, MAX_ATTEMPTS, transaction),
-    );
+  async start({ accountId, source, segments }: NewIngestion, withIngestion?: WithNewIngestion): Promise<Ingestion> {
+    const ingestion = await this.transactions.run(async (transaction) => {
+      const created = await this.repository.create(accountId, source, segments, MAX_ATTEMPTS, transaction);
+
+      await withIngestion?.(created, transaction);
+
+      return created;
+    });
 
     await this.enqueue(ingestion);
 

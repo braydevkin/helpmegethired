@@ -36,7 +36,15 @@
         "Engenheira de Software",
         "Florianópolis, SC — +55 48 99876-5432 — sofia.nunes@example.com",
         "linkedin.com/in/sofia-nunes-example · github.com/sofiacn-example · https://sofianunes.example.com"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
@@ -44,7 +52,15 @@
       "lines": [
         "Engenheira de software com seis anos em produtos B2B. As tecnologias que uso",
         "aparecem nas experiências abaixo."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 10
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 9
+      }
     },
     {
       "kind": "experience",
@@ -57,28 +73,60 @@
         "fev. 2020 – abr. 2022 Engenheira de Software, Costa Sul Sistemas, Florianópolis",
         "Desenvolveu a API de cobrança em Ruby on Rails com",
         "PostgreSQL e Redis."
-      ]
+      ],
+      "range": {
+        "start": 10,
+        "end": 19
+      },
+      "linesRange": {
+        "start": 11,
+        "end": 18
+      }
     },
     {
       "kind": "education",
       "heading": "Formação Acadêmica",
       "lines": [
         "2014 – 2019 Bacharelado em Ciência da Computação, UFSC"
-      ]
+      ],
+      "range": {
+        "start": 19,
+        "end": 22
+      },
+      "linesRange": {
+        "start": 20,
+        "end": 21
+      }
     },
     {
       "kind": "languages",
       "heading": "Idiomas",
       "lines": [
         "Português - Nativo; Inglês - Fluente (C1)"
-      ]
+      ],
+      "range": {
+        "start": 22,
+        "end": 26
+      },
+      "linesRange": {
+        "start": 24,
+        "end": 25
+      }
     },
     {
       "kind": "certifications",
       "heading": "Certificações",
       "lines": [
         "2023 Certified Kubernetes Application Developer, CNCF"
-      ]
+      ],
+      "range": {
+        "start": 26,
+        "end": 28
+      },
+      "linesRange": {
+        "start": 27,
+        "end": 28
+      }
     }
   ],
   "draft": {

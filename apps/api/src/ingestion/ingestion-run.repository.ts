@@ -62,12 +62,15 @@ export class IngestionRunRepository {
     return row && toIngestion(row);
   }
 
-  async completeAttempt(id: Id): Promise<void> {
-    await this.database
+  async completeAttempt(id: Id, executor: Database = this.database): Promise<Ingestion> {
+    const row = await executor
       .updateTable("ingestions")
-      .set({ status: "completed", last_error: null, ...updatedNow })
+      .set({ status: "completed", last_error: null, completed_at: sql<Date>`now()`, ...updatedNow })
       .where("id", "=", id)
-      .execute();
+      .returningAll()
+      .executeTakeFirstOrThrow();
+
+    return toIngestion(row);
   }
 
   async failAttempt(id: Id, error: string): Promise<Ingestion | undefined> {

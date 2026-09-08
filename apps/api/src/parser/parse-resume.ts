@@ -49,7 +49,7 @@ export const topLinesOf = (sections: readonly Section[]): string[] => {
 
 // The top's free lines are the ones that are neither the name nor contact details: the
 // first short one is the headline, the rest a summary when no summary section exists.
-function basicProfileOf(sections: readonly Section[], contact: Contact): DraftBasicProfile {
+export function basicProfileOf(sections: readonly Section[], contact: Contact): DraftBasicProfile {
   const summaries = sections.filter((section) => section.kind === "summary");
   const free = topLinesOf(sections).filter(
     (line) => !isBlank(line) && line.trim() !== contact.name?.value && !isContactLine(line),
@@ -67,7 +67,7 @@ function basicProfileOf(sections: readonly Section[], contact: Contact): DraftBa
 }
 
 // A technology named in an Experience's description belongs to that Experience as well.
-const withSkills = (experience: DraftExperience): DraftExperience => ({
+export const withSkills = (experience: DraftExperience): DraftExperience => ({
   ...experience,
   skills: skillNamesIn(experience.description?.value ?? ""),
 });

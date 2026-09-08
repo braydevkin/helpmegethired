@@ -7,12 +7,14 @@ export function toIngestion(row: IngestionRow): Ingestion {
   return {
     id: row.id,
     accountId: row.account_id,
+    source: row.source,
     status: row.status,
     attempts: row.attempts,
     maxAttempts: row.max_attempts,
     lastError: row.last_error,
     createdAt: row.created_at.toISOString(),
     updatedAt: row.updated_at.toISOString(),
+    completedAt: row.completed_at?.toISOString() ?? null,
   };
 }
 

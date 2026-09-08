@@ -31,7 +31,15 @@
         "Engenheira de Software",
         "Florianópolis, SC | (48) 99876-5432 | helena.rocha@example.com",
         "linkedin.com/in/helena-rocha-example · github.com/helenamr-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
@@ -39,7 +47,15 @@
       "lines": [
         "Engenheira de software que mantém um trabalho fixo e uma consultoria em paralelo, sem",
         "deixar nenhum dos dois cair."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 10
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 9
+      }
     },
     {
       "kind": "experience",
@@ -56,7 +72,15 @@
         "Engenheira de Software | Litoral Digital",
         "Florianópolis · 03/2017 – 12/2019",
         "Desenvolveu o aplicativo de entregas em React Native."
-      ]
+      ],
+      "range": {
+        "start": 10,
+        "end": 23
+      },
+      "linesRange": {
+        "start": 11,
+        "end": 22
+      }
     },
     {
       "kind": "education",
@@ -64,14 +88,30 @@
       "lines": [
         "Bacharelado em Sistemas de Informação, UFSC",
         "2013 – 2016"
-      ]
+      ],
+      "range": {
+        "start": 23,
+        "end": 27
+      },
+      "linesRange": {
+        "start": 24,
+        "end": 26
+      }
     },
     {
       "kind": "skills",
       "heading": "HABILIDADES",
       "lines": [
         "TypeScript, Node.js, React Native, PostgreSQL, AWS"
-      ]
+      ],
+      "range": {
+        "start": 27,
+        "end": 31
+      },
+      "linesRange": {
+        "start": 29,
+        "end": 30
+      }
     },
     {
       "kind": "languages",
@@ -79,7 +119,15 @@
       "lines": [
         "Português - Nativo",
         "Inglês - Avançado"
-      ]
+      ],
+      "range": {
+        "start": 31,
+        "end": 34
+      },
+      "linesRange": {
+        "start": 32,
+        "end": 34
+      }
     }
   ],
   "draft": {

@@ -31,7 +31,15 @@
         "Embedded Software Engineer",
         "Gothenburg, Sweden | +46 31 123 456 | otto.lindqvist@example.com",
         "linkedin.com/in/otto-lindqvist-example · github.com/ottol-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
@@ -39,7 +47,15 @@
       "lines": [
         "Embedded engineer who has spent his whole career on one product line and knows every",
         "one of its boards."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 10
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 9
+      }
     },
     {
       "kind": "experience",
@@ -49,7 +65,15 @@
         "Gothenburg · Jan 2012 – Present",
         "Firmware in C and Rust for the motor controllers.",
         "Introduced hardware-in-the-loop tests to the release process."
-      ]
+      ],
+      "range": {
+        "start": 10,
+        "end": 16
+      },
+      "linesRange": {
+        "start": 11,
+        "end": 15
+      }
     },
     {
       "kind": "education",
@@ -57,14 +81,30 @@
       "lines": [
         "MSc in Embedded Systems, Chalmers University of Technology",
         "2007 – 2012"
-      ]
+      ],
+      "range": {
+        "start": 16,
+        "end": 20
+      },
+      "linesRange": {
+        "start": 17,
+        "end": 19
+      }
     },
     {
       "kind": "skills",
       "heading": "SKILLS",
       "lines": [
         "C, Rust, RTOS, CAN bus, Git"
-      ]
+      ],
+      "range": {
+        "start": 20,
+        "end": 24
+      },
+      "linesRange": {
+        "start": 22,
+        "end": 23
+      }
     },
     {
       "kind": "languages",
@@ -72,7 +112,15 @@
       "lines": [
         "Swedish - Native",
         "English - Fluent"
-      ]
+      ],
+      "range": {
+        "start": 24,
+        "end": 27
+      },
+      "linesRange": {
+        "start": 25,
+        "end": 27
+      }
     }
   ],
   "draft": {

@@ -31,7 +31,15 @@
         "Cientista de Dados",
         "Campinas, SP — +55 19 98765-1234 — nina.duarte@example.com",
         "linkedin.com/in/nina-duarte-example · github.com/ninacd-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
@@ -39,7 +47,15 @@
       "lines": [
         "Cientista de dados aplicando modelos de previsão a logística, com o pé na engenharia",
         "de dados."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 10
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 9
+      }
     },
     {
       "kind": "experience",
@@ -50,28 +66,60 @@
         "Pipeline de features em Spark.",
         "2015 – 2017 Analista de Dados, Unicamp Ventures, Campinas",
         "Painéis de acompanhamento das startups incubadas."
-      ]
+      ],
+      "range": {
+        "start": 10,
+        "end": 17
+      },
+      "linesRange": {
+        "start": 11,
+        "end": 16
+      }
     },
     {
       "kind": "education",
       "heading": "Formação Acadêmica",
       "lines": [
         "2017 – 2019 Mestrado em Estatística, Unicamp"
-      ]
+      ],
+      "range": {
+        "start": 17,
+        "end": 20
+      },
+      "linesRange": {
+        "start": 18,
+        "end": 19
+      }
     },
     {
       "kind": "skills",
       "heading": "Habilidades",
       "lines": [
         "Python · Pandas · scikit-learn · Spark · SQL"
-      ]
+      ],
+      "range": {
+        "start": 20,
+        "end": 24
+      },
+      "linesRange": {
+        "start": 22,
+        "end": 23
+      }
     },
     {
       "kind": "languages",
       "heading": "Idiomas",
       "lines": [
         "Português - Nativo; Inglês - Fluente"
-      ]
+      ],
+      "range": {
+        "start": 24,
+        "end": 27
+      },
+      "linesRange": {
+        "start": 26,
+        "end": 27
+      }
     }
   ],
   "draft": {

@@ -29,12 +29,28 @@
         "dana.whitfield@example.com Data Engineer at Prairie Analytics",
         "www.linkedin.com/in/dana- Toronto, Canada",
         "whitfield-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 6
+      },
+      "linesRange": {
+        "start": 1,
+        "end": 6
+      }
     },
     {
       "kind": "summary",
       "heading": "Summary",
-      "lines": []
+      "lines": [],
+      "range": {
+        "start": 6,
+        "end": 7
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 7
+      }
     },
     {
       "kind": "skills",
@@ -43,7 +59,15 @@
         "Spark Data engineer building batch and streaming pipelines on Spark",
         "Kafka and Kafka for retail analytics.",
         "Databricks"
-      ]
+      ],
+      "range": {
+        "start": 7,
+        "end": 11
+      },
+      "linesRange": {
+        "start": 8,
+        "end": 11
+      }
     },
     {
       "kind": "experience",
@@ -63,7 +87,15 @@
         "Toronto",
         "",
         "Modelled the sales warehouse in dbt on Snowflake."
-      ]
+      ],
+      "range": {
+        "start": 11,
+        "end": 27
+      },
+      "linesRange": {
+        "start": 12,
+        "end": 26
+      }
     },
     {
       "kind": "education",
@@ -71,7 +103,15 @@
       "lines": [
         "University of Toronto",
         "BSc, Statistics · (2015 – 2019)"
-      ]
+      ],
+      "range": {
+        "start": 27,
+        "end": 30
+      },
+      "linesRange": {
+        "start": 28,
+        "end": 30
+      }
     }
   ],
   "draft": {

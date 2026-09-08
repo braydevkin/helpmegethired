@@ -29,7 +29,15 @@
         "felipe.nascimento@example.com Analista de Suporte Técnico na Serra Telecom",
         "www.linkedin.com/in/felipe- Recife, Pernambuco, Brasil",
         "nascimento-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 6
+      },
+      "linesRange": {
+        "start": 1,
+        "end": 6
+      }
     },
     {
       "kind": "summary",
@@ -40,7 +48,15 @@
         "Redes JavaScript à noite e automatizo o que posso no trabalho com",
         "Python Python.",
         "JavaScript"
-      ]
+      ],
+      "range": {
+        "start": 6,
+        "end": 12
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 12
+      }
     },
     {
       "kind": "experience",
@@ -60,7 +76,15 @@
         "Olinda",
         "",
         "Deu manutenção em estações de trabalho e na rede local."
-      ]
+      ],
+      "range": {
+        "start": 12,
+        "end": 28
+      },
+      "linesRange": {
+        "start": 13,
+        "end": 27
+      }
     },
     {
       "kind": "education",
@@ -68,7 +92,15 @@
       "lines": [
         "IFPE",
         "Tecnólogo em Redes de Computadores · (2018 – 2021)"
-      ]
+      ],
+      "range": {
+        "start": 28,
+        "end": 31
+      },
+      "linesRange": {
+        "start": 29,
+        "end": 31
+      }
     }
   ],
   "draft": {

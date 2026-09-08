@@ -14,7 +14,8 @@ import { DATABASE, type Database } from "../database/database";
 import { DatabaseModule } from "../database/database.module";
 import type { UploadedResumeRow } from "../database/database.schema";
 import { createAccountPair } from "../database/testing/account-pair";
-import { QUEUE_PREFIX, RESUME_EXTRACTION_QUEUE } from "../queue/queues";
+import { IngestionRunRepository } from "../ingestion/ingestion-run.repository";
+import { PROFILE_INGESTION_QUEUE, QUEUE_PREFIX, RESUME_EXTRACTION_QUEUE } from "../queue/queues";
 import { WORKER_SETTINGS } from "../queue/worker-settings";
 import { ResumeExtractionQueue } from "../resumes/resume-extraction-queue";
 import { resumeObjectKeyFor } from "../resumes/resume-object-key";
@@ -184,6 +185,7 @@ describe("resume extraction", () => {
 
   afterAll(async () => {
     await producer.get<Queue>(RESUME_EXTRACTION_QUEUE).obliterate({ force: true });
+    await producer.get<Queue>(PROFILE_INGESTION_QUEUE).obliterate({ force: true });
     await producer.close();
   });
 
@@ -207,36 +209,40 @@ describe("resume extraction", () => {
     expect(await objectPresent(row)).toBe(false);
   });
 
-  it("extracts a text PDF with a JavaScript action, stores the text and the extractor version, and deletes the object", async () => {
+  it("extracts a text PDF with a JavaScript action, stores the text and the extractor version, deletes the object, and hands over to an Ingestion", async () => {
     const record = await uploaded(hostile("embedded-javascript"));
 
     await processor.process(record.id);
 
     const row = await rowOf(record.id);
 
-    expect(row).toMatchObject({ status: "done", error_code: null, error_message: null, attempts: 1 });
+    expect(row).toMatchObject({ status: "processing", error_code: null, error_message: null, attempts: 1, ingestion_id: expect.any(String) });
     expect(row.raw_text).toContain("Ada Lovelace - Senior Software Engineer");
     expect(row.raw_text).not.toContain("hostile");
     expect(row.extractor_version).toMatch(popplerInstalled ? /^pdftotext\/\d+\.\d+/ : /^pdfjs-dist\/\d+\.\d+/);
-    expect(row.finished_at).toBeInstanceOf(Date);
+    expect(row.finished_at).toBeNull();
     expect(await objectPresent(row)).toBe(false);
+    expect(await producer.get(IngestionRunRepository).findById(row.ingestion_id ?? "")).toMatchObject({ accountId: row.account_id, status: "queued" });
   });
 
-  it("never extracts again when a job is re-delivered after the text was saved", async () => {
+  it("never extracts again when a job is re-delivered after the text was saved, and never starts a second Ingestion", async () => {
     const record = await uploaded(hostile("embedded-javascript"));
     await runs.beginAttempt(record.id);
     await runs.saveText(record.id, { text: "saved before the crash", extractorVersion: "pdftotext/0.0.0" });
 
     await processor.process(record.id);
+    const linked = await rowOf(record.id);
+    await processor.process(record.id);
 
     const row = await rowOf(record.id);
 
-    expect(row).toMatchObject({ status: "done", raw_text: "saved before the crash", extractor_version: "pdftotext/0.0.0", attempts: 1 });
+    expect(row).toMatchObject({ status: "processing", raw_text: "saved before the crash", extractor_version: "pdftotext/0.0.0", attempts: 1 });
+    expect(row.ingestion_id).toBe(linked.ingestion_id);
     expect(extractor.calls).toBe(0);
     expect(await objectPresent(row)).toBe(false);
   });
 
-  it("consumes the extraction job from the queue on the worker", { timeout: SETTLE_TIMEOUT_MS }, async () => {
+  it("consumes the extraction job on the worker, which then builds the Profile and marks the record done", { timeout: SETTLE_TIMEOUT_MS }, async () => {
     await startConsumer();
     const record = await uploaded(hostile("embedded-javascript"));
 
@@ -245,6 +251,8 @@ describe("resume extraction", () => {
     const row = await settled(record.id);
 
     expect(row.status).toBe("done");
+    expect(row.finished_at).toBeInstanceOf(Date);
+    expect(await producer.get(IngestionRunRepository).findById(row.ingestion_id ?? "")).toMatchObject({ status: "completed" });
     expect(row.raw_text).toContain("Ada Lovelace");
     expect(await objectPresent(row)).toBe(false);
   });
@@ -272,7 +280,7 @@ describe("resume extraction", () => {
 
     const row = await rowOf(record.id);
 
-    expect(row.status).toBe("done");
+    expect(row.status).toBe("processing");
     expect(row.raw_text).toContain("Ada Lovelace - Senior Software Engineer");
     expect(row.extractor_version).toMatch(/^pdfjs-dist\/\d+\.\d+/);
   });

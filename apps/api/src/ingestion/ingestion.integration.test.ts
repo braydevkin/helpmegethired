@@ -54,7 +54,7 @@ class RecordingQueue extends IngestionQueue {
 }
 
 const threeSegments = ["first experience", "second experience", "third experience"].map((text) => ({
-  kind: "experience",
+  kind: "scripted",
   input: { text },
 }));
 
@@ -114,10 +114,10 @@ describe("profile ingestion", () => {
 
   describe("start", () => {
     it("persists a queued Ingestion with its Segments in order and enqueues one job", async () => {
-      const ingestion = await service.start(accountId, threeSegments);
+      const ingestion = await service.start({ accountId, source: "upload", segments: threeSegments });
 
       expect(IngestionSchema.safeParse(ingestion)).toMatchObject({ success: true });
-      expect(ingestion).toMatchObject({ accountId, status: "queued", attempts: 0, maxAttempts: MAX_ATTEMPTS });
+      expect(ingestion).toMatchObject({ accountId, source: "upload", status: "queued", attempts: 0, maxAttempts: MAX_ATTEMPTS, completedAt: null });
       expect(await statusesOf(ingestion.id)).toEqual(["pending", "pending", "pending"]);
       expect(queue.jobs).toContainEqual({ ingestionId: ingestion.id, maxAttempts: MAX_ATTEMPTS });
     });
@@ -125,31 +125,31 @@ describe("profile ingestion", () => {
     it("keeps the Ingestion queued without a job when the enqueue fails, for the reconciliation job", async () => {
       queue.failNextEnqueueWith(new Error("queue unavailable"));
 
-      const ingestion = await service.start(accountId, threeSegments);
+      const ingestion = await service.start({ accountId, source: "upload", segments: threeSegments });
 
       expect(ingestion.status).toBe("queued");
       expect(queue.jobs).not.toContainEqual(expect.objectContaining({ ingestionId: ingestion.id }));
-      await expect(service.start(accountId, threeSegments)).rejects.toThrow(IngestionAlreadyActiveError);
+      await expect(service.start({ accountId, source: "upload", segments: threeSegments })).rejects.toThrow(IngestionAlreadyActiveError);
     });
 
     it("rejects a second Ingestion for the same Account while one is active", async () => {
-      await service.start(accountId, threeSegments);
+      await service.start({ accountId, source: "upload", segments: threeSegments });
 
-      await expect(service.start(accountId, threeSegments)).rejects.toThrow(IngestionAlreadyActiveError);
+      await expect(service.start({ accountId, source: "upload", segments: threeSegments })).rejects.toThrow(IngestionAlreadyActiveError);
     });
 
     it("accepts a new Ingestion once the previous one has completed", async () => {
-      const first = await service.start(accountId, threeSegments);
+      const first = await service.start({ accountId, source: "upload", segments: threeSegments });
 
       await runner.run(first.id);
 
-      await expect(service.start(accountId, threeSegments)).resolves.toMatchObject({ status: "queued" });
+      await expect(service.start({ accountId, source: "upload", segments: threeSegments })).resolves.toMatchObject({ status: "queued" });
     });
   });
 
   describe("run", () => {
     it("reads, recognises and saves every Segment in order and completes the Ingestion", async () => {
-      const ingestion = await service.start(accountId, threeSegments);
+      const ingestion = await service.start({ accountId, source: "upload", segments: threeSegments });
 
       await runner.run(ingestion.id);
 
@@ -165,13 +165,15 @@ describe("profile ingestion", () => {
         "save:2",
       ]);
       expect(processor.saved.get(1)).toEqual({ summary: "second-experience" });
-      expect(await repository.findById(accountId, ingestion.id)).toMatchObject({ status: "completed", attempts: 1 });
+      expect(await repository.findById(accountId, ingestion.id)).toMatchObject({ status: "completed", attempts: 1, completedAt: expect.any(String) });
       expect(await service.progressOf(accountId, ingestion.id)).toMatchObject({ percentage: 100, segments: { total: 3, saved: 3 } });
+      expect(await repository.findLatestCompleted(accountId, "upload")).toMatchObject({ id: ingestion.id });
+      expect(await repository.findLatestCompleted(accountId, "linkedin")).toBeUndefined();
     });
 
     it("resumes a failed Ingestion from the step that failed, without redoing completed work", async () => {
       processor.failOnceAt("recognize", 1);
-      const ingestion = await service.start(accountId, threeSegments);
+      const ingestion = await service.start({ accountId, source: "upload", segments: threeSegments });
 
       await expect(runner.run(ingestion.id)).rejects.toThrow("recognize of segment 1 failed");
 
@@ -194,7 +196,7 @@ describe("profile ingestion", () => {
 
     it("keeps the error on the Segment that failed until it succeeds", async () => {
       processor.failOnceAt("save", 2);
-      const ingestion = await service.start(accountId, threeSegments);
+      const ingestion = await service.start({ accountId, source: "upload", segments: threeSegments });
 
       await expect(runner.run(ingestion.id)).rejects.toThrow();
 
@@ -213,7 +215,7 @@ describe("profile ingestion", () => {
       for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt += 1) {
         processor.failOnceAt("read", 0);
       }
-      const ingestion = await service.start(accountId, threeSegments);
+      const ingestion = await service.start({ accountId, source: "upload", segments: threeSegments });
 
       for (let attempt = 1; attempt < MAX_ATTEMPTS; attempt += 1) {
         await expect(runner.run(ingestion.id)).rejects.toThrow();
@@ -223,11 +225,11 @@ describe("profile ingestion", () => {
       await expect(runner.run(ingestion.id)).rejects.toThrow();
 
       expect(await repository.findById(accountId, ingestion.id)).toMatchObject({ status: "failed", attempts: MAX_ATTEMPTS });
-      await expect(service.start(accountId, threeSegments)).resolves.toMatchObject({ status: "queued" });
+      await expect(service.start({ accountId, source: "upload", segments: threeSegments })).resolves.toMatchObject({ status: "queued" });
     });
 
     it("does nothing for an Ingestion that has already completed", async () => {
-      const ingestion = await service.start(accountId, threeSegments);
+      const ingestion = await service.start({ accountId, source: "upload", segments: threeSegments });
 
       await runner.run(ingestion.id);
       processor.calls.length = 0;
@@ -246,7 +248,7 @@ describe("profile ingestion", () => {
   describe("Account scoping", () => {
     it("answers not found for an Ingestion of another Account, never forbidden", async () => {
       const pair = await createAccountPair(database);
-      const ingestion = await service.start(pair.owner, threeSegments);
+      const ingestion = await service.start({ accountId: pair.owner, source: "upload", segments: threeSegments });
 
       await expectScopedToAccount(pair, (account) => repository.findById(account, ingestion.id));
       await expectScopedToAccount(pair, (account) => repository.progressOf(account, ingestion.id));
@@ -255,7 +257,7 @@ describe("profile ingestion", () => {
 
     it("lets the runner act on an Ingestion by id alone, on behalf of the queue", async () => {
       const pair = await createAccountPair(database);
-      const ingestion = await service.start(pair.owner, threeSegments);
+      const ingestion = await service.start({ accountId: pair.owner, source: "upload", segments: threeSegments });
 
       await runner.run(ingestion.id);
 
@@ -266,7 +268,7 @@ describe("profile ingestion", () => {
 
   describe("progress", () => {
     it("is derived from the persisted Segment states", async () => {
-      const ingestion = await service.start(accountId, threeSegments);
+      const ingestion = await service.start({ accountId, source: "upload", segments: threeSegments });
       const [first, second] = await runs.segmentsOf(ingestion.id);
 
       if (!first || !second) {

@@ -1,3 +1,9 @@
+// A slice [start, end) over the lines of a text.
+export interface LineRange {
+  start: number;
+  end: number;
+}
+
 const DIACRITICS = /\p{Diacritic}/gu;
 const EDGE_PUNCTUATION = /^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu;
 const SPACES = /\s+/g;

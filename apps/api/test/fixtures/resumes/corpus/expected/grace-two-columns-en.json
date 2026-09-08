@@ -50,7 +50,15 @@
         "https://gracehopper.example.com",
         "Senior Software Engineer — Eckert-Mauchly",
         "Philadelphia · 2014 – 2019"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 18
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 18
+      }
     },
     {
       "kind": "skills",
@@ -65,7 +73,15 @@
         "Bazel",
         "Python Maintained the COBOL runtime.",
         "Linux"
-      ]
+      ],
+      "range": {
+        "start": 18,
+        "end": 28
+      },
+      "linesRange": {
+        "start": 19,
+        "end": 28
+      }
     },
     {
       "kind": "education",
@@ -73,7 +89,15 @@
       "lines": [
         "LANGUAGES PhD in Mathematics, Yale University",
         "English - Native 2004 – 2010"
-      ]
+      ],
+      "range": {
+        "start": 28,
+        "end": 32
+      },
+      "linesRange": {
+        "start": 29,
+        "end": 31
+      }
     },
     {
       "kind": "projects",
@@ -82,7 +106,15 @@
         "Moth",
         "A tiny bug tracker that lives in the repository.",
         "https://github.com/gracebh-example/moth"
-      ]
+      ],
+      "range": {
+        "start": 32,
+        "end": 36
+      },
+      "linesRange": {
+        "start": 33,
+        "end": 36
+      }
     }
   ],
   "draft": {

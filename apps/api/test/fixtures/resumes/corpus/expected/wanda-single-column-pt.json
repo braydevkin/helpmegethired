@@ -33,7 +33,15 @@
         "Product Designer",
         "Salvador, BA | (71) 98222-3344 | wanda.teixeira@example.com",
         "linkedin.com/in/wanda-teixeira-example · https://wandateixeira.example.com"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
@@ -42,7 +50,15 @@
         "Product designer com cinco anos em fintechs, do discovery ao design system.",
         "",
         "Idiomas: Português (Nativo), Inglês (Fluente), Francês (Básico)"
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 11
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 10
+      }
     },
     {
       "kind": "experience",
@@ -55,7 +71,15 @@
         "UX Designer | Pelourinho Digital",
         "Salvador · fev 2020 – ago 2022",
         "Desenhou o fluxo de abertura de conta que dobrou a conversão."
-      ]
+      ],
+      "range": {
+        "start": 11,
+        "end": 20
+      },
+      "linesRange": {
+        "start": 12,
+        "end": 19
+      }
     },
     {
       "kind": "education",
@@ -63,14 +87,30 @@
       "lines": [
         "Bacharelado em Design, Universidade Federal da Bahia",
         "2014 – 2018"
-      ]
+      ],
+      "range": {
+        "start": 20,
+        "end": 24
+      },
+      "linesRange": {
+        "start": 21,
+        "end": 23
+      }
     },
     {
       "kind": "skills",
       "heading": "HABILIDADES",
       "lines": [
         "Figma, Storybook, Design Systems, Acessibilidade, UX"
-      ]
+      ],
+      "range": {
+        "start": 24,
+        "end": 27
+      },
+      "linesRange": {
+        "start": 26,
+        "end": 27
+      }
     }
   ],
   "draft": {

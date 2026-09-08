@@ -52,7 +52,15 @@
         "Java.",
         "GitHub Actions",
         "Cypress"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 25
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 25
+      }
     },
     {
       "kind": "education",
@@ -63,7 +71,15 @@
         "2016 – 2018",
         "Português - Nativo",
         "Inglês - Intermediário"
-      ]
+      ],
+      "range": {
+        "start": 25,
+        "end": 32
+      },
+      "linesRange": {
+        "start": 26,
+        "end": 31
+      }
     },
     {
       "kind": "certifications",
@@ -71,7 +87,15 @@
       "lines": [
         "ISTQB Certified Tester Foundation",
         "Level (ISTQB, 2020)"
-      ]
+      ],
+      "range": {
+        "start": 32,
+        "end": 35
+      },
+      "linesRange": {
+        "start": 33,
+        "end": 35
+      }
     }
   ],
   "draft": {

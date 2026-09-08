@@ -80,11 +80,17 @@ export class UploadedResumeRunRepository {
     return toRecord(row);
   }
 
-  async markDone(id: Id): Promise<void> {
-    await this.database
+  async attachIngestion(id: Id, ingestionId: Id, executor: Database = this.database): Promise<void> {
+    await executor.updateTable("uploaded_resumes").set({ ingestion_id: ingestionId, ...updatedNow }).where("id", "=", id).execute();
+  }
+
+  // The record is done once the Ingestion built from its text has completed.
+  async markDoneByIngestion(ingestionId: Id, executor: Database = this.database): Promise<void> {
+    await executor
       .updateTable("uploaded_resumes")
       .set({ status: "done", error_code: null, error_message: null, finished_at: sql<Date>`now()`, ...updatedNow })
-      .where("id", "=", id)
+      .where("ingestion_id", "=", ingestionId)
+      .where("status", "=", "processing")
       .execute();
   }
 

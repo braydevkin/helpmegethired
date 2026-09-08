@@ -31,14 +31,30 @@
         "Research Engineer, Machine Learning",
         "Edinburgh, United Kingdom — +44 131 496 0123 — quinn.adebayo@example.com",
         "linkedin.com/in/quinn-adebayo-example · github.com/quinnab-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
       "heading": "Summary",
       "lines": [
         "Research engineer turning NLP papers into services. Recently finished a PhD on lowresource machine translation."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 9
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 8
+      }
     },
     {
       "kind": "education",
@@ -46,7 +62,15 @@
       "lines": [
         "2020 – 2024 PhD in Informatics, University of Edinburgh",
         "2015 – 2019 BSc in Computer Science, University of Lagos"
-      ]
+      ],
+      "range": {
+        "start": 9,
+        "end": 13
+      },
+      "linesRange": {
+        "start": 10,
+        "end": 12
+      }
     },
     {
       "kind": "experience",
@@ -59,21 +83,45 @@
         "Jun 2022 – Sep 2022 Research Intern, Holyrood AI, Edinburgh",
         "Evaluated tokenisers for Yoruba on a corpus of 40 million",
         "words in Python."
-      ]
+      ],
+      "range": {
+        "start": 13,
+        "end": 22
+      },
+      "linesRange": {
+        "start": 14,
+        "end": 21
+      }
     },
     {
       "kind": "skills",
       "heading": "Skills",
       "lines": [
         "Python · PyTorch · Hugging Face · NLP · FastAPI · Docker · Linux"
-      ]
+      ],
+      "range": {
+        "start": 22,
+        "end": 26
+      },
+      "linesRange": {
+        "start": 24,
+        "end": 25
+      }
     },
     {
       "kind": "languages",
       "heading": "Languages",
       "lines": [
         "English - Native; Yoruba - Native; French - Basic"
-      ]
+      ],
+      "range": {
+        "start": 26,
+        "end": 29
+      },
+      "linesRange": {
+        "start": 28,
+        "end": 29
+      }
     }
   ],
   "draft": {

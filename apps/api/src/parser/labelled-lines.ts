@@ -1,10 +1,11 @@
 import { sectionKindOf, type SectionKind } from "./dictionaries/section-headers";
-import type { Section } from "./sections";
-import { isBlank, normalise } from "./text";
+import type { SectionLines } from "./sections";
+import { isBlank, normalise, type LineRange } from "./text";
 
 export interface LabelledParagraph {
   kind: SectionKind;
   text: string;
+  range: LineRange;
 }
 
 export interface PartitionedLines {
@@ -57,7 +58,7 @@ export function partitionLabelled(lines: readonly string[], ownKind: SectionKind
     if (kind !== undefined && kind !== ownKind) {
       const { text, next } = paragraphFrom(lines, index);
 
-      labelled.push({ kind, text });
+      labelled.push({ kind, text, range: { start: index, end: next } });
       index = next;
     } else {
       own.push(kind === ownKind ? afterLabel(line) : line);
@@ -68,11 +69,11 @@ export function partitionLabelled(lines: readonly string[], ownKind: SectionKind
   return { own, labelled };
 }
 
-export const ownLinesOf = (sections: readonly Section[], kind: SectionKind): string[] =>
+export const ownLinesOf = (sections: readonly SectionLines[], kind: SectionKind): string[] =>
   sections.filter((section) => section.kind === kind).flatMap((section) => partitionLabelled(section.lines, kind).own);
 
 // The sections' own lines of that kind plus every paragraph labelled with it found elsewhere.
-export const linesOfKind = (sections: readonly Section[], kind: SectionKind): string[] =>
+export const linesOfKind = (sections: readonly SectionLines[], kind: SectionKind): string[] =>
   sections.flatMap((section) =>
     section.kind === kind
       ? partitionLabelled(section.lines, kind).own

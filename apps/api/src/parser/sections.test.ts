@@ -49,12 +49,19 @@ describe("splitSections", () => {
 
   it("keeps the text before the first heading as the header and cuts at each heading", () => {
     expect(splitSections(lines)).toEqual([
-      { kind: "header", heading: null, lines: ["Ada Lovelace", "Backend engineer"] },
-      { kind: "experience", heading: "EXPERIENCE", lines: ["Acme, Senior Engineer", "2019 - 2021"] },
-      { kind: "education", heading: "Formação Acadêmica", lines: ["Universidade de Lisboa"] },
-      { kind: "skills", heading: "Skills", lines: ["TypeScript, PostgreSQL"] },
-      { kind: "projects", heading: "Projects", lines: [] },
+      { kind: "header", heading: null, lines: ["Ada Lovelace", "Backend engineer"], range: { start: 0, end: 3 }, linesRange: { start: 0, end: 2 } },
+      { kind: "experience", heading: "EXPERIENCE", lines: ["Acme, Senior Engineer", "2019 - 2021"], range: { start: 3, end: 7 }, linesRange: { start: 4, end: 6 } },
+      { kind: "education", heading: "Formação Acadêmica", lines: ["Universidade de Lisboa"], range: { start: 7, end: 10 }, linesRange: { start: 9, end: 10 } },
+      { kind: "skills", heading: "Skills", lines: ["TypeScript, PostgreSQL"], range: { start: 10, end: 13 }, linesRange: { start: 11, end: 12 } },
+      { kind: "projects", heading: "Projects", lines: [], range: { start: 13, end: 15 }, linesRange: { start: 15, end: 15 } },
     ]);
+  });
+
+  it("gives back the same text when the input is sliced by the ranges", () => {
+    for (const section of splitSections(lines)) {
+      expect(lines.slice(section.linesRange.start, section.linesRange.end)).toEqual(section.lines);
+      expect(lines[section.range.start]).toBe(section.heading ?? lines[0]);
+    }
   });
 
   it("answers no header section when the text opens with a heading", () => {

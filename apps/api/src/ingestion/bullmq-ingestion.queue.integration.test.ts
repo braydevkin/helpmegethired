@@ -28,7 +28,7 @@ const LOCK_DURATION_MS = 1_000;
 const STALLED_INTERVAL_MS = 500;
 
 const threeSegments = ["first experience", "second experience", "third experience"].map((text) => ({
-  kind: "experience",
+  kind: "scripted",
   input: { text },
 }));
 
@@ -110,7 +110,7 @@ describe("profile ingestion through BullMQ", () => {
     processor.failOnceAt("recognize", 1);
     await startConsumer();
 
-    const ingestion = await service.start(accountId, threeSegments);
+    const ingestion = await service.start({ accountId, source: "upload", segments: threeSegments });
 
     expect(await settledProgress(ingestion.id)).toMatchObject({
       status: "completed",
@@ -139,7 +139,7 @@ describe("profile ingestion through BullMQ", () => {
     );
     dying.on("error", () => undefined);
 
-    const ingestion = await service.start(accountId, threeSegments);
+    const ingestion = await service.start({ accountId, source: "upload", segments: threeSegments });
 
     await until(() => processor.hasReached("recognize", 1));
     await dying.close(true);
@@ -153,7 +153,7 @@ describe("profile ingestion through BullMQ", () => {
   });
 
   it("adds one job per Ingestion, named for the run and identified by the Ingestion id", async () => {
-    const ingestion = await service.start(accountId, threeSegments);
+    const ingestion = await service.start({ accountId, source: "upload", segments: threeSegments });
     const job = await producer.get<Queue>(PROFILE_INGESTION_QUEUE).getJob(ingestion.id);
 
     expect(job).toMatchObject({ name: INGESTION_JOB_NAME, data: { ingestionId: ingestion.id, maxAttempts: 3 } });

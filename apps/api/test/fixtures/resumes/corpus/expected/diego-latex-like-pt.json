@@ -31,7 +31,15 @@
         "Engenheiro de Dados",
         "Curitiba, PR — +55 41 99123-4567 — diego.ferreira@example.com",
         "linkedin.com/in/diego-ferreira-example · github.com/diegoaf-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
@@ -39,7 +47,15 @@
       "lines": [
         "Engenheiro de dados focado em pipelines batch e streaming sobre Spark e Kafka, com",
         "atenção especial a custo e a qualidade de dados."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 10
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 9
+      }
     },
     {
       "kind": "experience",
@@ -52,7 +68,15 @@
         "mar. 2016 – mar. 2019 Analista de Dados, Cooperativa Araucária, Curitiba",
         "Construiu os primeiros painéis de vendas em SQL e",
         "Python."
-      ]
+      ],
+      "range": {
+        "start": 10,
+        "end": 19
+      },
+      "linesRange": {
+        "start": 11,
+        "end": 18
+      }
     },
     {
       "kind": "education",
@@ -60,21 +84,45 @@
       "lines": [
         "2012 – 2016 Bacharelado em Ciência da Computação, Universidade",
         "Federal do Paraná"
-      ]
+      ],
+      "range": {
+        "start": 19,
+        "end": 23
+      },
+      "linesRange": {
+        "start": 20,
+        "end": 22
+      }
     },
     {
       "kind": "skills",
       "heading": "Habilidades",
       "lines": [
         "Python · SQL · Spark · Kafka · Airflow · AWS · dbt · PostgreSQL"
-      ]
+      ],
+      "range": {
+        "start": 23,
+        "end": 27
+      },
+      "linesRange": {
+        "start": 25,
+        "end": 26
+      }
     },
     {
       "kind": "languages",
       "heading": "Idiomas",
       "lines": [
         "Português - Nativo; Inglês - Fluente; Espanhol - Intermediário"
-      ]
+      ],
+      "range": {
+        "start": 27,
+        "end": 31
+      },
+      "linesRange": {
+        "start": 29,
+        "end": 30
+      }
     },
     {
       "kind": "certifications",
@@ -82,7 +130,15 @@
       "lines": [
         "2022 Databricks Certified Data Engineer Associate, Databricks",
         "2021 AWS Certified Data Analytics, Amazon Web Services"
-      ]
+      ],
+      "range": {
+        "start": 31,
+        "end": 34
+      },
+      "linesRange": {
+        "start": 32,
+        "end": 34
+      }
     }
   ],
   "draft": {

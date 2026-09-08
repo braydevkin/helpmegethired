@@ -31,7 +31,15 @@
         "Desenvolvedor Backend Júnior",
         "Recife, PE | (81) 99654-3210 | paulo.ramos@example.com",
         "linkedin.com/in/paulo-ramos-example · github.com/pauloramos-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
@@ -39,7 +47,15 @@
       "lines": [
         "Recém-formado em busca da primeira vaga como desenvolvedor backend. Estagiei com Java",
         "e Spring e mantenho projetos pessoais em Node.js."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 10
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 9
+      }
     },
     {
       "kind": "education",
@@ -50,7 +66,15 @@
         "",
         "Curso Técnico em Informática, IFPE",
         "2018 – 2020"
-      ]
+      ],
+      "range": {
+        "start": 10,
+        "end": 17
+      },
+      "linesRange": {
+        "start": 11,
+        "end": 16
+      }
     },
     {
       "kind": "experience",
@@ -60,14 +84,30 @@
         "Recife · 02/2025 – 12/2025",
         "Implementou endpoints REST em Spring Boot e escreveu testes com JUnit.",
         "Automatizou a geração de relatórios em PostgreSQL."
-      ]
+      ],
+      "range": {
+        "start": 17,
+        "end": 23
+      },
+      "linesRange": {
+        "start": 18,
+        "end": 22
+      }
     },
     {
       "kind": "skills",
       "heading": "HABILIDADES",
       "lines": [
         "Java, Spring, Node.js, PostgreSQL, Git, Docker"
-      ]
+      ],
+      "range": {
+        "start": 23,
+        "end": 27
+      },
+      "linesRange": {
+        "start": 25,
+        "end": 26
+      }
     },
     {
       "kind": "projects",
@@ -75,7 +115,15 @@
       "lines": [
         "Cardápio Aberto — https://github.com/pauloramos-example/cardapio-aberto",
         "API pública de cardápios de restaurantes universitários, em NestJS."
-      ]
+      ],
+      "range": {
+        "start": 27,
+        "end": 31
+      },
+      "linesRange": {
+        "start": 28,
+        "end": 30
+      }
     },
     {
       "kind": "languages",
@@ -83,14 +131,30 @@
       "lines": [
         "Português - Nativo",
         "Inglês - Intermediário (B1)"
-      ]
+      ],
+      "range": {
+        "start": 31,
+        "end": 35
+      },
+      "linesRange": {
+        "start": 32,
+        "end": 34
+      }
     },
     {
       "kind": "certifications",
       "heading": "CERTIFICAÇÕES",
       "lines": [
         "Oracle Certified Associate Java SE 8 — Oracle, 2024"
-      ]
+      ],
+      "range": {
+        "start": 35,
+        "end": 37
+      },
+      "linesRange": {
+        "start": 36,
+        "end": 37
+      }
     }
   ],
   "draft": {

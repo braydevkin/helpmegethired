@@ -31,7 +31,15 @@
         "Site Reliability Engineer",
         "Lyon, France — +33 4 72 00 00 00 — xavier.dubois@example.com",
         "linkedin.com/in/xavier-dubois-example · github.com/xdubois-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
@@ -41,7 +49,15 @@
         "short runbooks.",
         "",
         "Languages: French (Native), English (Fluent), German (Intermediate (B2))"
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 12
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 11
+      }
     },
     {
       "kind": "experience",
@@ -53,28 +69,60 @@
         "Wrote the incident tooling in Go.",
         "Sep 2017 – Jan 2021 DevOps Engineer, Presqu'île Hosting, Lyon",
         "Moved deployments from Jenkins to GitLab CI and Helm."
-      ]
+      ],
+      "range": {
+        "start": 12,
+        "end": 20
+      },
+      "linesRange": {
+        "start": 13,
+        "end": 19
+      }
     },
     {
       "kind": "education",
       "heading": "Education",
       "lines": [
         "2012 – 2017 MEng in Computer Engineering, INSA Lyon"
-      ]
+      ],
+      "range": {
+        "start": 20,
+        "end": 23
+      },
+      "linesRange": {
+        "start": 21,
+        "end": 22
+      }
     },
     {
       "kind": "skills",
       "heading": "Skills",
       "lines": [
         "Go · Kubernetes · GCP · Terraform · Helm · GitLab CI · Prometheus"
-      ]
+      ],
+      "range": {
+        "start": 23,
+        "end": 27
+      },
+      "linesRange": {
+        "start": 25,
+        "end": 26
+      }
     },
     {
       "kind": "certifications",
       "heading": "Certifications",
       "lines": [
         "2023 Google Cloud Professional Cloud Architect, Google"
-      ]
+      ],
+      "range": {
+        "start": 27,
+        "end": 29
+      },
+      "linesRange": {
+        "start": 28,
+        "end": 29
+      }
     }
   ],
   "draft": {
