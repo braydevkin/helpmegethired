@@ -1,8 +1,19 @@
 import type { Confidence, ProfilePart, ReviewFlag } from "@helpmegethired/shared";
 
+import type { ZodType } from "zod";
+
 import type { Segment } from "../ingestion/segment";
-import { RecognizedByKindSchema } from "./segments/recognized";
-import { RESUME_SEGMENT_KINDS, type ResumeSegmentKind } from "./segments/resume-segments";
+import {
+  RecognizedCertificationsSchema,
+  RecognizedEducationSchema,
+  RecognizedExperienceSchema,
+  RecognizedHeaderSchema,
+  RecognizedLanguagesSchema,
+  RecognizedProjectSchema,
+  RecognizedSkillsSchema,
+} from "./segments/recognized";
+import type { RecognizedHeader, RecognizedSkills } from "./segments/recognized";
+import type { ResumeSegmentKind } from "./segments/resume-segments";
 
 const REVIEW_BAR: Confidence = "low";
 
@@ -22,15 +33,18 @@ function flagsOfEntry<Entry extends object>(part: ProfilePart, entry: Recognised
   );
 }
 
-const isResumeKind = (kind: string): kind is ResumeSegmentKind => (RESUME_SEGMENT_KINDS as readonly string[]).includes(kind);
+// Answers the flags of a recognized output, or nothing when it no longer reads as expected.
+type FlagReader = (recognized: unknown) => ReviewFlag[] | undefined;
 
-const lowSkills = (recognized: unknown): ReviewFlag[] =>
-  RecognizedByKindSchema.skills
-    .parse(recognized)
-    .skills.flatMap((skill) => (skill.confidence === REVIEW_BAR ? [{ part: "skill" as const, entry: skill.name, field: "name", reason: "low_confidence" as const }] : []));
+const reader =
+  <Recognized>(schema: ZodType<Recognized>, flags: (recognized: Recognized) => ReviewFlag[]): FlagReader =>
+  (recognized) => {
+    const parsed = schema.safeParse(recognized);
 
-const headerFlags = (recognized: unknown): ReviewFlag[] => {
-  const header = RecognizedByKindSchema.header.parse(recognized);
+    return parsed.success ? flags(parsed.data) : undefined;
+  };
+
+const headerFlags = (header: RecognizedHeader): ReviewFlag[] => {
   const mismatches: ReviewFlag[] = (["name", "email"] as const)
     .filter((field) => header.accountMismatch[field])
     .map((field) => ({ part: "basicProfile", entry: null, field, reason: "account_mismatch" }));
@@ -38,29 +52,31 @@ const headerFlags = (recognized: unknown): ReviewFlag[] => {
   return [...flagsOfEntry("basicProfile", header.basicProfile, null), ...mismatches];
 };
 
-const flagsByKind: Record<ResumeSegmentKind, (recognized: unknown) => ReviewFlag[]> = {
-  header: headerFlags,
-  experience: (recognized) =>
-    RecognizedByKindSchema.experience.parse(recognized).experiences.flatMap((entry) => flagsOfEntry("experience", entry, entry.role.value)),
-  education: (recognized) =>
-    RecognizedByKindSchema.education.parse(recognized).education.flatMap((entry) => flagsOfEntry("education", entry, entry.institution.value)),
-  project: (recognized) => RecognizedByKindSchema.project.parse(recognized).projects.flatMap((entry) => flagsOfEntry("project", entry, entry.name.value)),
-  skills: lowSkills,
-  languages: (recognized) =>
-    RecognizedByKindSchema.languages.parse(recognized).languages.flatMap((entry) => flagsOfEntry("language", entry, entry.name.value)),
-  certifications: (recognized) =>
-    RecognizedByKindSchema.certifications
-      .parse(recognized)
-      .certifications.flatMap((entry) => flagsOfEntry("certification", entry, entry.name.value)),
-};
+const lowSkills = (recognized: RecognizedSkills): ReviewFlag[] =>
+  recognized.skills.flatMap((skill) =>
+    skill.confidence === REVIEW_BAR ? [{ part: "skill" as const, entry: skill.name, field: "name", reason: "low_confidence" as const }] : [],
+  );
+
+// One reader per resume kind: the schema its recognized output must still match, and the
+// flags it yields.
+const readers = new Map<ResumeSegmentKind, FlagReader>([
+  ["header", reader(RecognizedHeaderSchema, headerFlags)],
+  ["experience", reader(RecognizedExperienceSchema, ({ experiences }) => experiences.flatMap((entry) => flagsOfEntry("experience", entry, entry.role.value)))],
+  ["education", reader(RecognizedEducationSchema, ({ education }) => education.flatMap((entry) => flagsOfEntry("education", entry, entry.institution.value)))],
+  ["project", reader(RecognizedProjectSchema, ({ projects }) => projects.flatMap((entry) => flagsOfEntry("project", entry, entry.name.value)))],
+  ["skills", reader(RecognizedSkillsSchema, lowSkills)],
+  ["languages", reader(RecognizedLanguagesSchema, ({ languages }) => languages.flatMap((entry) => flagsOfEntry("language", entry, entry.name.value)))],
+  [
+    "certifications",
+    reader(RecognizedCertificationsSchema, ({ certifications }) => certifications.flatMap((entry) => flagsOfEntry("certification", entry, entry.name.value))),
+  ],
+]);
 
 // Only a saved Segment of a resume kind whose output still reads as expected contributes.
 function flagsOfSegment(segment: Segment): ReviewFlag[] {
-  if (!isResumeKind(segment.kind) || segment.status !== "saved") {
-    return [];
-  }
+  const kindReader = readers.get(segment.kind as ResumeSegmentKind);
 
-  return RecognizedByKindSchema[segment.kind].safeParse(segment.recognized).success ? flagsByKind[segment.kind](segment.recognized) : [];
+  return (kindReader && segment.status === "saved" ? kindReader(segment.recognized) : undefined) ?? [];
 }
 
 // The fields the Candidate should look at, read from the Segments' recognized output: the

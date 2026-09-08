@@ -30,13 +30,3 @@ export type RecognizedProject = z.infer<typeof RecognizedProjectSchema>;
 export type RecognizedSkills = z.infer<typeof RecognizedSkillsSchema>;
 export type RecognizedLanguages = z.infer<typeof RecognizedLanguagesSchema>;
 export type RecognizedCertifications = z.infer<typeof RecognizedCertificationsSchema>;
-
-export const RecognizedByKindSchema = {
-  header: RecognizedHeaderSchema,
-  experience: RecognizedExperienceSchema,
-  education: RecognizedEducationSchema,
-  project: RecognizedProjectSchema,
-  skills: RecognizedSkillsSchema,
-  languages: RecognizedLanguagesSchema,
-  certifications: RecognizedCertificationsSchema,
-} as const;
