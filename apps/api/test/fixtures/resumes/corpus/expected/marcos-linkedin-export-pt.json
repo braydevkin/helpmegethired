@@ -29,7 +29,15 @@
         "marcos.pereira@example.com Gerente de Engenharia na Sertão Digital",
         "www.linkedin.com/in/marcos- Fortaleza, Ceará, Brasil",
         "pereira-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 6
+      },
+      "linesRange": {
+        "start": 1,
+        "end": 6
+      }
     },
     {
       "kind": "summary",
@@ -53,7 +61,15 @@
         "Fortaleza",
         "",
         "Projetou o serviço de pedidos em Java sobre PostgreSQL."
-      ]
+      ],
+      "range": {
+        "start": 6,
+        "end": 26
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 25
+      }
     },
     {
       "kind": "education",
@@ -61,7 +77,15 @@
       "lines": [
         "Universidade Federal do Ceará",
         "Bacharelado em Computação · (2007 – 2011)"
-      ]
+      ],
+      "range": {
+        "start": 26,
+        "end": 29
+      },
+      "linesRange": {
+        "start": 27,
+        "end": 29
+      }
     }
   ],
   "draft": {

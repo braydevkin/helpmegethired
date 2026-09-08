@@ -31,7 +31,15 @@
         "Mobile Engineer",
         "Madrid, Spain | +34 91 123 4567 | tomas.herrera@example.com",
         "linkedin.com/in/tomas-herrera-example · github.com/tomashv-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
@@ -39,7 +47,15 @@
       "lines": [
         "Mobile engineer with seven years on iOS and, lately, Flutter. I keep the tooling boring and the",
         "release train on time."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 10
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 9
+      }
     },
     {
       "kind": "experience",
@@ -53,7 +69,15 @@
         "iOS Engineer | Retiro Mobile",
         "Madrid · Mar 2018 – Dec 2021",
         "Wrote the ticketing app in Swift with SwiftUI and a GraphQL client."
-      ]
+      ],
+      "range": {
+        "start": 10,
+        "end": 20
+      },
+      "linesRange": {
+        "start": 11,
+        "end": 19
+      }
     },
     {
       "kind": "education",
@@ -61,7 +85,15 @@
       "lines": [
         "BSc in Software Engineering, Universidad Politécnica de Madrid",
         "2013 – 2017"
-      ]
+      ],
+      "range": {
+        "start": 20,
+        "end": 24
+      },
+      "linesRange": {
+        "start": 21,
+        "end": 23
+      }
     },
     {
       "kind": "projects",
@@ -69,7 +101,15 @@
       "lines": [
         "Andén",
         "A commuter widget for the Madrid metro, published on both stores."
-      ]
+      ],
+      "range": {
+        "start": 24,
+        "end": 28
+      },
+      "linesRange": {
+        "start": 25,
+        "end": 27
+      }
     },
     {
       "kind": "languages",
@@ -77,7 +117,15 @@
       "lines": [
         "Spanish - Native",
         "English - Fluent (C2)"
-      ]
+      ],
+      "range": {
+        "start": 28,
+        "end": 31
+      },
+      "linesRange": {
+        "start": 29,
+        "end": 31
+      }
     }
   ],
   "draft": {

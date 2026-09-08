@@ -2,16 +2,55 @@ import { z } from "zod";
 
 import { BasicProfileSchema } from "./basic-profile.js";
 import { ExperienceSchema } from "./experience.js";
-import { IdSchema, TimestampSchema } from "./primitives.js";
+import { IngestionSourceSchema } from "./ingestion.js";
+import { IdSchema, TextSchema, TimestampSchema } from "./primitives.js";
+import { CertificationSchema, EducationSchema, LanguageSchema, SkillSchema } from "./profile-parts.js";
 import { ProjectSchema } from "./project.js";
 
+export const ProfilePartSchema = z.enum(["basicProfile", "experience", "education", "project", "skill", "language", "certification"]);
+export type ProfilePart = z.infer<typeof ProfilePartSchema>;
+
+export const ReviewReasonSchema = z.enum(["low_confidence", "account_mismatch"]);
+export type ReviewReason = z.infer<typeof ReviewReasonSchema>;
+
+// One field the Candidate should look at: named by its part, the entry it belongs to (the
+// role, the institution, the project name; none for the Basic Profile), and the field.
+export const ReviewFlagSchema = z.object({
+  part: ProfilePartSchema,
+  entry: TextSchema.nullable(),
+  field: TextSchema,
+  reason: ReviewReasonSchema,
+});
+
+export type ReviewFlag = z.infer<typeof ReviewFlagSchema>;
+
+// The Uploaded Resume the Profile was built from and the Ingestion that wrote its rows.
+export const ProfileSourceSchema = z.object({
+  kind: IngestionSourceSchema,
+  uploadedResumeId: IdSchema.nullable(),
+  fileName: TextSchema.nullable(),
+  ingestionId: IdSchema,
+  completedAt: TimestampSchema,
+});
+
+export type ProfileSource = z.infer<typeof ProfileSourceSchema>;
+
+// The seven parts as the latest completed Ingestion wrote them, with the years of experience
+// derived on read and the review flags until the Candidate confirms. An Account with no
+// completed Ingestion has an empty Profile and no source.
 export const ProfileSchema = z.object({
-  id: IdSchema,
   accountId: IdSchema,
   basicProfile: BasicProfileSchema,
   experiences: z.array(ExperienceSchema),
+  education: z.array(EducationSchema),
   projects: z.array(ProjectSchema),
-  updatedAt: TimestampSchema,
+  skills: z.array(SkillSchema),
+  languages: z.array(LanguageSchema),
+  certifications: z.array(CertificationSchema),
+  yearsOfExperience: z.int().nonnegative(),
+  reviewFlags: z.array(ReviewFlagSchema),
+  source: ProfileSourceSchema.nullable(),
+  confirmedAt: TimestampSchema.nullable(),
 });
 
 export type Profile = z.infer<typeof ProfileSchema>;

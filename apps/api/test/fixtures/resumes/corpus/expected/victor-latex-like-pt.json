@@ -28,14 +28,30 @@
         "Administrador de Redes",
         "Manaus, AM — +55 92 99111-2222 — victor.almeida@example.com",
         "linkedin.com/in/victor-almeida-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
       "heading": "Resumo",
       "lines": [
         "Administrador de redes com dez anos em provedores de internet e hospitais."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 9
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 8
+      }
     },
     {
       "kind": "experience",
@@ -51,7 +67,15 @@
         "Windows.",
         "",
         "Certificações: CCNP Enterprise (Cisco, 2022); CCNA (Cisco, 2017)"
-      ]
+      ],
+      "range": {
+        "start": 9,
+        "end": 21
+      },
+      "linesRange": {
+        "start": 10,
+        "end": 20
+      }
     },
     {
       "kind": "education",
@@ -59,21 +83,45 @@
       "lines": [
         "2011 – 2014 Tecnólogo em Redes de Computadores, Universidade do",
         "Estado do Amazonas"
-      ]
+      ],
+      "range": {
+        "start": 21,
+        "end": 25
+      },
+      "linesRange": {
+        "start": 22,
+        "end": 24
+      }
     },
     {
       "kind": "skills",
       "heading": "Habilidades",
       "lines": [
         "Cisco · Zabbix · VPN · Active Directory · DNS · Linux"
-      ]
+      ],
+      "range": {
+        "start": 25,
+        "end": 29
+      },
+      "linesRange": {
+        "start": 27,
+        "end": 28
+      }
     },
     {
       "kind": "languages",
       "heading": "Idiomas",
       "lines": [
         "Português - Nativo; Inglês - Básico"
-      ]
+      ],
+      "range": {
+        "start": 29,
+        "end": 32
+      },
+      "linesRange": {
+        "start": 31,
+        "end": 32
+      }
     }
   ],
   "draft": {

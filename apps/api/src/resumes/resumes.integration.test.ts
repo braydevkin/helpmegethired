@@ -229,7 +229,7 @@ describe("resume endpoints", () => {
       const bytes = pdfBytes(randomUUID());
       const { receipt } = await requestUpload(token, bytes);
       await putObject(receipt, bytes);
-      await app.get(IngestionService).start(accountId, [{ kind: "experience", input: { text: "first" } }]);
+      await app.get(IngestionService).start({ accountId, source: "upload", segments: [{ kind: "experience", input: { text: "first" } }] });
 
       const response = await request("POST", `/resumes/${receipt.resume.id}/complete`, token);
 

@@ -2,6 +2,11 @@ import { z } from "zod";
 
 import { IdSchema, TimestampSchema } from "./primitives.js";
 
+// Where an Ingestion's Segments come from; a completed Ingestion replaces the earlier ones of
+// its source and never touches what another source wrote.
+export const IngestionSourceSchema = z.enum(["upload", "linkedin"]);
+export type IngestionSource = z.infer<typeof IngestionSourceSchema>;
+
 export const IngestionStatusSchema = z.enum(["queued", "running", "failed", "completed"]);
 export type IngestionStatus = z.infer<typeof IngestionStatusSchema>;
 
@@ -14,12 +19,14 @@ export type SegmentStatus = z.infer<typeof SegmentStatusSchema>;
 export const IngestionSchema = z.object({
   id: IdSchema,
   accountId: IdSchema,
+  source: IngestionSourceSchema,
   status: IngestionStatusSchema,
   attempts: z.number().int().nonnegative(),
   maxAttempts: z.number().int().positive(),
   lastError: z.string().nullable(),
   createdAt: TimestampSchema,
   updatedAt: TimestampSchema,
+  completedAt: TimestampSchema.nullable(),
 });
 
 export type Ingestion = z.infer<typeof IngestionSchema>;

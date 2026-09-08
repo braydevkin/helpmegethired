@@ -57,12 +57,28 @@
         "Sistemas, PUC Minas",
         "Português - Nativo 2015 – 2017",
         "Inglês - Avançado"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 30
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 30
+      }
     },
     {
       "kind": "projects",
       "heading": "PROJETOS",
-      "lines": []
+      "lines": [],
+      "range": {
+        "start": 30,
+        "end": 31
+      },
+      "linesRange": {
+        "start": 31,
+        "end": 31
+      }
     },
     {
       "kind": "certifications",
@@ -71,7 +87,15 @@
         "Fila Zero",
         "Scrum Foundation Professional Aplicativo de senhas para postos de saúde, feito em um",
         "(CertiProf, 2021) fim de semana de hackathon."
-      ]
+      ],
+      "range": {
+        "start": 31,
+        "end": 35
+      },
+      "linesRange": {
+        "start": 32,
+        "end": 35
+      }
     }
   ],
   "draft": {

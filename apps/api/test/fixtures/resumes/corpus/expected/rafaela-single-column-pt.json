@@ -28,14 +28,30 @@
         "Analista de Dados",
         "Goiânia, GO | (62) 98111-2233 | rafaela.campos@example.com",
         "linkedin.com/in/rafaela-campos-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
       "heading": "RESUMO",
       "lines": [
         "Analista de dados com quatro anos entre SQL, Python e Power BI, em varejo e logística."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 9
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 8
+      }
     },
     {
       "kind": "education",
@@ -43,7 +59,15 @@
       "lines": [
         "Bacharelado em Estatística, Universidade Federal de Goiás",
         "2016 – 2020"
-      ]
+      ],
+      "range": {
+        "start": 9,
+        "end": 13
+      },
+      "linesRange": {
+        "start": 10,
+        "end": 12
+      }
     },
     {
       "kind": "experience",
@@ -57,14 +81,30 @@
         "Analista de Dados Júnior | Rede Planalto",
         "Goiânia · mar 2021 – jun 2023",
         "Escreveu as consultas SQL das metas semanais das lojas."
-      ]
+      ],
+      "range": {
+        "start": 13,
+        "end": 23
+      },
+      "linesRange": {
+        "start": 14,
+        "end": 22
+      }
     },
     {
       "kind": "skills",
       "heading": "HABILIDADES",
       "lines": [
         "SQL, Python, Power BI, BigQuery, dbt, Excel"
-      ]
+      ],
+      "range": {
+        "start": 23,
+        "end": 27
+      },
+      "linesRange": {
+        "start": 25,
+        "end": 26
+      }
     },
     {
       "kind": "languages",
@@ -73,14 +113,30 @@
         "Português - Nativo",
         "Inglês - Avançado",
         "Espanhol - Básico"
-      ]
+      ],
+      "range": {
+        "start": 27,
+        "end": 32
+      },
+      "linesRange": {
+        "start": 28,
+        "end": 31
+      }
     },
     {
       "kind": "certifications",
       "heading": "CERTIFICAÇÕES",
       "lines": [
         "Microsoft Certified: Power BI Data Analyst Associate — Microsoft, 2023"
-      ]
+      ],
+      "range": {
+        "start": 32,
+        "end": 34
+      },
+      "linesRange": {
+        "start": 33,
+        "end": 34
+      }
     }
   ],
   "draft": {

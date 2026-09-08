@@ -20,7 +20,7 @@ export interface StepCall {
 }
 
 export class ScriptedSegmentProcessor extends SegmentProcessor<SegmentInput, SegmentContent, RecognizedSegment> {
-  readonly kind = "experience";
+  readonly kind = "scripted";
   readonly calls: StepCall[] = [];
   readonly saved = new Map<number, RecognizedSegment>();
   private readonly pendingFailures: StepCall[] = [];

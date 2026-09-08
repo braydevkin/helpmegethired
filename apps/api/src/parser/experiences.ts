@@ -11,7 +11,8 @@ export const PART_SEPARATOR = /\s*\|\s*|\s+[-–—]\s+|\s*,\s*|\s+(?:em|at|@|na
 // blank line and no date line does, as a volunteer position listed without dates.
 const isTitledHeading = (line: string): boolean => isHeadingLine(line) && hasJobTitleWord(line) && PART_SEPARATOR.test(line);
 
-const opensEntry = (line: string, previous: string): boolean => !isHeadingLine(previous) && isTitledHeading(line);
+export const opensExperience = (line: string, previous: string | undefined): boolean =>
+  previous !== undefined && !isHeadingLine(previous) && isTitledHeading(line);
 
 export const partsOf = (headingLines: readonly string[]): string[] =>
   (headingLines.length > 1 ? headingLines : (headingLines[0] ?? "").split(PART_SEPARATOR))
@@ -55,7 +56,7 @@ function toExperience(entry: RawEntry): DraftExperience | undefined {
 }
 
 export function extractExperiences(lines: readonly string[]): DraftExperience[] {
-  return splitEntries(lines, (line, previous) => opensEntry(line, previous ?? "")).flatMap((entry) => {
+  return splitEntries(lines, opensExperience).flatMap((entry) => {
     const experience = toExperience(entry);
 
     return experience ? [experience] : [];

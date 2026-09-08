@@ -73,6 +73,17 @@ export class UploadedResumeRepository {
     return row && toStoredResume(row);
   }
 
+  async findByIngestionId(accountId: Id, ingestionId: Id): Promise<StoredResume | undefined> {
+    const row = await this.database
+      .selectFrom("uploaded_resumes")
+      .selectAll()
+      .where("account_id", "=", accountId)
+      .where("ingestion_id", "=", ingestionId)
+      .executeTakeFirst();
+
+    return row && toStoredResume(row);
+  }
+
   async findLiveBySha256(accountId: Id, sha256: string): Promise<StoredResume | undefined> {
     const row = await this.database
       .selectFrom("uploaded_resumes")

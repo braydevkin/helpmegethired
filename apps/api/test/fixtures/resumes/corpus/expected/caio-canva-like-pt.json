@@ -52,7 +52,15 @@
         "(https://github.com/caiodf-example/mare) IDIOMAS",
         "Português - Nativo",
         "Inglês - Intermediário"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 25
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 25
+      }
     }
   ],
   "draft": {

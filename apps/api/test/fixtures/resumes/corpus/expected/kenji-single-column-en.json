@@ -31,14 +31,30 @@
         "Mobile Engineer",
         "Vancouver, Canada | +1 (604) 555-0177 | kenji.nakamura@example.com",
         "linkedin.com/in/kenji-nakamura-example · github.com/kenjin-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
       "heading": "SUMMARY",
       "lines": [
         "Mobile engineer shipping iOS and Android apps, and teaching on weekends."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 9
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 8
+      }
     },
     {
       "kind": "experience",
@@ -54,7 +70,15 @@
         "Volunteer Instructor | Code Club Vancouver",
         "Vancouver",
         "Teach children to program on Saturdays."
-      ]
+      ],
+      "range": {
+        "start": 9,
+        "end": 21
+      },
+      "linesRange": {
+        "start": 10,
+        "end": 20
+      }
     },
     {
       "kind": "education",
@@ -62,14 +86,30 @@
       "lines": [
         "BSc in Computer Science, University of British Columbia",
         "2014 – 2018"
-      ]
+      ],
+      "range": {
+        "start": 21,
+        "end": 25
+      },
+      "linesRange": {
+        "start": 22,
+        "end": 24
+      }
     },
     {
       "kind": "skills",
       "heading": "SKILLS",
       "lines": [
         "Swift, Kotlin, Kotlin Multiplatform, SwiftUI, GraphQL"
-      ]
+      ],
+      "range": {
+        "start": 25,
+        "end": 29
+      },
+      "linesRange": {
+        "start": 27,
+        "end": 28
+      }
     },
     {
       "kind": "languages",
@@ -77,7 +117,15 @@
       "lines": [
         "English - Native",
         "Japanese - Fluent"
-      ]
+      ],
+      "range": {
+        "start": 29,
+        "end": 32
+      },
+      "linesRange": {
+        "start": 30,
+        "end": 32
+      }
     }
   ],
   "draft": {

@@ -178,7 +178,7 @@ describe("reconciliation", () => {
     const ingestion = await producer
       .get(TransactionRunner)
       .run((transaction) =>
-        producer.get(IngestionRepository).create(accountId, [{ kind: "experience", input: { text: "first" } }], MAX_ATTEMPTS, transaction),
+        producer.get(IngestionRepository).create(accountId, "upload", [{ kind: "experience", input: { text: "first" } }], MAX_ATTEMPTS, transaction),
       );
 
     return ingestionRowOf(ingestion.id);

@@ -47,7 +47,15 @@
         "Milano",
         "Italian - Native 2016 – 2018",
         "English - Fluent"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 23
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 23
+      }
     }
   ],
   "draft": {

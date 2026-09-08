@@ -38,7 +38,15 @@
         "cuidando do design system e da acessibilidade do produto. Bacharelado em Ciência",
         "da Computação, PUCRS",
         "2019 – 2022"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 11
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 11
+      }
     },
     {
       "kind": "experience",
@@ -58,7 +66,15 @@
         "example/acessivel)",
         "Português - Nativo",
         "Inglês - Intermediário"
-      ]
+      ],
+      "range": {
+        "start": 11,
+        "end": 26
+      },
+      "linesRange": {
+        "start": 12,
+        "end": 26
+      }
     }
   ],
   "draft": {

@@ -46,7 +46,15 @@
         "and measure what happens after. Design, Universidade de",
         "Lisboa",
         "2014 – 2018"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 13
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 13
+      }
     },
     {
       "kind": "experience",
@@ -72,7 +80,15 @@
         "Tile · A colour contrast checker for design tokens.",
         "Spanish - Basic",
         "(https://carlaribeiro.example.com/tile)"
-      ]
+      ],
+      "range": {
+        "start": 13,
+        "end": 34
+      },
+      "linesRange": {
+        "start": 14,
+        "end": 34
+      }
     }
   ],
   "draft": {

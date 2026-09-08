@@ -31,7 +31,15 @@
         "Engenheira de Software Sênior (Backend)",
         "Londres, Reino Unido | +44 20 7946 0958 | ada.lovelace@example.com",
         "linkedin.com/in/ada-lovelace-example · github.com/ada-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
@@ -39,7 +47,15 @@
       "lines": [
         "Engenheira backend com dez anos construindo filas, pipelines de ingestão e os serviços ao",
         "redor. Confortável em cuidar de um sistema do esquema ao plantão."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 10
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 9
+      }
     },
     {
       "kind": "experience",
@@ -58,7 +74,15 @@
         "Construiu o serviço de cobrança em TypeScript sobre PostgreSQL, processando 2 milhões",
         "de faturas por mês.",
         "Introduziu testes de contrato entre a API e o aplicativo web."
-      ]
+      ],
+      "range": {
+        "start": 10,
+        "end": 25
+      },
+      "linesRange": {
+        "start": 11,
+        "end": 24
+      }
     },
     {
       "kind": "education",
@@ -69,14 +93,30 @@
         "",
         "Bacharelado em Matemática, University of Leeds",
         "2011 – 2014"
-      ]
+      ],
+      "range": {
+        "start": 25,
+        "end": 32
+      },
+      "linesRange": {
+        "start": 26,
+        "end": 31
+      }
     },
     {
       "kind": "skills",
       "heading": "HABILIDADES",
       "lines": [
         "TypeScript, Node.js, PostgreSQL, Redis, Docker, Kubernetes, AWS, Terraform"
-      ]
+      ],
+      "range": {
+        "start": 32,
+        "end": 36
+      },
+      "linesRange": {
+        "start": 34,
+        "end": 35
+      }
     },
     {
       "kind": "projects",
@@ -84,7 +124,15 @@
       "lines": [
         "Difference Engine — https://github.com/ada-example/difference-engine",
         "Uma calculadora mecânica de funções polinomiais, reconstruída como simulador web."
-      ]
+      ],
+      "range": {
+        "start": 36,
+        "end": 40
+      },
+      "linesRange": {
+        "start": 37,
+        "end": 39
+      }
     },
     {
       "kind": "languages",
@@ -92,14 +140,30 @@
       "lines": [
         "Inglês - Nativo",
         "Francês - Intermediário (B1)"
-      ]
+      ],
+      "range": {
+        "start": 40,
+        "end": 44
+      },
+      "linesRange": {
+        "start": 41,
+        "end": 43
+      }
     },
     {
       "kind": "certifications",
       "heading": "CERTIFICAÇÕES",
       "lines": [
         "AWS Solutions Architect Associate — Amazon Web Services, 2023"
-      ]
+      ],
+      "range": {
+        "start": 44,
+        "end": 46
+      },
+      "linesRange": {
+        "start": 45,
+        "end": 46
+      }
     }
   ],
   "draft": {

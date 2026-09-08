@@ -1,5 +1,5 @@
 import { findDateRange, withoutDateRange, type DateRangeMatch } from "./dates";
-import { hasLetters, isBlank, trimTrailing, wordsOf } from "./text";
+import { hasLetters, isBlank, trimTrailing, wordsOf, type LineRange } from "./text";
 
 export interface RawEntry {
   headingLines: string[];
@@ -39,37 +39,40 @@ export const isHeadingLine = (line: string): boolean =>
   !isBlank(line) && wordsOf(line).length <= HEADING_MAX_WORDS && !endsAsSentence(line.trim());
 
 // Blocks are cut at blank lines and wherever the caller's rule says a line opens an entry
-// even without a blank line before it.
-export function blocksOf(lines: readonly string[], opensEntry: OpensEntry = never): string[][] {
-  const blocks: string[][] = [];
-  let current: string[] = [];
+// even without a blank line before it; each block is a range [start, end) over the lines.
+export function blockRangesOf(lines: readonly string[], opensEntry: OpensEntry = never): LineRange[] {
+  const blocks: LineRange[] = [];
+  let start: number | undefined;
   let previous: string | undefined;
 
-  const close = () => {
-    if (current.length > 0) {
-      blocks.push(current);
-      current = [];
+  const close = (end: number) => {
+    if (start !== undefined) {
+      blocks.push({ start, end });
+      start = undefined;
     }
   };
 
-  for (const line of lines) {
+  lines.forEach((line, index) => {
     if (isBlank(line)) {
-      close();
+      close(index);
     } else {
       if (previous !== undefined && opensEntry(line, previous)) {
-        close();
+        close(index);
       }
 
-      current.push(line);
+      start ??= index;
     }
 
     previous = isBlank(line) ? undefined : line;
-  }
+  });
 
-  close();
+  close(lines.length);
 
   return blocks;
 }
+
+export const blocksOf = (lines: readonly string[], opensEntry: OpensEntry = never): string[][] =>
+  blockRangesOf(lines, opensEntry).map((block) => lines.slice(block.start, block.end));
 
 // The heading of a dated entry is the one or two short lines right before its date line,
 // never reaching back past the previous entry's date line.

@@ -1,7 +1,9 @@
 import { Injectable, Logger } from "@nestjs/common";
 import type { Id, Ingestion, SegmentStep } from "@helpmegethired/shared";
 
+import { TransactionRunner } from "../database/transaction-runner";
 import { IngestionNotFoundError } from "./ingestion-errors";
+import { IngestionObservers } from "./ingestion-observer";
 import { IngestionRunRepository } from "./ingestion-run.repository";
 import type { Segment } from "./segment";
 import type { AnySegmentProcessor, SegmentContext } from "./segment-processor";
@@ -17,6 +19,8 @@ export class IngestionRunner {
   constructor(
     private readonly repository: IngestionRunRepository,
     private readonly processors: SegmentProcessorRegistry,
+    private readonly observers: IngestionObservers,
+    private readonly transactions: TransactionRunner,
   ) {}
 
   async run(ingestionId: Id): Promise<void> {
@@ -33,16 +37,34 @@ export class IngestionRunner {
         await this.completeSegment(segment, ingestion);
       }
 
-      await this.repository.completeAttempt(ingestionId);
+      await this.complete(ingestionId);
     } catch (error) {
-      const failed = await this.repository.failAttempt(ingestionId, messageOf(error));
-
-      this.logger.warn(
-        `Ingestion ${ingestionId} failed on attempt ${ingestion.attempts} of ${ingestion.maxAttempts}; ` +
-          `now ${failed?.status ?? "unknown"}`,
-      );
+      await this.fail(ingestion, error);
 
       throw error;
+    }
+  }
+
+  // The completion and what follows it, such as replacing the previous Profile, are one
+  // transaction: a crash in between leaves the Ingestion running for the next attempt.
+  private complete(ingestionId: Id): Promise<void> {
+    return this.transactions.run(async (transaction) => {
+      const completed = await this.repository.completeAttempt(ingestionId, transaction);
+
+      await this.observers.completed(completed, transaction);
+    });
+  }
+
+  private async fail(ingestion: Ingestion, error: unknown): Promise<void> {
+    const failed = await this.repository.failAttempt(ingestion.id, messageOf(error));
+
+    this.logger.warn(
+      `Ingestion ${ingestion.id} failed on attempt ${ingestion.attempts} of ${ingestion.maxAttempts}; ` +
+        `now ${failed?.status ?? "unknown"}`,
+    );
+
+    if (failed?.status === "failed") {
+      await this.observers.failed(failed);
     }
   }
 

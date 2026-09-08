@@ -1,12 +1,12 @@
 import { Inject, Injectable } from "@nestjs/common";
-import type { Id, Ingestion, IngestionProgress } from "@helpmegethired/shared";
+import type { Id, Ingestion, IngestionProgress, IngestionSource } from "@helpmegethired/shared";
 
 import { lockAccount } from "../database/account-lock";
 import { DATABASE, type Database } from "../database/database";
 import { isUniqueViolation } from "../database/database-errors";
 import { IngestionAlreadyActiveError } from "./ingestion-errors";
-import { asJson, toIngestion } from "./ingestion.mapper";
-import type { NewSegment } from "./segment";
+import { asJson, toIngestion, toSegment } from "./ingestion.mapper";
+import type { NewSegment, Segment } from "./segment";
 import { progressOf } from "./segment-state";
 
 const ONE_ACTIVE_PER_ACCOUNT_INDEX = "ingestions_one_active_per_account_idx";
@@ -17,6 +17,7 @@ export class IngestionRepository {
 
   async create(
     accountId: Id,
+    source: IngestionSource,
     segments: readonly NewSegment[],
     maxAttempts: number,
     transaction: Database,
@@ -26,7 +27,7 @@ export class IngestionRepository {
 
       const row = await transaction
         .insertInto("ingestions")
-        .values({ account_id: accountId, status: "queued", max_attempts: maxAttempts, last_error: null })
+        .values({ account_id: accountId, source, status: "queued", max_attempts: maxAttempts, last_error: null, completed_at: null })
         .returningAll()
         .executeTakeFirstOrThrow();
 
@@ -66,6 +67,35 @@ export class IngestionRepository {
       .executeTakeFirst();
 
     return row && toIngestion(row);
+  }
+
+  // The Profile reads the rows of the latest completed Ingestion per source.
+  async findLatestCompleted(accountId: Id, source: IngestionSource): Promise<Ingestion | undefined> {
+    const row = await this.database
+      .selectFrom("ingestions")
+      .selectAll()
+      .where("account_id", "=", accountId)
+      .where("source", "=", source)
+      .where("status", "=", "completed")
+      .orderBy("completed_at", "desc")
+      .orderBy("id", "desc")
+      .executeTakeFirst();
+
+    return row && toIngestion(row);
+  }
+
+  // The Segments' recognized output is where the Confidence of every field lives.
+  async segmentsOf(accountId: Id, ingestionId: Id): Promise<Segment[]> {
+    const rows = await this.database
+      .selectFrom("ingestion_segments")
+      .innerJoin("ingestions", "ingestions.id", "ingestion_segments.ingestion_id")
+      .selectAll("ingestion_segments")
+      .where("ingestions.account_id", "=", accountId)
+      .where("ingestion_segments.ingestion_id", "=", ingestionId)
+      .orderBy("ingestion_segments.position")
+      .execute();
+
+    return rows.map(toSegment);
   }
 
   async hasActive(accountId: Id, executor: Database = this.database): Promise<boolean> {

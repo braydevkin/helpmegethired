@@ -17,8 +17,8 @@ describe("labelled lines", () => {
 
     expect(own).toEqual(["Engineer at Acme", "Shipped it.", ""]);
     expect(labelled).toEqual([
-      { kind: "certifications", text: "CKA (CNCF, 2022); CKAD (CNCF, 2023)" },
-      { kind: "languages", text: "English" },
+      { kind: "certifications", text: "CKA (CNCF, 2022); CKAD (CNCF, 2023)", range: { start: 2, end: 4 } },
+      { kind: "languages", text: "English", range: { start: 5, end: 6 } },
     ]);
   });
 
@@ -26,8 +26,8 @@ describe("labelled lines", () => {
     const { labelled } = partitionLabelled(["Idiomas: Português (nativo)", "Certificações: CCNA (Cisco, 2017)"], "summary");
 
     expect(labelled).toEqual([
-      { kind: "languages", text: "Português (nativo)" },
-      { kind: "certifications", text: "CCNA (Cisco, 2017)" },
+      { kind: "languages", text: "Português (nativo)", range: { start: 0, end: 1 } },
+      { kind: "certifications", text: "CCNA (Cisco, 2017)", range: { start: 1, end: 2 } },
     ]);
   });
 

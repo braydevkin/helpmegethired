@@ -1,7 +1,8 @@
 import { Module } from "@nestjs/common";
 
+import { IngestionModule } from "../ingestion/ingestion.module";
 import { StorageModule } from "../storage/storage.module";
-import { ExtractionHandover, MarkDoneHandover } from "./extraction-handover";
+import { ExtractionHandover, ResumeIngestionHandover } from "./extraction-handover";
 import { PdfInspector } from "./pdf-inspector";
 import { PdfTextExtractor } from "./pdf-text-extractor";
 import { PdfjsTextExtractor } from "./pdfjs-text-extractor";
@@ -11,7 +12,7 @@ import { TextExtractor } from "./text-extractor";
 import { UploadedResumeRunRepository } from "./uploaded-resume-run.repository";
 
 @Module({
-  imports: [StorageModule],
+  imports: [StorageModule, IngestionModule],
   providers: [
     UploadedResumeRunRepository,
     PdfInspector,
@@ -19,7 +20,7 @@ import { UploadedResumeRunRepository } from "./uploaded-resume-run.repository";
     PopplerTextExtractor,
     PdfjsTextExtractor,
     { provide: TextExtractor, useClass: PdfTextExtractor },
-    { provide: ExtractionHandover, useClass: MarkDoneHandover },
+    { provide: ExtractionHandover, useClass: ResumeIngestionHandover },
     ResumeExtractionProcessor,
   ],
   exports: [ResumeExtractionProcessor, PopplerTextExtractor, UploadedResumeRunRepository],

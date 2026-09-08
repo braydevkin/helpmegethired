@@ -1,7 +1,7 @@
 import type { DraftSkill } from "@helpmegethired/shared";
 
 import { TECHNOLOGIES, type Technology } from "./dictionaries/technologies";
-import type { Section } from "./sections";
+import type { SectionLines } from "./sections";
 
 const TOKEN_SEPARATORS = /[\s/,;|·•()[\]{}"'“”‘’<>]+/u;
 const LEADING_PUNCTUATION = /^[^\p{L}\p{N}.]+/u;
@@ -60,7 +60,7 @@ export function findTechnologies(text: string): Technology[] {
 export const skillNamesIn = (text: string): string[] => findTechnologies(text).map((technology) => technology.name);
 
 // A technology listed under a skills heading is high; one only mentioned in prose is medium.
-export function extractSkills(sections: readonly Section[]): DraftSkill[] {
+export function extractSkills(sections: readonly SectionLines[]): DraftSkill[] {
   const skills = new Map<string, DraftSkill>();
 
   for (const section of sections) {

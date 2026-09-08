@@ -29,12 +29,28 @@
         "elena.petrova@example.com Engineering Manager at Northwind Systems",
         "www.linkedin.com/in/elena- Berlin, Germany",
         "petrova-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 6
+      },
+      "linesRange": {
+        "start": 1,
+        "end": 6
+      }
     },
     {
       "kind": "summary",
       "heading": "Summary",
-      "lines": []
+      "lines": [],
+      "range": {
+        "start": 6,
+        "end": 7
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 7
+      }
     },
     {
       "kind": "skills",
@@ -44,12 +60,28 @@
         "Go years as a backend engineer in payments. I care about clear",
         "ownership and boring infrastructure.",
         "PostgreSQL"
-      ]
+      ],
+      "range": {
+        "start": 7,
+        "end": 13
+      },
+      "linesRange": {
+        "start": 8,
+        "end": 12
+      }
     },
     {
       "kind": "languages",
       "heading": "Languages",
-      "lines": []
+      "lines": [],
+      "range": {
+        "start": 13,
+        "end": 14
+      },
+      "linesRange": {
+        "start": 14,
+        "end": 14
+      }
     },
     {
       "kind": "experience",
@@ -76,7 +108,15 @@
         "Tallinn",
         "",
         "Built card processing integrations in Java."
-      ]
+      ],
+      "range": {
+        "start": 14,
+        "end": 37
+      },
+      "linesRange": {
+        "start": 15,
+        "end": 36
+      }
     },
     {
       "kind": "education",
@@ -84,7 +124,15 @@
       "lines": [
         "Tallinn University of Technology",
         "MSc, Computer Science · (2011 – 2013)"
-      ]
+      ],
+      "range": {
+        "start": 37,
+        "end": 40
+      },
+      "linesRange": {
+        "start": 38,
+        "end": 40
+      }
     }
   ],
   "draft": {

@@ -1,8 +1,10 @@
 import type { ColumnType, Generated, Insertable, Selectable } from "kysely";
 import type {
+  IngestionSource,
   IngestionStatus,
   ResumeUploadErrorCode,
   SegmentStatus,
+  SkillCategory,
   UploadedResumeStatus,
 } from "@helpmegethired/shared";
 
@@ -43,12 +45,14 @@ export type VerificationTokenRow = Selectable<VerificationTokensTable>;
 export interface IngestionsTable {
   id: Generated<string>;
   account_id: string;
+  source: IngestionSource;
   status: IngestionStatus;
   attempts: Generated<number>;
   max_attempts: number;
   last_error: string | null;
   created_at: Generated<Date>;
   updated_at: Generated<Date>;
+  completed_at: Date | null;
 }
 
 export type IngestionRow = Selectable<IngestionsTable>;
@@ -95,6 +99,76 @@ export interface UploadedResumesTable {
 export type UploadedResumeRow = Selectable<UploadedResumesTable>;
 export type NewUploadedResumeRow = Insertable<UploadedResumesTable>;
 
+interface ProfileRowColumns {
+  id: Generated<string>;
+  account_id: string;
+  source_ingestion_id: string;
+  segment_id: string;
+  created_at: Generated<Date>;
+}
+
+interface OrderedProfileRowColumns extends ProfileRowColumns {
+  segment_position: number;
+  position: number;
+}
+
+interface PeriodColumns {
+  period_start: string | null;
+  period_end: string | null;
+}
+
+export interface BasicProfilesTable extends ProfileRowColumns {
+  headline: string | null;
+  summary: string | null;
+  linkedin_url: string | null;
+  github_url: string | null;
+  confirmed_at: Date | null;
+}
+
+export interface ExperiencesTable extends OrderedProfileRowColumns, PeriodColumns {
+  company: string | null;
+  role: string;
+  description: string | null;
+  skills: JsonColumn;
+}
+
+export interface EducationTable extends OrderedProfileRowColumns, PeriodColumns {
+  institution: string;
+  degree: string | null;
+  field_of_study: string | null;
+}
+
+export interface ProjectsTable extends OrderedProfileRowColumns {
+  name: string;
+  description: string | null;
+  url: string | null;
+  skills: JsonColumn;
+}
+
+export interface SkillsTable extends OrderedProfileRowColumns {
+  name: string;
+  category: SkillCategory;
+}
+
+export interface LanguagesTable extends OrderedProfileRowColumns {
+  name: string;
+  level: string | null;
+}
+
+export interface CertificationsTable extends OrderedProfileRowColumns {
+  name: string;
+  issuer: string | null;
+  year: number | null;
+}
+
+export type BasicProfileRow = Selectable<BasicProfilesTable>;
+export type ExperienceRow = Selectable<ExperiencesTable>;
+export type EducationRow = Selectable<EducationTable>;
+export type ProjectRow = Selectable<ProjectsTable>;
+export type SkillRow = Selectable<SkillsTable>;
+export type LanguageRow = Selectable<LanguagesTable>;
+export type CertificationRow = Selectable<CertificationsTable>;
+
 export interface DatabaseSchema {
   accounts: AccountsTable;
   sessions: SessionsTable;
@@ -102,4 +176,11 @@ export interface DatabaseSchema {
   ingestions: IngestionsTable;
   ingestion_segments: IngestionSegmentsTable;
   uploaded_resumes: UploadedResumesTable;
+  basic_profiles: BasicProfilesTable;
+  experiences: ExperiencesTable;
+  education: EducationTable;
+  projects: ProjectsTable;
+  skills: SkillsTable;
+  languages: LanguagesTable;
+  certifications: CertificationsTable;
 }

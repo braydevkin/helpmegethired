@@ -22,7 +22,7 @@ const withoutUrl = (text: string): string => text.replace(URL, "").replace(URL_W
 const isNameLine = (line: string): boolean =>
   isHeadingLine(line) && /^[\p{Lu}\p{N}]/u.test(line.trim()) && hasLetters(withoutUrl(line));
 
-const opensEntry = (line: string, previous: string | undefined): boolean =>
+export const opensProject = (line: string, previous: string | undefined): boolean =>
   previous !== undefined && endsAsSentence(previous) && isNameLine(line);
 
 function toProject(entry: RawEntry): DraftProject | undefined {
@@ -46,7 +46,7 @@ function toProject(entry: RawEntry): DraftProject | undefined {
 }
 
 export function extractProjects(lines: readonly string[]): DraftProject[] {
-  return splitEntries(lines, opensEntry).flatMap((entry) => {
+  return splitEntries(lines, opensProject).flatMap((entry) => {
     const project = toProject(entry);
 
     return project ? [project] : [];

@@ -31,7 +31,15 @@
         "Security Engineer",
         "Warsaw, Poland — +48 22 123 45 67 — zeno.kowalski@example.com",
         "linkedin.com/in/zeno-kowalski-example · github.com/zenok-example"
-      ]
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
     },
     {
       "kind": "summary",
@@ -39,7 +47,15 @@
       "lines": [
         "Security engineer on application security and identity. Nine years across banks and a",
         "scale-up."
-      ]
+      ],
+      "range": {
+        "start": 5,
+        "end": 10
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 9
+      }
     },
     {
       "kind": "experience",
@@ -56,7 +72,15 @@
         "",
         "Certifications: Offensive Security Certified Professional (OffSec, 2019); CISSP (ISC2,",
         "2022)"
-      ]
+      ],
+      "range": {
+        "start": 10,
+        "end": 23
+      },
+      "linesRange": {
+        "start": 11,
+        "end": 22
+      }
     },
     {
       "kind": "education",
@@ -64,14 +88,30 @@
       "lines": [
         "2011 – 2016 MSc in Computer Science, Warsaw University of",
         "Technology"
-      ]
+      ],
+      "range": {
+        "start": 23,
+        "end": 27
+      },
+      "linesRange": {
+        "start": 24,
+        "end": 26
+      }
     },
     {
       "kind": "languages",
       "heading": "Languages",
       "lines": [
         "Polish - Native; English - Fluent"
-      ]
+      ],
+      "range": {
+        "start": 27,
+        "end": 30
+      },
+      "linesRange": {
+        "start": 29,
+        "end": 30
+      }
     }
   ],
   "draft": {

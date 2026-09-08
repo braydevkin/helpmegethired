@@ -6,12 +6,14 @@ import { IngestionProgressSchema, IngestionSchema, SegmentStatusSchema } from ".
 const ingestion = {
   id: "0f8fad5b-d9cb-469f-a165-70867728950e",
   accountId: ACCOUNT_ID,
+  source: "upload",
   status: "queued",
   attempts: 0,
   maxAttempts: 3,
   lastError: null,
   createdAt: "2026-09-02T10:00:00.000Z",
   updatedAt: "2026-09-02T10:00:00.000Z",
+  completedAt: null,
 };
 
 describe("IngestionSchema", () => {
@@ -21,6 +23,8 @@ describe("IngestionSchema", () => {
 
   it.each([
     ["an unknown status", { ...ingestion, status: "paused" }],
+    ["an unknown source", { ...ingestion, source: "indeed" }],
+    ["a missing completion time", { ...ingestion, completedAt: undefined }],
     ["negative attempts", { ...ingestion, attempts: -1 }],
     ["zero allowed attempts", { ...ingestion, maxAttempts: 0 }],
     ["a missing last error", { ...ingestion, lastError: undefined }],

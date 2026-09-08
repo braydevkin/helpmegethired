@@ -1,10 +1,17 @@
 import { sectionKindOf, type SectionKind } from "./dictionaries/section-headers";
-import { isAllCaps, isBlank, normalise, wordsOf } from "./text";
+import { isAllCaps, isBlank, normalise, wordsOf, type LineRange } from "./text";
 
+// What the layers that walk sections need of one: its kind and its lines.
+export type SectionLines = Pick<Section, "kind" | "lines">;
+
+// The range covers the heading line and the section's lines as [start, end) over the input;
+// linesRange covers the lines alone, so a slice of the input gives the same text back.
 export interface Section {
   kind: SectionKind;
   heading: string | null;
   lines: string[];
+  range: LineRange;
+  linesRange: LineRange;
 }
 
 export interface HeaderScore {
@@ -37,39 +44,56 @@ export const isHeader = (line: string, nextLine: string | undefined): SectionKin
   return kind !== undefined && score >= HEADER_THRESHOLD ? kind : undefined;
 };
 
-const trimmed = (lines: readonly string[]): string[] => {
-  const start = lines.findIndex((line) => !isBlank(line));
+interface OpenSection {
+  kind: SectionKind;
+  heading: string | null;
+  start: number;
+  firstLine: number;
+}
 
-  if (start === -1) {
-    return [];
+// The section's lines without the blank ones at either end, as a range over the input.
+function trimmedRange(lines: readonly string[], start: number, end: number): LineRange {
+  let first = start;
+  let last = end;
+
+  while (first < last && isBlank(lines[first])) {
+    first += 1;
   }
 
-  const end = lines.length - [...lines].reverse().findIndex((line) => !isBlank(line));
+  while (last > first && isBlank(lines[last - 1])) {
+    last -= 1;
+  }
 
-  return lines.slice(start, end);
+  return { start: first, end: last };
+}
+
+const close = (open: OpenSection, end: number, lines: readonly string[]): Section => {
+  const linesRange = trimmedRange(lines, open.firstLine, end);
+
+  return {
+    kind: open.kind,
+    heading: open.heading,
+    lines: lines.slice(linesRange.start, linesRange.end),
+    range: { start: open.start, end },
+    linesRange,
+  };
 };
 
 // Cuts the cleaned lines at every heading; what comes before the first heading is the header.
 export function splitSections(lines: readonly string[]): Section[] {
   const sections: Section[] = [];
-  let current: Section = { kind: "header", heading: null, lines: [] };
+  let open: OpenSection = { kind: "header", heading: null, start: 0, firstLine: 0 };
 
   lines.forEach((line, index) => {
     const kind = isHeader(line, lines[index + 1]);
 
     if (kind) {
-      sections.push(current);
-      current = { kind, heading: line.trim(), lines: [] };
-
-      return;
+      sections.push(close(open, index, lines));
+      open = { kind, heading: line.trim(), start: index, firstLine: index + 1 };
     }
-
-    current.lines.push(line);
   });
 
-  sections.push(current);
+  sections.push(close(open, lines.length, lines));
 
-  return sections
-    .map((section) => ({ ...section, lines: trimmed(section.lines) }))
-    .filter((section) => section.heading !== null || section.lines.length > 0);
+  return sections.filter((section) => section.heading !== null || section.lines.length > 0);
 }
