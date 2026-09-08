@@ -1,0 +1,29 @@
+.card {
+  padding: var(--project-card-padding);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-project-card);
+  background: var(--color-project-bg);
+}
+
+.name {
+  font-size: var(--text-project-name);
+  line-height: var(--leading-control);
+  font-weight: 800;
+  letter-spacing: var(--tracking-position);
+  color: var(--color-ink);
+}
+
+.description {
+  margin-top: 8px;
+  font-size: var(--text-entry-detail);
+  line-height: var(--leading-entry-detail);
+  color: var(--color-text-label);
+}
+
+.stack {
+  margin-top: 12px;
+  font-size: var(--text-group-name);
+  line-height: var(--leading-control);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}

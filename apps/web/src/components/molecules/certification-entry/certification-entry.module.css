@@ -1,0 +1,13 @@
+.name {
+  font-size: var(--text-entry-title);
+  line-height: var(--leading-entry-title);
+  font-weight: 700;
+}
+
+.meta {
+  margin-top: 4px;
+  font-size: var(--text-entry-meta);
+  line-height: var(--leading-control);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}

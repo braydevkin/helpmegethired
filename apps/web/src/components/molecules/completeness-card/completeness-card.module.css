@@ -1,0 +1,31 @@
+.card {
+  padding: var(--card-padding);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.value {
+  font-size: var(--text-completeness-value);
+  line-height: var(--leading-control);
+  font-weight: 800;
+  letter-spacing: var(--tracking-completeness);
+  color: var(--color-brand);
+}
+
+.bar {
+  margin: var(--space-completeness-bar) 0;
+}
+
+.hint {
+  font-size: var(--text-entry-detail);
+  line-height: var(--leading-entry-detail);
+  color: var(--color-text-secondary);
+}

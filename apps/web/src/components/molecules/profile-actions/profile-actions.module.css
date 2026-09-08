@@ -1,0 +1,13 @@
+.confirmed {
+  display: flex;
+  align-items: center;
+  height: var(--header-button-height);
+  font-size: var(--text-entry-title);
+  font-weight: 700;
+  color: var(--color-brand);
+}
+
+.failure {
+  width: 100%;
+  margin: 0;
+}

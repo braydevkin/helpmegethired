@@ -7,10 +7,11 @@ import { signUpAndReadSessionToken } from "./helpers/sign-in.js";
 const fixture = join(import.meta.dirname, "../../apps/api/test/fixtures/resumes/corpus/ada-single-column-en.pdf");
 const SETTLE_TIMEOUT_MS = 120_000;
 
-test("a Candidate uploads a résumé, watches the percentage reach 100, and lands on the Profile page", async ({ page }) => {
+test("a Candidate uploads a résumé, watches the percentage reach 100, and reviews and confirms the Profile", async ({ page }) => {
   test.setTimeout(SETTLE_TIMEOUT_MS * 2);
 
-  await signUpAndReadSessionToken(page);
+  const { email } = await signUpAndReadSessionToken(page);
+
   await page.goto("/journey");
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Upload your résumé");
@@ -23,12 +24,26 @@ test("a Candidate uploads a résumé, watches the percentage reach 100, and land
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your profile is ready");
   await expect(page.getByTestId("profile-data-count")).toHaveText("11 of 11");
 
-  await page.reload();
+  // `/journey` has moved on to the Profile review by now, so the done state is read at the
+  // upload step's own route.
+  await page.goto("/journey/resume");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Your profile is ready");
   await expect(page.getByTestId("upload-percentage")).toHaveText("100%");
 
   await page.getByRole("link", { name: "Review my profile" }).click();
   await expect(page).toHaveURL(/\/journey\/profile$/);
+
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ada Lovelace");
+  await expect(page.getByRole("region", { name: "Contact" }).getByText(email)).toBeVisible();
+  await expect(page.getByRole("region", { name: "Experience" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Skills" })).toBeVisible();
+
+  await page.getByRole("button", { name: "Confirm profile" }).click();
+  await expect(page.getByText("Profile confirmed · the LinkedIn step is next")).toBeVisible();
+
+  await page.goto("/journey");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ada Lovelace");
+  await expect(page.getByText("Profile confirmed · the LinkedIn step is next")).toBeVisible();
 });
 
 test("a PNG is refused in the browser with the designed message", async ({ page }) => {

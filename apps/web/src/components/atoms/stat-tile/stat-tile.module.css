@@ -1,0 +1,22 @@
+.tile {
+  padding: var(--stat-tile-padding);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-stat-tile);
+  background: var(--color-surface);
+}
+
+.value {
+  font-size: var(--text-stat-value);
+  line-height: var(--leading-control);
+  font-weight: 800;
+  letter-spacing: var(--tracking-stat-value);
+  color: var(--color-brand-deep);
+}
+
+.label {
+  margin-top: var(--space-label-gap);
+  font-size: var(--text-entry-meta);
+  line-height: var(--leading-control);
+  font-weight: 700;
+  color: var(--color-text-secondary);
+}

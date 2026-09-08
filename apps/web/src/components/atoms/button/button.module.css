@@ -1,5 +1,6 @@
 .button {
   width: 100%;
+  height: var(--control-height);
   border-radius: var(--radius-control);
   font-weight: 700;
   line-height: var(--leading-control);
@@ -16,7 +17,6 @@
 }
 
 .primary {
-  height: var(--control-height);
   border: none;
   background: var(--color-brand);
   color: var(--color-surface);
@@ -32,7 +32,6 @@
 }
 
 .secondary {
-  height: var(--control-height-compact);
   border: var(--control-border-width) solid var(--color-border);
   background: var(--color-surface);
   color: var(--color-ink);
@@ -61,4 +60,23 @@ a.secondary:hover {
   border-color: var(--color-brand);
   background: var(--color-surface-tint);
   color: var(--color-ink);
+}
+
+.control.secondary {
+  height: var(--control-height-compact);
+}
+
+.header {
+  width: auto;
+  height: var(--header-button-height);
+  border-radius: var(--radius-header-button);
+  font-size: var(--text-entry-title);
+}
+
+.header.primary {
+  padding: var(--header-button-padding-primary);
+}
+
+.header.secondary {
+  padding: var(--header-button-padding-secondary);
 }

@@ -1,0 +1,26 @@
+.marker {
+  display: block;
+  position: relative;
+  height: 100%;
+}
+
+.marker::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  left: 1px;
+  width: var(--timeline-dot-size);
+  height: var(--timeline-dot-size);
+  border-radius: var(--radius-pill);
+  background: var(--color-brand);
+}
+
+.marker::after {
+  content: "";
+  position: absolute;
+  top: calc(var(--timeline-dot-size) + 11px);
+  bottom: calc(var(--space-timeline-entry) * -1);
+  left: calc(6px - var(--timeline-line-width) / 2);
+  width: var(--timeline-line-width);
+  background: var(--color-card-border);
+}

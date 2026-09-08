@@ -5,9 +5,11 @@ import { classNames } from "../../../lib/class-names";
 import styles from "./button.module.css";
 
 export type ButtonVariant = "primary" | "secondary";
+export type ButtonSize = "control" | "header";
 
 interface ButtonLook {
   variant?: ButtonVariant;
+  size?: ButtonSize;
   className?: string;
   children?: ReactNode;
 }
@@ -20,17 +22,17 @@ export function Button(props: ButtonProps) {
   return "href" in props ? <LinkButton {...props} /> : <NativeButton {...props} />;
 }
 
-function LinkButton({ variant = "primary", className, children, ...props }: LinkButtonProps) {
+function LinkButton({ variant = "primary", size = "control", className, children, ...props }: LinkButtonProps) {
   return (
-    <Link {...props} className={classNames(styles.button, styles[variant], className)}>
+    <Link {...props} className={classNames(styles.button, styles[variant], styles[size], className)}>
       {children}
     </Link>
   );
 }
 
-function NativeButton({ variant = "primary", className, children, ...props }: NativeButtonProps) {
+function NativeButton({ variant = "primary", size = "control", className, children, ...props }: NativeButtonProps) {
   return (
-    <button {...props} className={classNames(styles.button, styles[variant], className)}>
+    <button {...props} className={classNames(styles.button, styles[variant], styles[size], className)}>
       {children}
     </button>
   );
