@@ -1,5 +1,6 @@
-import type { DraftCertification, Field } from "@helpmegethired/shared";
+import type { DraftCertification } from "@helpmegethired/shared";
 
+import { field, medium } from "./field";
 import { findDateRange, withoutDateRange } from "./dates";
 import { hasLetters, wordsOf } from "./text";
 
@@ -9,10 +10,6 @@ const ISSUER_SEPARATOR = /\s+[-–—]\s+|\s*\|\s*|\s*·\s*|\s*\(|\s*,\s*|\s+(?:
 const EDGE_DECORATION = /^[\s,;|·()[\]:-]+|[\s,;|·()[\]:-]+$/gu;
 const SPACES = /\s+/gu;
 const LINE_MAX_WORDS = 15;
-
-const field = <Value>(value: Value, confidence: Field<Value>["confidence"]): Field<Value> => ({ value, confidence });
-
-const medium = (value: string): Field<string> => field(value, "medium");
 
 const tidy = (text: string): string => text.replace(EDGE_DECORATION, "").replace(SPACES, " ").trim();
 

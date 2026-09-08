@@ -1,5 +1,6 @@
-import type { DraftProject, Field } from "@helpmegethired/shared";
+import type { DraftProject } from "@helpmegethired/shared";
 
+import { field } from "./field";
 import { endsAsSentence, headingOf, isHeadingLine, splitEntries, type RawEntry } from "./entries";
 import { skillNamesIn } from "./skills";
 import { hasLetters, isBlank } from "./text";
@@ -9,8 +10,6 @@ const URL = /(?:https?:\/\/|www\.)[^\s)>\]]+/iu;
 const URL_ENDING = /[.,;:)\]]+$/u;
 const URL_WRAPPING = /\(\s*\)|\[\s*\]/gu;
 const SPACES = /\s+/gu;
-
-const field = <Value>(value: Value, confidence: Field<Value>["confidence"]): Field<Value> => ({ value, confidence });
 
 const urlIn = (text: string): string | undefined => URL.exec(text)?.[0].replace(URL_ENDING, "");
 

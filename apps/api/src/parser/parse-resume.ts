@@ -1,5 +1,6 @@
-import type { DraftBasicProfile, DraftExperience, Field, ProfileDraft } from "@helpmegethired/shared";
+import type { DraftBasicProfile, DraftExperience, ProfileDraft } from "@helpmegethired/shared";
 
+import { field } from "./field";
 import { extractCertifications } from "./certifications";
 import { cleanText } from "./clean";
 import { extractContact, isContactLine, type Contact } from "./contact";
@@ -21,8 +22,6 @@ export interface ParsedResume {
 }
 
 const HEADLINE_MAX_CHARACTERS = 80;
-
-const field = <Value>(value: Value, confidence: Field<Value>["confidence"]): Field<Value> => ({ value, confidence });
 
 const paragraph = (lines: readonly string[]): string =>
   lines

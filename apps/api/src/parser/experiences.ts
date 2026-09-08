@@ -1,12 +1,11 @@
-import type { DraftExperience, Field } from "@helpmegethired/shared";
+import type { DraftExperience } from "@helpmegethired/shared";
 
+import { field } from "./field";
 import { hasJobTitleWord } from "./dictionaries/job-titles";
 import { headingOf, isHeadingLine, joinedDescription, splitEntries, type RawEntry } from "./entries";
 
 const HEADING_MAX_PARTS = 3;
 export const PART_SEPARATOR = /\s*\|\s*|\s+[-–—]\s+|\s*,\s*|\s+(?:em|at|@|na|no)\s+|\s+·\s+/iu;
-
-const field = <Value>(value: Value, confidence: Field<Value>["confidence"]): Field<Value> => ({ value, confidence });
 
 // A short line naming a role and a company after a sentence opens an entry even when no
 // blank line and no date line does, as a volunteer position listed without dates.

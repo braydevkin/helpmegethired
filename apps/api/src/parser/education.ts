@@ -1,5 +1,6 @@
-import type { DraftEducation, Field } from "@helpmegethired/shared";
+import type { DraftEducation } from "@helpmegethired/shared";
 
+import { field } from "./field";
 import { hasDegreeTerm } from "./dictionaries/degrees";
 import { isHeadingLine, splitEntries, type RawEntry } from "./entries";
 import { normalise, wordsOf } from "./text";
@@ -31,8 +32,6 @@ const INSTITUTION_WORDS = [
 ];
 const institutionWords = new Set(INSTITUTION_WORDS);
 const ACRONYM = /^\p{Lu}{2,7}$/u;
-
-const field = <Value>(value: Value, confidence: Field<Value>["confidence"]): Field<Value> => ({ value, confidence });
 
 const startsLowercase = (line: string): boolean => /^\p{Ll}/u.test(line.trim());
 
@@ -82,18 +81,29 @@ function degreeAndFieldOf(part: string): DegreeAndField {
   return { degree: part.slice(0, connector.index).trim(), fieldOfStudy: part.slice(connector.index + connector[0].length).trim() };
 }
 
-function withDegree(parts: readonly string[], degreeIndex: number, heading: string): Omit<DraftEducation, "period"> {
-  const { degree, fieldOfStudy } = degreeAndFieldOf(parts[degreeIndex] ?? "");
+// A degree part without a connector takes the next part as the field of study when that part
+// reads as neither an institution nor another degree, as "MSc, Computer Science" is written.
+function fieldOfStudyOf(parts: readonly string[], degreeIndex: number): { fieldOfStudy: string | undefined; usedNext: boolean } {
+  const { fieldOfStudy } = degreeAndFieldOf(parts[degreeIndex] ?? "");
   const next = parts[degreeIndex + 1];
-  const fieldFromNext = fieldOfStudy === undefined && next !== undefined && !readsAsInstitution(next) && !hasDegreeTerm(next);
-  const studied = fieldOfStudy ?? (fieldFromNext ? next : undefined);
-  const rest = parts.filter((part, index) => index !== degreeIndex && !(fieldFromNext && index === degreeIndex + 1));
+
+  if (fieldOfStudy !== undefined || next === undefined || readsAsInstitution(next) || hasDegreeTerm(next)) {
+    return { fieldOfStudy, usedNext: false };
+  }
+
+  return { fieldOfStudy: next, usedNext: true };
+}
+
+function withDegree(parts: readonly string[], degreeIndex: number, heading: string): Omit<DraftEducation, "period"> {
+  const { degree } = degreeAndFieldOf(parts[degreeIndex] ?? "");
+  const { fieldOfStudy, usedNext } = fieldOfStudyOf(parts, degreeIndex);
+  const rest = parts.filter((part, index) => index !== degreeIndex && !(usedNext && index === degreeIndex + 1));
   const institution = rest.find(readsAsInstitution) ?? rest[0];
 
   return {
-    institution: institution ? field(institution, "high") : field(heading, "low"),
+    institution: institution === undefined ? field(heading, "low") : field(institution, "high"),
     degree: field(degree, "high"),
-    fieldOfStudy: studied ? field(studied, "high") : null,
+    fieldOfStudy: fieldOfStudy === undefined ? null : field(fieldOfStudy, "high"),
   };
 }
 

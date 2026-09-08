@@ -1,15 +1,12 @@
-import type { DraftLanguage, Field } from "@helpmegethired/shared";
+import type { DraftLanguage } from "@helpmegethired/shared";
 
+import { medium } from "./field";
 import { hasLevelWord, isLevelWord } from "./dictionaries/language-levels";
 import { hasLetters, wordsOf } from "./text";
 
 const PIECE_SEPARATOR = /\s*[;,|·•]\s*/u;
 const LEVEL_SEPARATOR = /\s+[-–—]\s+|:\s*|\s*\(/u;
 const PIECE_MAX_WORDS = 6;
-
-const field = <Value>(value: Value, confidence: Field<Value>["confidence"]): Field<Value> => ({ value, confidence });
-
-const medium = (value: string): Field<string> => field(value, "medium");
 
 const count = (text: string, character: string): number => [...text].filter((each) => each === character).length;
 

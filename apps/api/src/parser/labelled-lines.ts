@@ -22,8 +22,26 @@ export function labelKindOf(line: string): SectionKind | undefined {
 
 const afterLabel = (line: string): string => line.slice(line.indexOf(":") + 1).trim();
 
-// A labelled line and the lines wrapped under it up to the next blank line are one paragraph
-// of another kind; the rest of the lines stay with the section they are in.
+interface ParagraphEnd {
+  text: string;
+  next: number;
+}
+
+// A labelled line and the lines wrapped under it up to the next blank line are one paragraph.
+function paragraphFrom(lines: readonly string[], start: number): ParagraphEnd {
+  const paragraph = [afterLabel(lines[start] ?? "")];
+  let next = start + 1;
+
+  while (next < lines.length && !isBlank(lines[next])) {
+    paragraph.push((lines[next] ?? "").trim());
+    next += 1;
+  }
+
+  return { text: paragraph.join(" "), next };
+}
+
+// Paragraphs labelled with another kind are taken out of the section; the other lines stay,
+// with a label of the section's own kind stripped.
 export function partitionLabelled(lines: readonly string[], ownKind: SectionKind): PartitionedLines {
   const own: string[] = [];
   const labelled: LabelledParagraph[] = [];
@@ -33,21 +51,15 @@ export function partitionLabelled(lines: readonly string[], ownKind: SectionKind
     const line = lines[index] ?? "";
     const kind = labelKindOf(line);
 
-    if (kind === undefined || kind === ownKind) {
+    if (kind !== undefined && kind !== ownKind) {
+      const { text, next } = paragraphFrom(lines, index);
+
+      labelled.push({ kind, text });
+      index = next;
+    } else {
       own.push(kind === ownKind ? afterLabel(line) : line);
       index += 1;
-      continue;
     }
-
-    const paragraph = [afterLabel(line)];
-    index += 1;
-
-    while (index < lines.length && !isBlank(lines[index])) {
-      paragraph.push((lines[index] ?? "").trim());
-      index += 1;
-    }
-
-    labelled.push({ kind, text: paragraph.join(" ") });
   }
 
   return { own, labelled };
