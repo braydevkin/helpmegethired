@@ -75,7 +75,7 @@
     }
   ],
   "draft": {
-    "parserVersion": "rules/2",
+    "parserVersion": "rules/3",
     "basicProfile": {
       "headline": {
         "value": "Desenvolvedor Full Stack",
@@ -97,8 +97,93 @@
     "experiences": [],
     "education": [],
     "projects": [],
-    "skills": [],
+    "skills": [
+      {
+        "name": "React",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Node.js",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "NestJS",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "JavaScript",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "TypeScript",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "PHP",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "PostgreSQL",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Docker",
+        "category": "Infrastructure",
+        "confidence": "medium"
+      },
+      {
+        "name": "Git",
+        "category": "Other",
+        "confidence": "medium"
+      },
+      {
+        "name": "Scrum",
+        "category": "Other",
+        "confidence": "medium"
+      }
+    ],
     "languages": [],
-    "certifications": []
+    "certifications": [
+      {
+        "name": {
+          "value": "Fila Zero",
+          "confidence": "medium"
+        },
+        "issuer": null,
+        "year": null
+      },
+      {
+        "name": {
+          "value": "Scrum Foundation Professional Aplicativo de senhas para postos de saúde",
+          "confidence": "medium"
+        },
+        "issuer": {
+          "value": "feito em um",
+          "confidence": "medium"
+        },
+        "year": null
+      },
+      {
+        "name": {
+          "value": "CertiProf",
+          "confidence": "medium"
+        },
+        "issuer": {
+          "value": "fim de semana de hackathon.",
+          "confidence": "medium"
+        },
+        "year": {
+          "value": 2021,
+          "confidence": "medium"
+        }
+      }
+    ]
   }
 }

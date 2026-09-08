@@ -16,6 +16,8 @@ Each case is one entry in `people.ts` and produces three committed files:
 
 `single-column`, `two-columns` (a sidebar beside the main column), `canva-like` (a coloured band and two columns), `latex-like` (a moderncv look with the dates on the left), and `linkedin-export` (the PDF LinkedIn produces from a profile). The templates live under `templates/`, one file per layout, and share the section labels in `templates/labels.ts` per language.
 
+The single-column and LaTeX-like templates also take `variants` on a person: `educationFirst` puts the education before the experience, `noSkillsSection` leaves the skills out so they only appear inside the experience bullets, `languagesInline` writes the languages on one labelled line under the summary instead of a section, and `certificationsInExperience` writes the certifications on one labelled line closing the experience. Every variant appears at least twice across languages and layouts.
+
 Two-column layouts come out of `pdftotext -layout` with both columns on the same lines, so their sections split poorly until the regrouping by coordinates noted in the architecture lands; the expected JSON records the current outcome so a change is noticed.
 
 ## Adding a case

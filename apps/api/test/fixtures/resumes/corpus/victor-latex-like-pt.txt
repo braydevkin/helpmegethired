@@ -1,0 +1,34 @@
+                        Victor Hugo Almeida
+                                 Administrador de Redes
+                Manaus, AM — +55 92 99111-2222 — victor.almeida@example.com
+                            linkedin.com/in/victor-almeida-example
+
+
+Resumo
+
+Administrador de redes com dez anos em provedores de internet e hospitais.
+
+Experiência Profissional
+jan. 2019 – Atual          Administrador de Redes Sênior, Rio Negro Telecom,
+                           Manaus
+                             Opera a rede de 30 mil assinantes com roteadores Cisco e
+                             monitoramento em Zabbix.
+                             Implantou VPN entre as filiais.
+mar. 2015 – dez. 2018      Técnico de Redes, Hospital Solimões, Manaus
+                             Cuidou do Active Directory e do DNS de 800 estações
+                             Windows.
+
+Certificações: CCNP Enterprise (Cisco, 2022); CCNA (Cisco, 2017)
+
+Formação Acadêmica
+2011 – 2014                Tecnólogo em Redes de Computadores, Universidade do
+                           Estado do Amazonas
+
+Habilidades
+
+Cisco · Zabbix · VPN · Active Directory · DNS · Linux
+
+Idiomas
+
+Português - Nativo; Inglês - Básico
+

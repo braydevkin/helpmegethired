@@ -1,0 +1,270 @@
+{
+  "contact": {
+    "name": {
+      "value": "Xavier Dubois",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "xavier.dubois@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+33 4 72 00 00 00",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/xavier-dubois-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/xdubois-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Xavier Dubois",
+        "Site Reliability Engineer",
+        "Lyon, France — +33 4 72 00 00 00 — xavier.dubois@example.com",
+        "linkedin.com/in/xavier-dubois-example · github.com/xdubois-example"
+      ]
+    },
+    {
+      "kind": "summary",
+      "heading": "Summary",
+      "lines": [
+        "SRE keeping a payments platform inside its error budget. Fond of Go, Kubernetes, and",
+        "short runbooks.",
+        "",
+        "Languages: French (Native), English (Fluent), German (Intermediate (B2))"
+      ]
+    },
+    {
+      "kind": "experience",
+      "heading": "Experience",
+      "lines": [
+        "Feb 2021 – Present Site Reliability Engineer, Rhône Payments, Lyon",
+        "Own the Kubernetes clusters on GCP and the Terraform",
+        "that builds them.",
+        "Wrote the incident tooling in Go.",
+        "Sep 2017 – Jan 2021 DevOps Engineer, Presqu'île Hosting, Lyon",
+        "Moved deployments from Jenkins to GitLab CI and Helm."
+      ]
+    },
+    {
+      "kind": "education",
+      "heading": "Education",
+      "lines": [
+        "2012 – 2017 MEng in Computer Engineering, INSA Lyon"
+      ]
+    },
+    {
+      "kind": "skills",
+      "heading": "Skills",
+      "lines": [
+        "Go · Kubernetes · GCP · Terraform · Helm · GitLab CI · Prometheus"
+      ]
+    },
+    {
+      "kind": "certifications",
+      "heading": "Certifications",
+      "lines": [
+        "2023 Google Cloud Professional Cloud Architect, Google"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "Site Reliability Engineer",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "SRE keeping a payments platform inside its error budget. Fond of Go, Kubernetes, and short runbooks. Languages: French (Native), English (Fluent), German (Intermediate (B2))",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/xavier-dubois-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/xdubois-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Site Reliability Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Rhône Payments",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2021-02",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Own the Kubernetes clusters on GCP and the Terraform\nthat builds them.\nWrote the incident tooling in Go.",
+          "confidence": "high"
+        },
+        "skills": [
+          "Kubernetes",
+          "Google Cloud",
+          "Terraform",
+          "Go"
+        ]
+      },
+      {
+        "role": {
+          "value": "DevOps Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Presqu'île Hosting",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2017-09",
+            "end": "2021-01"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Moved deployments from Jenkins to GitLab CI and Helm.",
+          "confidence": "high"
+        },
+        "skills": [
+          "Jenkins",
+          "GitLab CI",
+          "Helm"
+        ]
+      }
+    ],
+    "education": [
+      {
+        "institution": {
+          "value": "INSA Lyon",
+          "confidence": "high"
+        },
+        "degree": {
+          "value": "MEng",
+          "confidence": "high"
+        },
+        "fieldOfStudy": {
+          "value": "Computer Engineering",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2012-01",
+            "end": "2017-12"
+          },
+          "confidence": "high"
+        }
+      }
+    ],
+    "projects": [],
+    "skills": [
+      {
+        "name": "Go",
+        "category": "Languages & runtimes",
+        "confidence": "high"
+      },
+      {
+        "name": "Kubernetes",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Google Cloud",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Terraform",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Jenkins",
+        "category": "Infrastructure",
+        "confidence": "medium"
+      },
+      {
+        "name": "GitLab CI",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Helm",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Prometheus",
+        "category": "Infrastructure",
+        "confidence": "high"
+      }
+    ],
+    "languages": [
+      {
+        "name": {
+          "value": "French",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Native",
+          "confidence": "medium"
+        }
+      },
+      {
+        "name": {
+          "value": "English",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Fluent",
+          "confidence": "medium"
+        }
+      },
+      {
+        "name": {
+          "value": "German",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Intermediate (B2)",
+          "confidence": "medium"
+        }
+      }
+    ],
+    "certifications": [
+      {
+        "name": {
+          "value": "Google Cloud Professional Cloud Architect",
+          "confidence": "medium"
+        },
+        "issuer": {
+          "value": "Google",
+          "confidence": "medium"
+        },
+        "year": {
+          "value": 2023,
+          "confidence": "medium"
+        }
+      }
+    ]
+  }
+}

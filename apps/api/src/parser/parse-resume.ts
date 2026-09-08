@@ -1,12 +1,18 @@
-import type { DraftBasicProfile, Field, ProfileDraft } from "@helpmegethired/shared";
+import type { DraftBasicProfile, DraftExperience, Field, ProfileDraft } from "@helpmegethired/shared";
 
+import { extractCertifications } from "./certifications";
 import { cleanText } from "./clean";
 import { extractContact, isContactLine, type Contact } from "./contact";
+import { extractEducation } from "./education";
 import { extractExperiences } from "./experiences";
+import { linesOfKind, ownLinesOf } from "./labelled-lines";
+import { extractLanguages } from "./languages";
+import { extractProjects } from "./projects";
 import { splitSections, type Section } from "./sections";
+import { extractSkills, skillNamesIn } from "./skills";
 import { isBlank } from "./text";
 
-export const PARSER_VERSION = "rules/2";
+export const PARSER_VERSION = "rules/3";
 
 export interface ParsedResume {
   contact: Contact;
@@ -61,6 +67,12 @@ function basicProfileOf(sections: readonly Section[], contact: Contact): DraftBa
   };
 }
 
+// A technology named in an Experience's description belongs to that Experience as well.
+const withSkills = (experience: DraftExperience): DraftExperience => ({
+  ...experience,
+  skills: skillNamesIn(experience.description?.value ?? ""),
+});
+
 export function parseResume(rawText: string): ParsedResume {
   const text = cleanText(rawText);
   const sections = splitSections(text.split("\n"));
@@ -72,12 +84,12 @@ export function parseResume(rawText: string): ParsedResume {
     draft: {
       parserVersion: PARSER_VERSION,
       basicProfile: basicProfileOf(sections, contact),
-      experiences: sections.filter((section) => section.kind === "experience").flatMap((section) => extractExperiences(section.lines)),
-      education: [],
-      projects: [],
-      skills: [],
-      languages: [],
-      certifications: [],
+      experiences: extractExperiences(ownLinesOf(sections, "experience")).map(withSkills),
+      education: extractEducation(ownLinesOf(sections, "education")),
+      projects: extractProjects(ownLinesOf(sections, "projects")),
+      skills: extractSkills(sections),
+      languages: extractLanguages(linesOfKind(sections, "languages")),
+      certifications: extractCertifications(linesOfKind(sections, "certifications")),
     },
   };
 }

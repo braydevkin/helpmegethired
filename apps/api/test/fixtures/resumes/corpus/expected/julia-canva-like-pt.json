@@ -62,7 +62,7 @@
     }
   ],
   "draft": {
-    "parserVersion": "rules/2",
+    "parserVersion": "rules/3",
     "basicProfile": {
       "headline": {
         "value": "Desenvolvedora Front-end",
@@ -102,12 +102,56 @@
           "value": "React\nMantém o design system em React e Storybook.\nTypeScript\nLevou o produto ao nível AA de acessibilidade.\nCSS\nPROJETOS Storybook\nJest\nAcessível · Extensão de navegador que aponta problemas\nde contraste. (https://github.com/julialima- IDIOMAS\nexample/acessivel)\nPortuguês - Nativo\nInglês - Intermediário",
           "confidence": "high"
         },
-        "skills": []
+        "skills": [
+          "React",
+          "Design Systems",
+          "Storybook",
+          "TypeScript",
+          "Accessibility",
+          "CSS",
+          "Jest"
+        ]
       }
     ],
     "education": [],
     "projects": [],
-    "skills": [],
+    "skills": [
+      {
+        "name": "Design Systems",
+        "category": "Other",
+        "confidence": "medium"
+      },
+      {
+        "name": "Accessibility",
+        "category": "Other",
+        "confidence": "medium"
+      },
+      {
+        "name": "React",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Storybook",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "TypeScript",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "CSS",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "Jest",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      }
+    ],
     "languages": [],
     "certifications": []
   }

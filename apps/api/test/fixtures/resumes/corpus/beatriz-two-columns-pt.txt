@@ -1,0 +1,37 @@
+Beatriz Lopes Martins
+Engenheira de QA
+
+
+CONTATO                             RESUMO
+
+Campinas, SP                        Engenheira de QA com foco em automação de testes
+                                    web e mobile.
+(19) 98765-1234
+
+beatriz.martins@example.com         EXPERIÊNCIA PROFISSIONAL
+linkedin.com/in/beatriz-martins-    Engenheira de QA Pleno — Barão Software
+example                             Campinas · 06/2022 – Atual
+
+github.com/beatrizlm-example          Escreveu a suíte de testes end-to-end em Playwright
+                                      e TypeScript.
+HABILIDADES                           Integrou os testes ao GitHub Actions.
+                                    Analista de Testes — Anhumas Sistemas
+Playwright
+                                    Campinas · 01/2019 – 05/2022
+TypeScript
+Selenium                              Automatizou os testes de regressão em Selenium com
+Java
+                                      Java.
+GitHub Actions
+Cypress
+                                    FORMAÇÃO ACADÊMICA
+                                    Tecnólogo em Análise e Desenvolvimento de
+IDIOMAS                             Sistemas, Unicamp
+                                    2016 – 2018
+Português - Nativo
+Inglês - Intermediário
+
+CERTIFICAÇÕES
+ISTQB Certified Tester Foundation
+Level (ISTQB, 2020)
+

@@ -1,0 +1,27 @@
+   Caio Duarte Freitas
+   Desenvolvedor Mobile
+
+Fortaleza, CE   (85) 99444-5566   caio.freitas@example.com   linkedin.com/in/caio-freitas-example
+
+
+RESUMO                                                           FORMAÇÃO
+                                                                 ACADÊMICA
+Desenvolvedor mobile com React Native e Kotlin em
+aplicativos de delivery.                                         Bacharelado em Sistemas
+                                                                 de Informação,
+                                                                 Universidade de Fortaleza
+EXPERIÊNCIA PROFISSIONAL                                         2016 – 2020
+Desenvolvedor Mobile Pleno, Praia Entregas
+Fortaleza · 10/2021 – Atual                                      HABILIDADES
+  Mantém o aplicativo do entregador em React Native                 React Native
+  com 200 mil usuários.
+                                                                    Kotlin
+  Migrou os mapas para o SDK nativo em Kotlin.
+                                                                    TypeScript
+PROJETOS                                                            Android
+                                                                    Firebase
+Maré · Aplicativo de tábua de marés para pescadores.
+(https://github.com/caiodf-example/mare)                         IDIOMAS
+                                                                    Português - Nativo
+                                                                    Inglês - Intermediário
+

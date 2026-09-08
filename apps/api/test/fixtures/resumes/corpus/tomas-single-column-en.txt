@@ -1,0 +1,32 @@
+Tomás Herrera Vidal
+Mobile Engineer
+Madrid, Spain | +34 91 123 4567 | tomas.herrera@example.com
+linkedin.com/in/tomas-herrera-example · github.com/tomashv-example
+
+SUMMARY
+
+Mobile engineer with seven years on iOS and, lately, Flutter. I keep the tooling boring and the
+release train on time.
+
+EXPERIENCE
+Senior Mobile Engineer | Castellana Apps
+Madrid · Jan 2022 – Present
+  Rebuilt the banking app in Flutter and Dart, sharing 80% of the code between iOS and
+  Android.
+  Set up the release pipeline on GitHub Actions with Fastlane.
+iOS Engineer | Retiro Mobile
+Madrid · Mar 2018 – Dec 2021
+  Wrote the ticketing app in Swift with SwiftUI and a GraphQL client.
+
+EDUCATION
+BSc in Software Engineering, Universidad Politécnica de Madrid
+2013 – 2017
+
+PROJECTS
+Andén
+A commuter widget for the Madrid metro, published on both stores.
+
+LANGUAGES
+  Spanish - Native
+  English - Fluent (C2)
+

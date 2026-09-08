@@ -76,7 +76,7 @@
     }
   ],
   "draft": {
-    "parserVersion": "rules/2",
+    "parserVersion": "rules/3",
     "basicProfile": {
       "headline": {
         "value": "Product Designer & Front-end Developer",
@@ -113,7 +113,13 @@
           "value": "Figma\nRedesigned the onboarding flow, lifting activation from\nReact\n31% to 47%.\nNext.js\nMaintain the design system used by three product\nteams. TypeScript",
           "confidence": "high"
         },
-        "skills": []
+        "skills": [
+          "Figma",
+          "React",
+          "Next.js",
+          "Design Systems",
+          "TypeScript"
+        ]
       },
       {
         "role": {
@@ -135,12 +141,51 @@
           "value": "User research\nBuilt marketing sites and web apps in React and Next.js\nfor retail clients. LANGUAGES\nPROJECTS Portuguese - Native\nEnglish - Fluent\nTile · A colour contrast checker for design tokens.\nSpanish - Basic\n(https://carlaribeiro.example.com/tile)",
           "confidence": "high"
         },
-        "skills": []
+        "skills": [
+          "React",
+          "Next.js"
+        ]
       }
     ],
     "education": [],
     "projects": [],
-    "skills": [],
+    "skills": [
+      {
+        "name": "Figma",
+        "category": "Other",
+        "confidence": "medium"
+      },
+      {
+        "name": "React",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Next.js",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Design Systems",
+        "category": "Other",
+        "confidence": "medium"
+      },
+      {
+        "name": "TypeScript",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "CSS",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "Accessibility",
+        "category": "Other",
+        "confidence": "medium"
+      }
+    ],
     "languages": [],
     "certifications": []
   }

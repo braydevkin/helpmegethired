@@ -1,0 +1,35 @@
+Rafaela Moreira Campos
+Analista de Dados
+Goiânia, GO | (62) 98111-2233 | rafaela.campos@example.com
+linkedin.com/in/rafaela-campos-example
+
+RESUMO
+
+Analista de dados com quatro anos entre SQL, Python e Power BI, em varejo e logística.
+
+FORMAÇÃO ACADÊMICA
+Bacharelado em Estatística, Universidade Federal de Goiás
+2016 – 2020
+
+EXPERIÊNCIA PROFISSIONAL
+Analista de Dados Pleno | Cerrado Logística
+Goiânia · jul 2023 – Atual
+   Mantém o data warehouse em BigQuery e os painéis em Power BI usados por 120
+   pessoas.
+   Modelou as tabelas de entregas com dbt.
+Analista de Dados Júnior | Rede Planalto
+Goiânia · mar 2021 – jun 2023
+   Escreveu as consultas SQL das metas semanais das lojas.
+
+HABILIDADES
+
+SQL, Python, Power BI, BigQuery, dbt, Excel
+
+IDIOMAS
+   Português - Nativo
+   Inglês - Avançado
+   Espanhol - Básico
+
+CERTIFICAÇÕES
+   Microsoft Certified: Power BI Data Analyst Associate — Microsoft, 2023
+

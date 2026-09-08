@@ -1,0 +1,111 @@
+{
+  "contact": {
+    "name": {
+      "value": "Caio Duarte Freitas",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "caio.freitas@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "(85) 99444-5566",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/caio-freitas-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/caiodf-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Caio Duarte Freitas",
+        "Desenvolvedor Mobile",
+        "",
+        "Fortaleza, CE (85) 99444-5566 caio.freitas@example.com linkedin.com/in/caio-freitas-example",
+        "",
+        "RESUMO FORMAÇÃO",
+        "ACADÊMICA",
+        "Desenvolvedor mobile com React Native e Kotlin em",
+        "aplicativos de delivery. Bacharelado em Sistemas",
+        "de Informação,",
+        "Universidade de Fortaleza",
+        "EXPERIÊNCIA PROFISSIONAL 2016 – 2020",
+        "Desenvolvedor Mobile Pleno, Praia Entregas",
+        "Fortaleza · 10/2021 – Atual HABILIDADES",
+        "Mantém o aplicativo do entregador em React Native React Native",
+        "com 200 mil usuários.",
+        "Kotlin",
+        "Migrou os mapas para o SDK nativo em Kotlin.",
+        "TypeScript",
+        "PROJETOS Android",
+        "Firebase",
+        "Maré · Aplicativo de tábua de marés para pescadores.",
+        "(https://github.com/caiodf-example/mare) IDIOMAS",
+        "Português - Nativo",
+        "Inglês - Intermediário"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "Desenvolvedor Mobile",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "RESUMO FORMAÇÃO ACADÊMICA Desenvolvedor mobile com React Native e Kotlin em aplicativos de delivery. Bacharelado em Sistemas de Informação, Universidade de Fortaleza EXPERIÊNCIA PROFISSIONAL 2016 – 2020 Desenvolvedor Mobile Pleno, Praia Entregas Fortaleza · 10/2021 – Atual HABILIDADES Mantém o aplicativo do entregador em React Native React Native com 200 mil usuários. Kotlin Migrou os mapas para o SDK nativo em Kotlin. TypeScript PROJETOS Android Firebase Maré · Aplicativo de tábua de marés para pescadores. Português - Nativo Inglês - Intermediário",
+        "confidence": "low"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/caio-freitas-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/caiodf-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [],
+    "education": [],
+    "projects": [],
+    "skills": [
+      {
+        "name": "React Native",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Kotlin",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "TypeScript",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "Android",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Firebase",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      }
+    ],
+    "languages": [],
+    "certifications": []
+  }
+}

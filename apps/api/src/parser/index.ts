@@ -1,8 +1,14 @@
 export { careerMonths, careerYears } from "./career";
+export { extractCertifications } from "./certifications";
 export { cleanText } from "./clean";
 export { extractContact, type Contact } from "./contact";
 export { findDateRange } from "./dates";
+export { extractEducation } from "./education";
 export { extractExperiences } from "./experiences";
+export { extractLanguages } from "./languages";
+export { extractProjects } from "./projects";
 export { SECTION_KINDS, type SectionKind } from "./dictionaries/section-headers";
+export { TECHNOLOGIES, type Technology } from "./dictionaries/technologies";
 export { PARSER_VERSION, parseResume, type ParsedResume } from "./parse-resume";
 export { splitSections, type Section } from "./sections";
+export { extractSkills, findTechnologies, skillNamesIn } from "./skills";

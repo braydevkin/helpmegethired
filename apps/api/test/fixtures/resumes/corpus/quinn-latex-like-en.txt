@@ -1,0 +1,32 @@
+                            Quinn Adebayo
+                         Research Engineer, Machine Learning
+         Edinburgh, United Kingdom — +44 131 496 0123 — quinn.adebayo@example.com
+              linkedin.com/in/quinn-adebayo-example · github.com/quinnab-example
+
+
+Summary
+
+Research engineer turning NLP papers into services. Recently finished a PhD on low-
+resource machine translation.
+
+Education
+2020 – 2024                PhD in Informatics, University of Edinburgh
+2015 – 2019                BSc in Computer Science, University of Lagos
+
+Experience
+Sep 2024 – Present         Research Engineer, Firth Language Lab, Edinburgh
+                             Ship translation models built with PyTorch and Hugging
+                             Face behind a FastAPI service.
+                             Cut inference cost by half with quantisation.
+Jun 2022 – Sep 2022        Research Intern, Holyrood AI, Edinburgh
+                             Evaluated tokenisers for Yoruba on a corpus of 40 million
+                             words in Python.
+
+Skills
+
+Python · PyTorch · Hugging Face · NLP · FastAPI · Docker · Linux
+
+Languages
+
+English - Native; Yoruba - Native; French - Basic
+

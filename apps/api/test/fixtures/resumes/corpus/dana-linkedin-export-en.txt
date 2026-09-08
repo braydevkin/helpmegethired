@@ -1,0 +1,31 @@
+Contact
++1 416 555 0199
+                             Dana Whitfield
+dana.whitfield@example.com   Data Engineer at Prairie Analytics
+www.linkedin.com/in/dana-    Toronto, Canada
+whitfield-example
+                             Summary
+Top Skills
+Spark                        Data engineer building batch and streaming pipelines on Spark
+Kafka                        and Kafka for retail analytics.
+Databricks
+                             Experience
+Languages                    Prairie Analytics
+English (Native)             Data Engineer
+French (Intermediate)        March 2022 – Present
+                             Toronto
+
+Certifications               Build the ingestion pipelines in Spark on Databricks and the
+Databricks Certified Data    streaming layer on Kafka.
+Engineer Professional
+                             Lakeshore Retail
+                             Analytics Engineer
+                             June 2019 – February 2022
+                             Toronto
+
+                             Modelled the sales warehouse in dbt on Snowflake.
+
+                             Education
+                             University of Toronto
+                             BSc, Statistics · (2015 – 2019)
+
