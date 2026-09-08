@@ -79,8 +79,9 @@ export class ResumeClient {
     });
   }
 
+  // A body that is not JSON, as a proxy's error page, still ends in the client's own error.
   private async bodyOf(response: Response): Promise<unknown> {
-    const body: unknown = await response.json();
+    const body: unknown = await response.json().catch(() => undefined);
 
     if (!response.ok) {
       throw new ResumeRefusedError(codeOf(body), response.status);

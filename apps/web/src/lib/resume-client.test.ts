@@ -51,6 +51,13 @@ describe("ResumeClient", () => {
     await expect(client.complete(token, resume.id)).rejects.toBeInstanceOf(ResumeRefusedError);
   });
 
+  it("refuses with the status alone when the body is not JSON", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("<html>Bad gateway</html>", { status: 502, headers: { "content-type": "text/html" } }));
+    const client = new ResumeClient("http://api.test", fetchMock);
+
+    await expect(client.list(token)).rejects.toMatchObject({ name: "ResumeRefusedError", code: undefined, status: 502 });
+  });
+
   it("lists the Account's records", async () => {
     const client = new ResumeClient("http://api.test", vi.fn().mockResolvedValue(json(200, [resume])));
 

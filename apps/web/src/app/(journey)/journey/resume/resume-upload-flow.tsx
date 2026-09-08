@@ -185,6 +185,90 @@ const IDLE_LEAD =
 const PROCESSING_LEAD = "Keep this tab open. We upload the file, queue it for processing and fill your profile as the data comes back.";
 const DONE_LEAD = "We pulled everything below out of your PDF. Check it over — anything we got wrong is one click from being fixed.";
 
+interface StateViewProps {
+  state: Exclude<FlowState, { phase: "idle" }>;
+  profileHref: string;
+  onCancel: () => void;
+  onStartOver: () => void;
+}
+
+const fileOf = (state: StateViewProps["state"]) =>
+  state.phase === "uploading"
+    ? { name: state.file.name, size: formatSize(state.file.size) }
+    : { name: state.resume.fileName, size: formatSize(state.resume.sizeBytes) };
+
+const progressOf = (state: StateViewProps["state"]) => {
+  const view = viewOf(state);
+  const rows = profileDataRowsOf(view);
+
+  return { percentage: percentageOf(view), stages: stagesOf(view), rows, found: foundCountOf(rows) };
+};
+
+function UploadAgainButton({ onStartOver }: Pick<StateViewProps, "onStartOver">) {
+  return (
+    <Button variant="secondary" type="button" onClick={onStartOver}>
+      Upload a different PDF
+    </Button>
+  );
+}
+
+function DoneState({ state, profileHref, onStartOver }: StateViewProps) {
+  const file = fileOf(state);
+
+  return (
+    <>
+      <ScreenHeading size="large" eyebrow="All set" title="Your profile is ready" lead={DONE_LEAD} />
+      <IngestionProgress
+        {...progressOf(state)}
+        file={{ name: file.name, meta: `${file.size} · processed` }}
+        actions={
+          <>
+            <Button href={profileHref}>Review my profile</Button>
+            <UploadAgainButton onStartOver={onStartOver} />
+          </>
+        }
+        footnote="We deleted the original PDF once it was read."
+      />
+    </>
+  );
+}
+
+function FailedState({ state, onStartOver }: StateViewProps) {
+  const file = fileOf(state);
+  const errorCode = state.phase === "tracked" ? state.resume.errorCode : null;
+
+  return (
+    <>
+      <ScreenHeading size="large" eyebrow="Something went wrong" title="We couldn't read that PDF" lead={failureLeadOf(errorCode)} />
+      <IngestionProgress {...progressOf(state)} file={{ name: file.name, meta: `${file.size} · failed` }} actions={<UploadAgainButton onStartOver={onStartOver} />} />
+    </>
+  );
+}
+
+// `Cancel upload` exists only while the bytes are being sent (design open point 6).
+function ProcessingState({ state, onCancel }: StateViewProps) {
+  const file = fileOf(state);
+  const uploading = state.phase === "uploading";
+
+  return (
+    <>
+      <ScreenHeading size="large" eyebrow="Working on it" title="Reading your résumé" lead={PROCESSING_LEAD} />
+      <IngestionProgress
+        {...progressOf(state)}
+        file={{ name: file.name, meta: `${file.size} · ${uploading ? "uploading" : "processing"}` }}
+        actions={
+          uploading ? (
+            <Button variant="secondary" type="button" onClick={onCancel}>
+              Cancel upload
+            </Button>
+          ) : undefined
+        }
+        footnote="Usually takes under a minute."
+      />
+    </>
+  );
+}
+
 export function ResumeUploadFlow({ initialResume, profileHref }: ResumeUploadFlowProps) {
   const { state, upload, cancel, startOver } = useResumeUploadFlow(initialResume);
 
@@ -197,62 +281,8 @@ export function ResumeUploadFlow({ initialResume, profileHref }: ResumeUploadFlo
     );
   }
 
-  const view = viewOf(state);
-  const rows = profileDataRowsOf(view);
-  const progress = { percentage: percentageOf(view), stages: stagesOf(view), rows, found: foundCountOf(rows) };
-  const fileName = state.phase === "uploading" ? state.file.name : state.resume.fileName;
-  const size = formatSize(state.phase === "uploading" ? state.file.size : state.resume.sizeBytes);
-  const uploadAgain = (
-    <Button variant="secondary" type="button" onClick={startOver}>
-      Upload a different PDF
-    </Button>
-  );
+  const status = state.phase === "tracked" ? state.resume.status : "uploading";
+  const StateView = status === "done" ? DoneState : status === "failed" ? FailedState : ProcessingState;
 
-  if (state.phase === "tracked" && state.resume.status === "done") {
-    return (
-      <>
-        <ScreenHeading size="large" eyebrow="All set" title="Your profile is ready" lead={DONE_LEAD} />
-        <IngestionProgress
-          {...progress}
-          file={{ name: fileName, meta: `${size} · processed` }}
-          actions={
-            <>
-              <Button href={profileHref}>Review my profile</Button>
-              {uploadAgain}
-            </>
-          }
-          footnote="We deleted the original PDF once it was read."
-        />
-      </>
-    );
-  }
-
-  if (state.phase === "tracked" && state.resume.status === "failed") {
-    return (
-      <>
-        <ScreenHeading size="large" eyebrow="Something went wrong" title="We couldn't read that PDF" lead={failureLeadOf(state.resume.errorCode)} />
-        <IngestionProgress {...progress} file={{ name: fileName, meta: `${size} · failed` }} actions={uploadAgain} />
-      </>
-    );
-  }
-
-  const uploading = state.phase === "uploading";
-
-  return (
-    <>
-      <ScreenHeading size="large" eyebrow="Working on it" title="Reading your résumé" lead={PROCESSING_LEAD} />
-      <IngestionProgress
-        {...progress}
-        file={{ name: fileName, meta: `${size} · ${uploading ? "uploading" : "processing"}` }}
-        actions={
-          uploading ? (
-            <Button variant="secondary" type="button" onClick={cancel}>
-              Cancel upload
-            </Button>
-          ) : undefined
-        }
-        footnote="Usually takes under a minute."
-      />
-    </>
-  );
+  return <StateView state={state} profileHref={profileHref} onCancel={cancel} onStartOver={startOver} />;
 }
