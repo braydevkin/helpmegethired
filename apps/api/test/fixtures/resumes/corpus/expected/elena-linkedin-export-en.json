@@ -88,7 +88,7 @@
     }
   ],
   "draft": {
-    "parserVersion": "rules/1",
+    "parserVersion": "rules/2",
     "basicProfile": {
       "headline": {
         "value": "petrova-example",
@@ -101,7 +101,110 @@
       },
       "githubUrl": null
     },
-    "experiences": [],
+    "experiences": [
+      {
+        "role": {
+          "value": "English (Fluent) Engineering Manager",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Russian (Native) Northwind Systems",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2020-10",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "German (Intermediate) Berlin",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Lead the platform and reliability teams",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "twelve engineers in",
+          "confidence": "high"
+        },
+        "period": null,
+        "description": {
+          "value": "total. Introduced quarterly reliability reviews.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Senior Software Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Northwind Systems",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2017-05",
+            "end": "2020-09"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Berlin",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Designed the ledger service in Go on PostgreSQL.",
+          "confidence": "low"
+        },
+        "company": null,
+        "period": null,
+        "description": null,
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Software Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Baltic Pay",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2013-01",
+            "end": "2017-04"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Tallinn",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Built card processing integrations in Java.",
+          "confidence": "low"
+        },
+        "company": null,
+        "period": null,
+        "description": null,
+        "skills": []
+      }
+    ],
     "education": [],
     "projects": [],
     "skills": [],

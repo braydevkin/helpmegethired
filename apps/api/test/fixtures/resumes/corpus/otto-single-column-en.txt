@@ -1,0 +1,28 @@
+Otto Lindqvist
+Embedded Software Engineer
+Gothenburg, Sweden | +46 31 123 456 | otto.lindqvist@example.com
+linkedin.com/in/otto-lindqvist-example · github.com/ottol-example
+
+SUMMARY
+
+Embedded engineer who has spent his whole career on one product line and knows every
+one of its boards.
+
+EXPERIENCE
+Nordic Drives | Embedded Software Engineer
+Gothenburg · Jan 2012 – Present
+  Firmware in C and Rust for the motor controllers.
+  Introduced hardware-in-the-loop tests to the release process.
+
+EDUCATION
+MSc in Embedded Systems, Chalmers University of Technology
+2007 – 2012
+
+SKILLS
+
+C, Rust, RTOS, CAN bus, Git
+
+LANGUAGES
+  Swedish - Native
+  English - Fluent
+

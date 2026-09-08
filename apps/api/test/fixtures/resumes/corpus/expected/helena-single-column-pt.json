@@ -1,0 +1,179 @@
+{
+  "contact": {
+    "name": {
+      "value": "Helena Martins Rocha",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "helena.rocha@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "(48) 99876-5432",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/helena-rocha-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/helenamr-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Helena Martins Rocha",
+        "Engenheira de Software",
+        "Florianópolis, SC | (48) 99876-5432 | helena.rocha@example.com",
+        "linkedin.com/in/helena-rocha-example · github.com/helenamr-example"
+      ]
+    },
+    {
+      "kind": "summary",
+      "heading": "RESUMO",
+      "lines": [
+        "Engenheira de software que mantém um trabalho fixo e uma consultoria em paralelo, sem",
+        "deixar nenhum dos dois cair."
+      ]
+    },
+    {
+      "kind": "experience",
+      "heading": "EXPERIÊNCIA PROFISSIONAL",
+      "lines": [
+        "Engenheira de Software Sênior | Ilha Tech",
+        "Florianópolis · 01/2020 – Atual",
+        "Lidera o time da API de pagamentos.",
+        "Reduziu o tempo de build de 20 para 6 minutos.",
+        "Consultora de Software | Rocha Consultoria",
+        "Remoto · 06/2019 – 12/2022",
+        "Atendeu cinco clientes em paralelo com o trabalho fixo.",
+        "Projetos de integração em Node.js e PostgreSQL.",
+        "Engenheira de Software | Litoral Digital",
+        "Florianópolis · 03/2017 – 12/2019",
+        "Desenvolveu o aplicativo de entregas em React Native."
+      ]
+    },
+    {
+      "kind": "education",
+      "heading": "FORMAÇÃO ACADÊMICA",
+      "lines": [
+        "Bacharelado em Sistemas de Informação, UFSC",
+        "2013 – 2016"
+      ]
+    },
+    {
+      "kind": "skills",
+      "heading": "HABILIDADES",
+      "lines": [
+        "TypeScript, Node.js, React Native, PostgreSQL, AWS"
+      ]
+    },
+    {
+      "kind": "languages",
+      "heading": "IDIOMAS",
+      "lines": [
+        "Português - Nativo",
+        "Inglês - Avançado"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/2",
+    "basicProfile": {
+      "headline": {
+        "value": "Engenheira de Software",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "Engenheira de software que mantém um trabalho fixo e uma consultoria em paralelo, sem deixar nenhum dos dois cair.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/helena-rocha-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/helenamr-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Engenheira de Software Sênior",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Ilha Tech",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2020-01",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Lidera o time da API de pagamentos.\nReduziu o tempo de build de 20 para 6 minutos.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Consultora de Software",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Rocha Consultoria",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2019-06",
+            "end": "2022-12"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Atendeu cinco clientes em paralelo com o trabalho fixo.\nProjetos de integração em Node.js e PostgreSQL.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Engenheira de Software",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Litoral Digital",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2017-03",
+            "end": "2019-12"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Desenvolveu o aplicativo de entregas em React Native.",
+          "confidence": "high"
+        },
+        "skills": []
+      }
+    ],
+    "education": [],
+    "projects": [],
+    "skills": [],
+    "languages": [],
+    "certifications": []
+  }
+}

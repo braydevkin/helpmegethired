@@ -1,0 +1,32 @@
+                                 Igor Sokolov
+                                   Site Reliability Engineer
+              Amsterdam, Netherlands — +31 20 123 4567 — igor.sokolov@example.com
+                  linkedin.com/in/igor-sokolov-example · github.com/igorsk-example
+
+
+Summary
+
+SRE with a taste for boring systems and clear runbooks.
+
+Experience
+2021 – Present               Canal Cloud, Site Reliability Engineer, Amsterdam
+                               Own the on-call rotation and the incident process for the
+                               platform.
+                               Brought the error budget policy to every product team.
+2016 – 2021                  Tulip Hosting, Systems Engineer, Utrecht
+                               Ran the fleet of 400 servers and moved it to Kubernetes.
+
+Education
+2012 – 2016                  BSc in Computer Science, TU Delft
+
+Skills
+
+Kubernetes · Terraform · Go · Prometheus · Linux · AWS
+
+Languages
+
+Russian - Native; English - Fluent; Dutch - Intermediate
+
+Certifications
+2022                         Certified Kubernetes Administrator, CNCF
+

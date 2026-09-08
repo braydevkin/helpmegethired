@@ -86,7 +86,7 @@
     }
   ],
   "draft": {
-    "parserVersion": "rules/1",
+    "parserVersion": "rules/2",
     "basicProfile": {
       "headline": {
         "value": "Staff Software Engineer",

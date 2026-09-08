@@ -2,10 +2,11 @@ import type { DraftBasicProfile, Field, ProfileDraft } from "@helpmegethired/sha
 
 import { cleanText } from "./clean";
 import { extractContact, isContactLine, type Contact } from "./contact";
+import { extractExperiences } from "./experiences";
 import { splitSections, type Section } from "./sections";
 import { isBlank } from "./text";
 
-export const PARSER_VERSION = "rules/1";
+export const PARSER_VERSION = "rules/2";
 
 export interface ParsedResume {
   contact: Contact;
@@ -71,7 +72,7 @@ export function parseResume(rawText: string): ParsedResume {
     draft: {
       parserVersion: PARSER_VERSION,
       basicProfile: basicProfileOf(sections, contact),
-      experiences: [],
+      experiences: sections.filter((section) => section.kind === "experience").flatMap((section) => extractExperiences(section.lines)),
       education: [],
       projects: [],
       skills: [],

@@ -1,0 +1,149 @@
+{
+  "contact": {
+    "name": {
+      "value": "Nina Carvalho Duarte",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "nina.duarte@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+55 19 98765-1234",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/nina-duarte-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/ninacd-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Nina Carvalho Duarte",
+        "Cientista de Dados",
+        "Campinas, SP — +55 19 98765-1234 — nina.duarte@example.com",
+        "linkedin.com/in/nina-duarte-example · github.com/ninacd-example"
+      ]
+    },
+    {
+      "kind": "summary",
+      "heading": "Resumo",
+      "lines": [
+        "Cientista de dados aplicando modelos de previsão a logística, com o pé na engenharia",
+        "de dados."
+      ]
+    },
+    {
+      "kind": "experience",
+      "heading": "Experiência Profissional",
+      "lines": [
+        "2020 – Atual Cientista de Dados, Rota Logística, Campinas",
+        "Modelos de previsão de demanda para 300 rotas.",
+        "Pipeline de features em Spark.",
+        "2015 – 2017 Analista de Dados, Unicamp Ventures, Campinas",
+        "Painéis de acompanhamento das startups incubadas."
+      ]
+    },
+    {
+      "kind": "education",
+      "heading": "Formação Acadêmica",
+      "lines": [
+        "2017 – 2019 Mestrado em Estatística, Unicamp"
+      ]
+    },
+    {
+      "kind": "skills",
+      "heading": "Habilidades",
+      "lines": [
+        "Python · Pandas · scikit-learn · Spark · SQL"
+      ]
+    },
+    {
+      "kind": "languages",
+      "heading": "Idiomas",
+      "lines": [
+        "Português - Nativo; Inglês - Fluente"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/2",
+    "basicProfile": {
+      "headline": {
+        "value": "Cientista de Dados",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "Cientista de dados aplicando modelos de previsão a logística, com o pé na engenharia de dados.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/nina-duarte-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/ninacd-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Cientista de Dados",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Rota Logística",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2020-01",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Modelos de previsão de demanda para 300 rotas.\nPipeline de features em Spark.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Analista de Dados",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Unicamp Ventures",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2015-01",
+            "end": "2017-12"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Painéis de acompanhamento das startups incubadas.",
+          "confidence": "high"
+        },
+        "skills": []
+      }
+    ],
+    "education": [],
+    "projects": [],
+    "skills": [],
+    "languages": [],
+    "certifications": []
+  }
+}

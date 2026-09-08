@@ -103,7 +103,7 @@
     }
   ],
   "draft": {
-    "parserVersion": "rules/1",
+    "parserVersion": "rules/2",
     "basicProfile": {
       "headline": {
         "value": "Engenheira de Software Sênior (Backend)",
@@ -122,7 +122,52 @@
         "confidence": "high"
       }
     },
-    "experiences": [],
+    "experiences": [
+      {
+        "role": {
+          "value": "Engenheira de Software Sênior",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Analytical Engines Ltd",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2021-03",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Responsável pela plataforma de ingestão que transforma documentos enviados em perfis\nestruturados.\nReduziu o tempo mediano de processamento de 40 segundos para 6 ao mover a extração\npara um pool de workers.\nMentora de quatro pessoas engenheiras e responsável pelas revisões de design do time\nde dados.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Engenheira de Software",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Difference Works",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2016-06",
+            "end": "2021-02"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Construiu o serviço de cobrança em TypeScript sobre PostgreSQL, processando 2 milhões\nde faturas por mês.\nIntroduziu testes de contrato entre a API e o aplicativo web.",
+          "confidence": "high"
+        },
+        "skills": []
+      }
+    ],
     "education": [],
     "projects": [],
     "skills": [],

@@ -45,22 +45,21 @@
       "kind": "experience",
       "heading": "Experiência Profissional",
       "lines": [
-        "abril de 2019 – Engenheiro de Dados Sênior, Pinheiro Analytics, Curitiba",
-        "Atual",
+        "abril de 2019 – Atual Engenheiro de Dados Sênior, Pinheiro Analytics, Curitiba",
         "Lidera a plataforma de dados que atende 40 analistas.",
-        "Reduziu 35% do custo de armazenamento ao reorganizar o data",
-        "lake em camadas.",
-        "março de 2016 – Analista de Dados, Cooperativa Araucária, Curitiba",
-        "março de 2019",
-        "Construiu os primeiros painéis de vendas em SQL e Python."
+        "Reduziu 35% do custo de armazenamento ao reorganizar o",
+        "data lake em camadas.",
+        "mar. 2016 – mar. 2019 Analista de Dados, Cooperativa Araucária, Curitiba",
+        "Construiu os primeiros painéis de vendas em SQL e",
+        "Python."
       ]
     },
     {
       "kind": "education",
       "heading": "Formação Acadêmica",
       "lines": [
-        "2012 – 2016 Bacharelado em Ciência da Computação, Universidade Federal",
-        "do Paraná"
+        "2012 – 2016 Bacharelado em Ciência da Computação, Universidade",
+        "Federal do Paraná"
       ]
     },
     {
@@ -87,7 +86,7 @@
     }
   ],
   "draft": {
-    "parserVersion": "rules/1",
+    "parserVersion": "rules/2",
     "basicProfile": {
       "headline": {
         "value": "Engenheiro de Dados",
@@ -106,7 +105,52 @@
         "confidence": "high"
       }
     },
-    "experiences": [],
+    "experiences": [
+      {
+        "role": {
+          "value": "Engenheiro de Dados Sênior",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Pinheiro Analytics",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2019-04",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Lidera a plataforma de dados que atende 40 analistas.\nReduziu 35% do custo de armazenamento ao reorganizar o\ndata lake em camadas.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Analista de Dados",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Cooperativa Araucária",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2016-03",
+            "end": "2019-03"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Construiu os primeiros painéis de vendas em SQL e\nPython.",
+          "confidence": "high"
+        },
+        "skills": []
+      }
+    ],
     "education": [],
     "projects": [],
     "skills": [],

@@ -13,7 +13,7 @@ export function latexLike(person: Person): string {
     .headline, .contact { text-align: center; }
     .contact { font-size: 9.5pt; color: #333; }
     h2 { font-variant: small-caps; text-transform: none; letter-spacing: 0; font-size: 13pt; border-bottom: 1px solid #333; }
-    .row { display: grid; grid-template-columns: 34mm 1fr; column-gap: 6mm; margin-bottom: 6pt; }
+    .row { display: grid; grid-template-columns: 46mm 1fr; column-gap: 6mm; margin-bottom: 6pt; }
     .row .when { color: #444; font-size: 10pt; }
     ul { margin-top: 2pt; }
     `,
@@ -29,7 +29,7 @@ export function latexLike(person: Person): string {
     <h2>${words.experience}</h2>
     ${person.experiences
       .map(
-        (experience) => `<div class="row"><div class="when">${period(experience.period, words)}</div><div><strong>${escape(experience.role)}</strong>, ${escape(experience.company)}, ${escape(experience.location)}<ul>${experience.bullets.map((bullet) => `<li>${escape(bullet)}</li>`).join("")}</ul></div></div>`,
+        (experience) => `<div class="row"><div class="when">${experience.period ? period(experience.period, words) : ""}</div><div>${experience.companyFirst ? `${escape(experience.company)}, <strong>${escape(experience.role)}</strong>` : `<strong>${escape(experience.role)}</strong>, ${escape(experience.company)}`}, ${escape(experience.location)}<ul>${experience.bullets.map((bullet) => `<li>${escape(bullet)}</li>`).join("")}</ul></div></div>`,
       )
       .join("")}
 

@@ -34,8 +34,9 @@ export const DraftBasicProfileSchema = z.object({
   githubUrl: UrlField.nullable(),
 });
 
+// A heading with no separator names a role and nothing else; the Candidate adds the company.
 export const DraftExperienceSchema = z.object({
-  company: TextField,
+  company: TextField.nullable(),
   role: TextField,
   period: fieldOf(PeriodSchema).nullable(),
   description: TextField.nullable(),

@@ -100,7 +100,7 @@
     }
   ],
   "draft": {
-    "parserVersion": "rules/1",
+    "parserVersion": "rules/2",
     "basicProfile": {
       "headline": {
         "value": "Senior Backend Engineer",
@@ -119,7 +119,52 @@
         "confidence": "high"
       }
     },
-    "experiences": [],
+    "experiences": [
+      {
+        "role": {
+          "value": "Senior Backend Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Analytical Engines Ltd",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2021-03",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Own the ingestion platform that turns uploaded documents into structured profiles.\nCut the median processing time from 40 seconds to 6 by moving extraction to a worker\npool.\nMentor four engineers and run the design reviews for the data team.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Backend Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Difference Works",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2016-06",
+            "end": "2021-02"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Built the billing service in TypeScript on PostgreSQL, handling 2 million invoices a month.\nIntroduced contract tests between the API and the web app.",
+          "confidence": "high"
+        },
+        "skills": []
+      }
+    ],
     "education": [],
     "projects": [],
     "skills": [],

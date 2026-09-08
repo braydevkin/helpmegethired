@@ -1,0 +1,28 @@
+   Júlia Andrade Lima
+   Desenvolvedora Front-end
+
+Porto Alegre, RS   (51) 98123-4567   julia.lima@example.com   linkedin.com/in/julia-lima-example
+
+
+RESUMO                                                           FORMAÇÃO
+                                                                 ACADÊMICA
+Desenvolvedora front-end em seu primeiro emprego,
+cuidando do design system e da acessibilidade do produto.        Bacharelado em Ciência
+                                                                 da Computação, PUCRS
+                                                                 2019 – 2022
+EXPERIÊNCIA PROFISSIONAL
+Desenvolvedora Front-end Júnior, Guaíba Software                 HABILIDADES
+Porto Alegre · 03/2023 – Atual
+                                                                    React
+  Mantém o design system em React e Storybook.
+                                                                    TypeScript
+  Levou o produto ao nível AA de acessibilidade.
+                                                                    CSS
+PROJETOS                                                            Storybook
+                                                                    Jest
+Acessível · Extensão de navegador que aponta problemas
+de contraste. (https://github.com/julialima-                     IDIOMAS
+example/acessivel)
+                                                                    Português - Nativo
+                                                                    Inglês - Intermediário
+
