@@ -1,8 +1,26 @@
 import type { Person } from "../people.ts";
-import { contactLine, educationBlock, escape, experienceBlock, linksLine, list, page, wordsFor } from "./html.ts";
+import {
+  contactLine,
+  educationBlock,
+  escape,
+  experienceBlock,
+  inlineCertifications,
+  inlineLanguages,
+  linksLine,
+  list,
+  orderedSections,
+  page,
+  variantsOf,
+  wordsFor,
+} from "./html.ts";
 
 export function singleColumn(person: Person): string {
   const words = wordsFor(person);
+  const variants = variantsOf(person);
+  const projects = person.projects
+    .map((project) => `<div class="entry"><strong>${escape(project.name)}</strong>${project.url ? ` — ${escape(project.url)}` : ""}<br>${escape(project.description)}</div>`)
+    .join("");
+  const certifications = list(person.certifications.map((certification) => `${certification.name} — ${certification.issuer}, ${certification.year}`));
 
   return page(
     person.name,
@@ -15,22 +33,21 @@ export function singleColumn(person: Person): string {
 
     <h2>${words.summary}</h2>
     <p>${escape(person.summary)}</p>
+    ${variants.languagesInline ? inlineLanguages(person, words) : ""}
 
-    <h2>${words.experience}</h2>
-    ${person.experiences.map((experience) => experienceBlock(experience, words)).join("")}
-
-    <h2>${words.education}</h2>
-    ${person.education.map((education) => educationBlock(education, words)).join("")}
-
-    <h2>${words.skills}</h2>
-    <p>${person.skills.map(escape).join(", ")}</p>
-
-    ${person.projects.length > 0 ? `<h2>${words.projects}</h2>${person.projects.map((project) => `<div class="entry"><strong>${escape(project.name)}</strong>${project.url ? ` — ${escape(project.url)}` : ""}<br>${escape(project.description)}</div>`).join("")}` : ""}
-
-    <h2>${words.languages}</h2>
-    ${list(person.languages)}
-
-    ${person.certifications.length > 0 ? `<h2>${words.certifications}</h2>${list(person.certifications.map((certification) => `${certification.name} — ${certification.issuer}, ${certification.year}`))}` : ""}
+    ${orderedSections(
+      person,
+      {
+        experience: `<h2>${words.experience}</h2>${person.experiences.map((experience) => experienceBlock(experience, words)).join("")}${variants.certificationsInExperience ? inlineCertifications(person, words) : ""}`,
+        education: `<h2>${words.education}</h2>${person.education.map((education) => educationBlock(education, words)).join("")}`,
+      },
+      [
+        variants.noSkillsSection ? "" : `<h2>${words.skills}</h2><p>${person.skills.map(escape).join(", ")}</p>`,
+        person.projects.length > 0 ? `<h2>${words.projects}</h2>${projects}` : "",
+        variants.languagesInline ? "" : `<h2>${words.languages}</h2>${list(person.languages)}`,
+        person.certifications.length > 0 && !variants.certificationsInExperience ? `<h2>${words.certifications}</h2>${certifications}` : "",
+      ],
+    )}
     `,
   );
 }

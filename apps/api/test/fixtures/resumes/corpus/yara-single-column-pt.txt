@@ -1,0 +1,35 @@
+Yara Santos Oliveira
+Cientista de Dados
+Brasília, DF | (61) 99333-4455 | yara.oliveira@example.com
+linkedin.com/in/yara-oliveira-example · github.com/yaraso-example
+
+RESUMO
+
+Cientista de dados no setor público, com modelos de risco em produção desde 2021.
+
+Idiomas: Português (Nativo), Inglês (Avançado), Espanhol (Intermediário)
+
+FORMAÇÃO ACADÊMICA
+Mestrado em Ciência da Computação, Universidade de Brasília
+2021 – 2023
+
+Bacharelado em Estatística, Universidade de Brasília
+2016 – 2020
+
+EXPERIÊNCIA PROFISSIONAL
+Cientista de Dados | Instituto Planalto de Pesquisa
+Brasília · abr 2021 – Atual
+   Treina modelos de risco de evasão escolar com scikit-learn e XGBoost.
+   Publica os resultados em painéis Streamlit.
+Estagiária de Pesquisa | Universidade de Brasília
+Brasília · ago 2019 – mar 2021
+   Limpou e documentou bases do censo escolar em Pandas.
+
+HABILIDADES
+
+Python, scikit-learn, XGBoost, Pandas, Streamlit, SQL
+
+PROJETOS
+Evasão Zero — https://github.com/yaraso-example/evasao-zero
+Painel aberto com os indicadores de evasão por município.
+

@@ -1,9 +1,16 @@
-import type { Person } from "../people.ts";
-import { contactLine, escape, linksLine, page, period, wordsFor } from "./html.ts";
+import type { ExperienceData, Person } from "../people.ts";
+import { contactLine, escape, inlineCertifications, inlineLanguages, linksLine, orderedSections, page, period, variantsOf, wordsFor, type Labels } from "./html.ts";
+
+const experienceRow = (experience: ExperienceData, words: Labels): string =>
+  `<div class="row"><div class="when">${experience.period ? period(experience.period, words) : ""}</div><div>${experience.companyFirst ? `${escape(experience.company)}, <strong>${escape(experience.role)}</strong>` : `<strong>${escape(experience.role)}</strong>, ${escape(experience.company)}`}, ${escape(experience.location)}<ul>${experience.bullets.map((bullet) => `<li>${escape(bullet)}</li>`).join("")}</ul></div></div>`;
 
 // The look of a moderncv document: serif type, small-caps headings, dates on the left.
 export function latexLike(person: Person): string {
   const words = wordsFor(person);
+  const variants = variantsOf(person);
+  const certifications = person.certifications
+    .map((certification) => `<div class="row"><div class="when">${certification.year}</div><div>${escape(certification.name)}, ${escape(certification.issuer)}</div></div>`)
+    .join("");
 
   return page(
     person.name,
@@ -25,24 +32,20 @@ export function latexLike(person: Person): string {
 
     <h2>${words.summary}</h2>
     <p>${escape(person.summary)}</p>
+    ${variants.languagesInline ? inlineLanguages(person, words) : ""}
 
-    <h2>${words.experience}</h2>
-    ${person.experiences
-      .map(
-        (experience) => `<div class="row"><div class="when">${experience.period ? period(experience.period, words) : ""}</div><div>${experience.companyFirst ? `${escape(experience.company)}, <strong>${escape(experience.role)}</strong>` : `<strong>${escape(experience.role)}</strong>, ${escape(experience.company)}`}, ${escape(experience.location)}<ul>${experience.bullets.map((bullet) => `<li>${escape(bullet)}</li>`).join("")}</ul></div></div>`,
-      )
-      .join("")}
-
-    <h2>${words.education}</h2>
-    ${person.education.map((education) => `<div class="row"><div class="when">${period(education.period, words)}</div><div><strong>${escape(education.degree)}</strong>, ${escape(education.institution)}</div></div>`).join("")}
-
-    <h2>${words.skills}</h2>
-    <p>${person.skills.map(escape).join(" · ")}</p>
-
-    <h2>${words.languages}</h2>
-    <p>${person.languages.map(escape).join("; ")}</p>
-
-    ${person.certifications.length > 0 ? `<h2>${words.certifications}</h2>${person.certifications.map((certification) => `<div class="row"><div class="when">${certification.year}</div><div>${escape(certification.name)}, ${escape(certification.issuer)}</div></div>`).join("")}` : ""}
+    ${orderedSections(
+      person,
+      {
+        experience: `<h2>${words.experience}</h2>${person.experiences.map((experience) => experienceRow(experience, words)).join("")}${variants.certificationsInExperience ? inlineCertifications(person, words) : ""}`,
+        education: `<h2>${words.education}</h2>${person.education.map((education) => `<div class="row"><div class="when">${period(education.period, words)}</div><div><strong>${escape(education.degree)}</strong>, ${escape(education.institution)}</div></div>`).join("")}`,
+      },
+      [
+        variants.noSkillsSection ? "" : `<h2>${words.skills}</h2><p>${person.skills.map(escape).join(" · ")}</p>`,
+        variants.languagesInline ? "" : `<h2>${words.languages}</h2><p>${person.languages.map(escape).join("; ")}</p>`,
+        person.certifications.length > 0 && !variants.certificationsInExperience ? `<h2>${words.certifications}</h2>${certifications}` : "",
+      ],
+    )}
     `,
   );
 }

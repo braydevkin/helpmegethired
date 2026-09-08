@@ -1,0 +1,30 @@
+                        Sofia Carvalho Nunes
+                                   Engenheira de Software
+                Florianópolis, SC — +55 48 99876-5432 — sofia.nunes@example.com
+ linkedin.com/in/sofia-nunes-example · github.com/sofiacn-example · https://sofianunes.example.com
+
+
+Resumo
+
+Engenheira de software com seis anos em produtos B2B. As tecnologias que uso
+aparecem nas experiências abaixo.
+
+Experiência Profissional
+maio de 2022 – Atual         Engenheira de Software Sênior, Ilha Digital, Florianópolis
+                               Lidera a migração do monólito em Ruby on Rails para
+                               serviços em Go sobre Kubernetes.
+                               Definiu a observabilidade com Prometheus e Grafana.
+fev. 2020 – abr. 2022        Engenheira de Software, Costa Sul Sistemas, Florianópolis
+                               Desenvolveu a API de cobrança em Ruby on Rails com
+                               PostgreSQL e Redis.
+
+Formação Acadêmica
+2014 – 2019                  Bacharelado em Ciência da Computação, UFSC
+
+Idiomas
+
+Português - Nativo; Inglês - Fluente (C1)
+
+Certificações
+2023                         Certified Kubernetes Application Developer, CNCF
+

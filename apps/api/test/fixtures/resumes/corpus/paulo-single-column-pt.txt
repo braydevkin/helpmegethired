@@ -1,0 +1,38 @@
+Paulo Sérgio Ramos
+Desenvolvedor Backend Júnior
+Recife, PE | (81) 99654-3210 | paulo.ramos@example.com
+linkedin.com/in/paulo-ramos-example · github.com/pauloramos-example
+
+RESUMO
+
+Recém-formado em busca da primeira vaga como desenvolvedor backend. Estagiei com Java
+e Spring e mantenho projetos pessoais em Node.js.
+
+FORMAÇÃO ACADÊMICA
+Bacharelado em Ciência da Computação, Universidade Federal de Pernambuco
+2021 – 2025
+
+Curso Técnico em Informática, IFPE
+2018 – 2020
+
+EXPERIÊNCIA PROFISSIONAL
+Estagiário de Desenvolvimento | Litoral Tecnologia
+Recife · 02/2025 – 12/2025
+  Implementou endpoints REST em Spring Boot e escreveu testes com JUnit.
+  Automatizou a geração de relatórios em PostgreSQL.
+
+HABILIDADES
+
+Java, Spring, Node.js, PostgreSQL, Git, Docker
+
+PROJETOS
+Cardápio Aberto — https://github.com/pauloramos-example/cardapio-aberto
+API pública de cardápios de restaurantes universitários, em NestJS.
+
+IDIOMAS
+  Português - Nativo
+  Inglês - Intermediário (B1)
+
+CERTIFICAÇÕES
+  Oracle Certified Associate Java SE 8 — Oracle, 2024
+

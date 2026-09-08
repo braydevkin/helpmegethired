@@ -123,3 +123,12 @@ describe("extractExperiences", () => {
     expect(extractExperiences([])).toEqual([]);
   });
 });
+
+describe("extractExperiences after a bullet ending in a short capitalised word", () => {
+  it("keeps the bullet in the description instead of reading it as the next heading", () => {
+    const [first, second] = extractExperiences(["Feb 2021 – Present Site Reliability Engineer, Rhône Payments", "Wrote the incident tooling in Go.", "Sep 2017 – Jan 2021 DevOps Engineer, Presqu'île Hosting"]);
+
+    expect(first?.description?.value).toBe("Wrote the incident tooling in Go.");
+    expect(second).toMatchObject({ role: { value: "DevOps Engineer" }, company: { value: "Presqu'île Hosting" } });
+  });
+});

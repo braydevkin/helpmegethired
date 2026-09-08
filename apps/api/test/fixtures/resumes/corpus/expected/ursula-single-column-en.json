@@ -1,0 +1,266 @@
+{
+  "contact": {
+    "name": {
+      "value": "Ursula Brandt",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "ursula.brandt@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+49 40 123456",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/ursula-brandt-example",
+      "confidence": "high"
+    },
+    "githubUrl": null,
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Ursula Brandt",
+        "Cloud Engineer",
+        "Hamburg, Germany | +49 40 123456 | ursula.brandt@example.com",
+        "linkedin.com/in/ursula-brandt-example"
+      ]
+    },
+    {
+      "kind": "summary",
+      "heading": "SUMMARY",
+      "lines": [
+        "Cloud engineer moving workloads to AWS for logistics companies. Certified along the way;",
+        "the list sits with the experience."
+      ]
+    },
+    {
+      "kind": "experience",
+      "heading": "EXPERIENCE",
+      "lines": [
+        "Cloud Engineer | Elbe Shipping Systems",
+        "Hamburg · Apr 2021 – Present",
+        "Migrated 60 services to ECS and RDS with Terraform, cutting the hosting bill by a third.",
+        "Run the on-call rotation and the CloudWatch alerting.",
+        "Systems Administrator | Hafen IT",
+        "Hamburg · Aug 2016 – Mar 2021",
+        "Kept 200 Linux servers patched with Ansible.",
+        "",
+        "Certifications: AWS Certified Solutions Architect Professional (Amazon Web Services, 2024);",
+        "HashiCorp Certified: Terraform Associate (HashiCorp, 2022)"
+      ]
+    },
+    {
+      "kind": "education",
+      "heading": "EDUCATION",
+      "lines": [
+        "BSc in Information Systems, Hamburg University of Applied Sciences",
+        "2012 – 2016"
+      ]
+    },
+    {
+      "kind": "skills",
+      "heading": "SKILLS",
+      "lines": [
+        "AWS, Terraform, ECS, RDS, CloudWatch, Ansible, Linux"
+      ]
+    },
+    {
+      "kind": "languages",
+      "heading": "LANGUAGES",
+      "lines": [
+        "German - Native",
+        "English - Fluent"
+      ]
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "Cloud Engineer",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "Cloud engineer moving workloads to AWS for logistics companies. Certified along the way; the list sits with the experience.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/ursula-brandt-example",
+        "confidence": "high"
+      },
+      "githubUrl": null
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Cloud Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Elbe Shipping Systems",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2021-04",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Migrated 60 services to ECS and RDS with Terraform, cutting the hosting bill by a third.\nRun the on-call rotation and the CloudWatch alerting.",
+          "confidence": "high"
+        },
+        "skills": [
+          "ECS",
+          "RDS",
+          "Terraform",
+          "CloudWatch"
+        ]
+      },
+      {
+        "role": {
+          "value": "Systems Administrator",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Hafen IT",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2016-08",
+            "end": "2021-03"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Kept 200 Linux servers patched with Ansible.",
+          "confidence": "high"
+        },
+        "skills": [
+          "Linux",
+          "Ansible"
+        ]
+      }
+    ],
+    "education": [
+      {
+        "institution": {
+          "value": "Hamburg University of Applied Sciences",
+          "confidence": "high"
+        },
+        "degree": {
+          "value": "BSc",
+          "confidence": "high"
+        },
+        "fieldOfStudy": {
+          "value": "Information Systems",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2012-01",
+            "end": "2016-12"
+          },
+          "confidence": "high"
+        }
+      }
+    ],
+    "projects": [],
+    "skills": [
+      {
+        "name": "AWS",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "ECS",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "RDS",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Terraform",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "CloudWatch",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Linux",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Ansible",
+        "category": "Infrastructure",
+        "confidence": "high"
+      }
+    ],
+    "languages": [
+      {
+        "name": {
+          "value": "German",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Native",
+          "confidence": "medium"
+        }
+      },
+      {
+        "name": {
+          "value": "English",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Fluent",
+          "confidence": "medium"
+        }
+      }
+    ],
+    "certifications": [
+      {
+        "name": {
+          "value": "AWS Certified Solutions Architect Professional",
+          "confidence": "medium"
+        },
+        "issuer": {
+          "value": "Amazon Web Services",
+          "confidence": "medium"
+        },
+        "year": {
+          "value": 2024,
+          "confidence": "medium"
+        }
+      },
+      {
+        "name": {
+          "value": "HashiCorp Certified: Terraform Associate",
+          "confidence": "medium"
+        },
+        "issuer": {
+          "value": "HashiCorp",
+          "confidence": "medium"
+        },
+        "year": {
+          "value": 2022,
+          "confidence": "medium"
+        }
+      }
+    ]
+  }
+}

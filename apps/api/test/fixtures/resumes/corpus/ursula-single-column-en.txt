@@ -1,0 +1,34 @@
+Ursula Brandt
+Cloud Engineer
+Hamburg, Germany | +49 40 123456 | ursula.brandt@example.com
+linkedin.com/in/ursula-brandt-example
+
+SUMMARY
+
+Cloud engineer moving workloads to AWS for logistics companies. Certified along the way;
+the list sits with the experience.
+
+EXPERIENCE
+Cloud Engineer | Elbe Shipping Systems
+Hamburg · Apr 2021 – Present
+  Migrated 60 services to ECS and RDS with Terraform, cutting the hosting bill by a third.
+  Run the on-call rotation and the CloudWatch alerting.
+Systems Administrator | Hafen IT
+Hamburg · Aug 2016 – Mar 2021
+  Kept 200 Linux servers patched with Ansible.
+
+Certifications: AWS Certified Solutions Architect Professional (Amazon Web Services, 2024);
+HashiCorp Certified: Terraform Associate (HashiCorp, 2022)
+
+EDUCATION
+BSc in Information Systems, Hamburg University of Applied Sciences
+2012 – 2016
+
+SKILLS
+
+AWS, Terraform, ECS, RDS, CloudWatch, Ansible, Linux
+
+LANGUAGES
+  German - Native
+  English - Fluent
+

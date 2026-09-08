@@ -51,7 +51,7 @@
     }
   ],
   "draft": {
-    "parserVersion": "rules/2",
+    "parserVersion": "rules/3",
     "basicProfile": {
       "headline": {
         "value": "Data Analyst",
@@ -70,7 +70,33 @@
     "experiences": [],
     "education": [],
     "projects": [],
-    "skills": [],
+    "skills": [
+      {
+        "name": "SQL",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "Python",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "dbt",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Power BI",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Snowflake",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      }
+    ],
     "languages": [],
     "certifications": []
   }

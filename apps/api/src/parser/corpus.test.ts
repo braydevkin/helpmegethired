@@ -16,8 +16,8 @@ const cases = readdirSync(corpus)
 // expected/. A rule change that alters an outcome updates that file on purpose, in the same
 // pull request, with `vitest run -u`.
 describe("synthetic corpus", () => {
-  it("holds the first batch", () => {
-    expect(cases.length).toBeGreaterThanOrEqual(8);
+  it("holds the milestone target of thirty resumes", () => {
+    expect(cases.length).toBeGreaterThanOrEqual(30);
   });
 
   it.each(cases)("%s parses as expected", async (slug) => {

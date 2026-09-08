@@ -1,4 +1,4 @@
-import type { EducationData, ExperienceData, Period, Person } from "../people.ts";
+import type { CertificationData, EducationData, ExperienceData, Period, Person, Variants } from "../people.ts";
 import { labels, type Labels } from "./labels.ts";
 
 export const escape = (text: string): string =>
@@ -53,3 +53,24 @@ export const page = (title: string, style: string, body: string): string => `<!d
 </head>
 <body>${body}</body>
 </html>`;
+
+export const variantsOf = (person: Person): Variants => person.variants ?? {};
+
+// "Idiomas: Português (Nativo), Inglês (Fluente)" on one line under the summary.
+export const inlineLanguages = (person: Person, words: Labels): string =>
+  `<p><strong>${words.languages}:</strong> ${person.languages.map((language) => escape(`${language.replace(" - ", " (")})`)).join(", ")}</p>`;
+
+// "Certificações: CCNP (Cisco, 2022); CCNA (Cisco, 2017)" on one line closing the experience.
+export const inlineCertifications = (person: Person, words: Labels): string =>
+  `<p><strong>${words.certifications}:</strong> ${person.certifications.map((certification) => escape(certificationLine(certification))).join("; ")}</p>`;
+
+const certificationLine = (certification: CertificationData): string =>
+  `${certification.name} (${certification.issuer}, ${certification.year})`;
+
+// The named sections of a layout in the order the variants ask for, joined into the body.
+export function orderedSections(person: Person, sections: Record<"experience" | "education", string>, rest: string[]): string {
+  const { educationFirst } = variantsOf(person);
+  const history = educationFirst ? [sections.education, sections.experience] : [sections.experience, sections.education];
+
+  return [...history, ...rest].join("\n");
+}
