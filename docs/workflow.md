@@ -84,6 +84,7 @@ Rules:
 - `hotfix/*` branches from `main`, targets `main`, and is merged back into `develop` immediately after (open a second PR `main → develop` or cherry-pick; never leave `develop` behind `main`).
 - A **release** is a PR from `develop` to `main`. It must include a release document (see below). On merge, `main` is tagged `vX.Y.Z`.
 - Nobody commits directly to `main` or `develop`. Both require a PR, a green CI, and a review.
+- **Merge method.** A pull request that crosses the `main` boundary, in either direction, is merged with a **merge commit** (`gh pr merge <n> --merge`). Squash and rebase rewrite the branch into a new commit and drop the second parent, so `main` stays outside `develop`'s history; git then falls back to the last commit the two branches actually share and reports every file of the next release as an add/add conflict, over content that is identical on both sides. Everything else, `feature/*` and `fix/*` into `develop`, is squashed as usual.
 - Keep branches short-lived. Rebase on the target branch before opening the PR; no merge commits from the target into the branch.
 - Delete the branch after merge.
 
@@ -126,7 +127,7 @@ Every PR to `main` ships a release document. No release document, no merge. Ther
 2. Open a release issue ("Release vX.Y.Z", type `docs`, the milestone being shipped) so the release shows on the board.
 3. Open the release pull request from `develop` to `main` with the release template (`gh pr create --base main --head develop --template release.md`). Its `Release document` check fails until the document is on `develop`; that is expected at this point.
 4. On a `feature/<issue>-release-vX.Y.Z` branch from `develop`, copy `docs/releases/template.md` to `docs/releases/vX.Y.Z.md` and fill it in: summary, changes grouped by type with issue and PR links, breaking changes, migration steps, rollback plan, and the verification done in the test environment. Reference the release pull request in the document and add the entry to `docs/releases/README.md`. Open a pull request to `develop` that closes the release issue, and merge it.
-5. The release pull request follows the new head of `develop`, so the `Release document` check turns green on its own. Review and merge it. Nothing is merged back into `develop`: it already contains everything `main` received.
+5. The release pull request follows the new head of `develop`, so the `Release document` check turns green on its own. Review and merge it with a merge commit, never a squash, for the reason in the branching rules above. Nothing is merged back into `develop`: it already contains everything `main` received.
 6. After merge, tag `main` with `vX.Y.Z` and create a GitHub Release whose notes are the release document.
 7. For a hotfix, merge `main` back into `develop` right away.
 
