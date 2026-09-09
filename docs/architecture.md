@@ -428,7 +428,7 @@ The two dashboards are development tools: the queue dashboard shows every job of
 
 GitHub Actions, following the Gitflow model in [workflow.md](workflow.md). Workflows live in `.github/workflows`; the steps they share (pinned Node and pnpm, `pnpm install --frozen-lockfile`, starting the compose `postgres`, `redis`, and `storage`) are composite actions under `.github/actions`.
 
-Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow level, and no more: `CI` and `Release document` only read the repository (`contents: read`), and `Board` grants the workflow token nothing (`permissions: {}`) because it acts through `PROJECT_TOKEN`. CodeQL flags a workflow that leaves the default permissions in place.
+Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow level, and no more: `CI` and `Release document` only read the repository (`contents: read`), `Release` writes to it (`contents: write`) because it creates a tag and a GitHub Release, and `Board` grants the workflow token nothing (`permissions: {}`) because it acts through `PROJECT_TOKEN`. CodeQL flags a workflow that leaves the default permissions in place.
 
 - **`CI` on every pull request to `develop` or `main`**: five checks, one job each, so a failure names the level that broke.
 
@@ -442,6 +442,9 @@ Every workflow declares the `GITHUB_TOKEN` permissions it needs at workflow leve
 
   `.env.example` is the configuration in CI, so it must stay complete and valid. A new run for the same pull request cancels the previous one.
 - **`Release document` on every pull request to `main`**: fails unless the pull request adds or changes a `docs/releases/vX.Y.Z.md`.
+- **`Release` on every push to `main`**: turns the release document that just reached production into the tag and the GitHub Release the rollback plans point at, so step 6 of the release process is not a thing anyone has to remember. It reads `docs/releases/v*.md` in version order and, for each version that has no GitHub Release yet, tags the pushed commit and publishes a Release whose notes are the document. The logic is `.github/scripts/publish-releases.sh`.
+
+  The document stays hand-written and reviewed ([ADR-0010](adr/0010-gitflow-branching.md)); the workflow never commits to `main`. It checks every document before it creates anything, so a filename that is not `vMAJOR.MINOR.PATCH.md`, or one whose `**Tag:**` field disagrees with its filename, fails the run with nothing published; a document dated differently from the day it reached `main` is a warning, not a failure. Because it publishes only what is missing, re-running it is safe, which is also how a failed run is retried and how `workflow_dispatch` catches up a release that reached `main` before the workflow existed.
 - **`Codacy Static Code Analysis` on every pull request and on every push to `develop` and `main`** ([ADR-0016](adr/0016-codacy-static-analysis.md)): Codacy Cloud analyses the commit in its own cloud, triggered by the repository webhook, and reports the result as a commit status. No workflow, secret, or CI minute is involved, so the check also runs on pull requests from forks. It fails when the pull request introduces at least one new issue (the organisation's default `Codacy Gate Policy`); complexity, duplication, and coverage are reported but do not gate.
 
   | Tool | Looks at | Configuration |
