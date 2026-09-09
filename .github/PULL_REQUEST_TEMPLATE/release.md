@@ -25,15 +25,15 @@ Write the description in English. Tag the people working on it; do not mention t
 
 ### Features
 
-- #
+- Short description (#issue, PR #)
 
 ### Fixes
 
-- #
+- Short description (#issue, PR #)
 
 ### Other (docs, chore, ci, refactor)
 
-- #
+- Short description (#issue, PR #)
 
 ## Breaking changes
 
