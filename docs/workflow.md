@@ -128,7 +128,7 @@ Every PR to `main` ships a release document. No release document, no merge. Ther
 3. Open the release pull request from `develop` to `main` with the release template (`gh pr create --base main --head develop --template release.md`). Its `Release document` check fails until the document is on `develop`; that is expected at this point.
 4. On a `feature/<issue>-release-vX.Y.Z` branch from `develop`, copy `docs/releases/template.md` to `docs/releases/vX.Y.Z.md` and fill it in: summary, changes grouped by type with issue and PR links, breaking changes, migration steps, rollback plan, and the verification done in the test environment. Reference the release pull request in the document and add the entry to `docs/releases/README.md`. Open a pull request to `develop` that closes the release issue, and merge it.
 5. The release pull request follows the new head of `develop`, so the `Release document` check turns green on its own. Review and merge it with a merge commit, never a squash, for the reason in the branching rules above. Nothing is merged back into `develop`: it already contains everything `main` received.
-6. After merge, tag `main` with `vX.Y.Z` and create a GitHub Release whose notes are the release document.
+6. The merge into `main` triggers the `Release` workflow, which tags the merge commit `vX.Y.Z` and publishes a GitHub Release whose notes are `docs/releases/vX.Y.Z.md`. Nothing to do by hand; check the run finished. It publishes only documents that have no Release yet, so it can be re-run from the Actions tab without publishing anything twice, and it fails, before creating anything, if a document's filename and `**Tag:**` field disagree.
 7. For a hotfix, merge `main` back into `develop` right away.
 
 ## Where documentation lives
