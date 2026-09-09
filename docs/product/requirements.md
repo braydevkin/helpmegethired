@@ -26,14 +26,15 @@ The candidate journey is strictly ordered. Each step becomes available only when
 Sign Up / Sign In
   └─ Upload Resume PDF
       └─ Paste LinkedIn URL Profile
-          └─ AI Profile Analysis
-              └─ Profile Page with strengths and weaknesses
-                  └─ Paste Job Description
-                      └─ AI Analysis comparing with profile
-                          └─ AI Resume Recommendations
-                              └─ AI Study Recommendations
-                                  └─ AI Mock Interview
-                                      └─ Preparation summary with all success rates
+          └─ Choose the Model and supply the Model Key
+              └─ AI Profile Analysis
+                  └─ Profile Page with strengths and weaknesses
+                      └─ Paste Job Description
+                          └─ AI Analysis comparing with profile
+                              └─ AI Resume Recommendations
+                                  └─ AI Study Recommendations
+                                      └─ AI Mock Interview
+                                          └─ Preparation summary with all success rates
 ```
 
 ## Business logic (AI services)
@@ -83,6 +84,5 @@ These constraints are product decisions and must be honoured by any implementati
 Track these as issues once the GitHub Project is set up.
 
 - LinkedIn API access: which API, what data is available, and what the fallback is if access is not granted.
-- Which LLM provider(s) are used behind LangChain, and whether the choice is configurable.
 - What "success rate" means numerically in the preparation summary.
 - Which ATS rule set the score is based on, and whether it is versioned.

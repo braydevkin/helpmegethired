@@ -26,6 +26,24 @@ _Avoid_: OTP, token, magic link, password
 A signed-in period of an Account. Opened by verifying a One-Time Code as an opaque token, presented on every request, closed by sign out or by expiry 12 hours after it opened.
 _Avoid_: Login session, auth token, JWT
 
+### The model
+
+**Provider**:
+The company or endpoint that runs the Model a Candidate's analysis is sent to. Phase one recognises one, Anthropic. Part of a Model Choice, never named on its own.
+_Avoid_: Vendor, AI company, LLM provider
+
+**Model**:
+The pinned model an Account's analysis runs on, named by the exact identifier the Provider serves and recorded on every Statement together with the prompt version, so what a Statement says is always readable back to what produced it.
+_Avoid_: LLM, AI, engine, version
+
+**Model Choice**:
+The Provider and the Model an Account uses for its analysis. Exactly one per Account, chosen by the Candidate before the first analysis and changeable afterwards, which makes a re-run available rather than invalidating anything. It does not cover how the Profile is indexed for retrieval: that belongs to the platform, not to an Account.
+_Avoid_: AI settings, setup, configuration, provider choice
+
+**Model Key**:
+The Candidate's own credential at the Provider of their Model Choice. Stored encrypted, scoped to one Account, never shown again after it is saved and never returned by any endpoint. The Candidate is billed by the Provider directly. Revoking it leaves the Model Choice standing and stops any further analysis until another is supplied.
+_Avoid_: API key, token, credentials, secret
+
 ### Profile
 
 **Profile**:
