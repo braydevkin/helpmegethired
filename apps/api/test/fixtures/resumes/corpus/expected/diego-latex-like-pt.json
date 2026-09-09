@@ -1,0 +1,347 @@
+{
+  "contact": {
+    "name": {
+      "value": "Diego Alves Ferreira",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "diego.ferreira@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+55 41 99123-4567",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/diego-ferreira-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/diegoaf-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Diego Alves Ferreira",
+        "Engenheiro de Dados",
+        "Curitiba, PR — +55 41 99123-4567 — diego.ferreira@example.com",
+        "linkedin.com/in/diego-ferreira-example · github.com/diegoaf-example"
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
+    },
+    {
+      "kind": "summary",
+      "heading": "Resumo",
+      "lines": [
+        "Engenheiro de dados focado em pipelines batch e streaming sobre Spark e Kafka, com",
+        "atenção especial a custo e a qualidade de dados."
+      ],
+      "range": {
+        "start": 5,
+        "end": 10
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 9
+      }
+    },
+    {
+      "kind": "experience",
+      "heading": "Experiência Profissional",
+      "lines": [
+        "abril de 2019 – Atual Engenheiro de Dados Sênior, Pinheiro Analytics, Curitiba",
+        "Lidera a plataforma de dados que atende 40 analistas.",
+        "Reduziu 35% do custo de armazenamento ao reorganizar o",
+        "data lake em camadas.",
+        "mar. 2016 – mar. 2019 Analista de Dados, Cooperativa Araucária, Curitiba",
+        "Construiu os primeiros painéis de vendas em SQL e",
+        "Python."
+      ],
+      "range": {
+        "start": 10,
+        "end": 19
+      },
+      "linesRange": {
+        "start": 11,
+        "end": 18
+      }
+    },
+    {
+      "kind": "education",
+      "heading": "Formação Acadêmica",
+      "lines": [
+        "2012 – 2016 Bacharelado em Ciência da Computação, Universidade",
+        "Federal do Paraná"
+      ],
+      "range": {
+        "start": 19,
+        "end": 23
+      },
+      "linesRange": {
+        "start": 20,
+        "end": 22
+      }
+    },
+    {
+      "kind": "skills",
+      "heading": "Habilidades",
+      "lines": [
+        "Python · SQL · Spark · Kafka · Airflow · AWS · dbt · PostgreSQL"
+      ],
+      "range": {
+        "start": 23,
+        "end": 27
+      },
+      "linesRange": {
+        "start": 25,
+        "end": 26
+      }
+    },
+    {
+      "kind": "languages",
+      "heading": "Idiomas",
+      "lines": [
+        "Português - Nativo; Inglês - Fluente; Espanhol - Intermediário"
+      ],
+      "range": {
+        "start": 27,
+        "end": 31
+      },
+      "linesRange": {
+        "start": 29,
+        "end": 30
+      }
+    },
+    {
+      "kind": "certifications",
+      "heading": "Certificações",
+      "lines": [
+        "2022 Databricks Certified Data Engineer Associate, Databricks",
+        "2021 AWS Certified Data Analytics, Amazon Web Services"
+      ],
+      "range": {
+        "start": 31,
+        "end": 34
+      },
+      "linesRange": {
+        "start": 32,
+        "end": 34
+      }
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "Engenheiro de Dados",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "Engenheiro de dados focado em pipelines batch e streaming sobre Spark e Kafka, com atenção especial a custo e a qualidade de dados.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/diego-ferreira-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/diegoaf-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Engenheiro de Dados Sênior",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Pinheiro Analytics",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2019-04",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Lidera a plataforma de dados que atende 40 analistas.\nReduziu 35% do custo de armazenamento ao reorganizar o\ndata lake em camadas.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Analista de Dados",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Cooperativa Araucária",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2016-03",
+            "end": "2019-03"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Construiu os primeiros painéis de vendas em SQL e\nPython.",
+          "confidence": "high"
+        },
+        "skills": [
+          "SQL",
+          "Python"
+        ]
+      }
+    ],
+    "education": [
+      {
+        "institution": {
+          "value": "Universidade Federal do Paraná",
+          "confidence": "high"
+        },
+        "degree": {
+          "value": "Bacharelado",
+          "confidence": "high"
+        },
+        "fieldOfStudy": {
+          "value": "Ciência da Computação",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2012-01",
+            "end": "2016-12"
+          },
+          "confidence": "high"
+        }
+      }
+    ],
+    "projects": [],
+    "skills": [
+      {
+        "name": "Spark",
+        "category": "Frameworks & data",
+        "confidence": "high"
+      },
+      {
+        "name": "Kafka",
+        "category": "Frameworks & data",
+        "confidence": "high"
+      },
+      {
+        "name": "SQL",
+        "category": "Languages & runtimes",
+        "confidence": "high"
+      },
+      {
+        "name": "Python",
+        "category": "Languages & runtimes",
+        "confidence": "high"
+      },
+      {
+        "name": "Airflow",
+        "category": "Frameworks & data",
+        "confidence": "high"
+      },
+      {
+        "name": "AWS",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "dbt",
+        "category": "Frameworks & data",
+        "confidence": "high"
+      },
+      {
+        "name": "PostgreSQL",
+        "category": "Frameworks & data",
+        "confidence": "high"
+      },
+      {
+        "name": "Databricks",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      }
+    ],
+    "languages": [
+      {
+        "name": {
+          "value": "Português",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Nativo",
+          "confidence": "medium"
+        }
+      },
+      {
+        "name": {
+          "value": "Inglês",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Fluente",
+          "confidence": "medium"
+        }
+      },
+      {
+        "name": {
+          "value": "Espanhol",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Intermediário",
+          "confidence": "medium"
+        }
+      }
+    ],
+    "certifications": [
+      {
+        "name": {
+          "value": "Databricks Certified Data Engineer Associate",
+          "confidence": "medium"
+        },
+        "issuer": {
+          "value": "Databricks",
+          "confidence": "medium"
+        },
+        "year": {
+          "value": 2022,
+          "confidence": "medium"
+        }
+      },
+      {
+        "name": {
+          "value": "AWS Certified Data Analytics",
+          "confidence": "medium"
+        },
+        "issuer": {
+          "value": "Amazon Web Services",
+          "confidence": "medium"
+        },
+        "year": {
+          "value": 2021,
+          "confidence": "medium"
+        }
+      }
+    ]
+  }
+}

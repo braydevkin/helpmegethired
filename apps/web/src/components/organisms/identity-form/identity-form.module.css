@@ -1,0 +1,30 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+}
+
+.progress {
+  margin-bottom: var(--space-progress-gap);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-field-gap);
+}
+
+.names {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-field-gap);
+}
+
+.submit {
+  margin-top: 8px;
+}
+
+@media (width <= 479px) {
+  .names {
+    grid-template-columns: 1fr;
+  }
+}

@@ -20,8 +20,16 @@ Use [template.md](template.md). Number sequentially. Status is one of `Proposed`
 | [0010](0010-gitflow-branching.md) | Gitflow branching with main as production and develop as test | Accepted |
 | [0011](0011-zod-shared-schemas.md) | Zod for shared schemas and inferred types | Accepted |
 | [0012](0012-kysely-query-layer-and-migrations.md) | Kysely as the query layer and migration tool | Accepted |
-| [0013](0013-own-credentials-with-database-sessions.md) | Own credentials with hashed passwords and database-backed sessions | Accepted |
-| [0014](0014-pg-boss-queue-on-postgresql.md) | pg-boss on PostgreSQL as the queue backend for profile ingestion | Accepted |
+| [0013](0013-own-credentials-with-database-sessions.md) | Own credentials with hashed passwords and database-backed sessions | Superseded by ADR-0017 |
+| [0014](0014-pg-boss-queue-on-postgresql.md) | pg-boss on PostgreSQL as the queue backend for profile ingestion | Superseded by ADR-0020 |
+| [0015](0015-atomic-design-frontend-components.md) | Atomic design for frontend components | Accepted |
+| [0016](0016-codacy-static-analysis.md) | Codacy Cloud for static analysis and quality gates | Accepted |
+| [0017](0017-passwordless-sign-in-with-auth-js-one-time-codes.md) | Passwordless sign in with Auth.js one-time email codes | Accepted |
+| [0018](0018-resend-transactional-email-with-logging-fallback.md) | Resend delivers transactional email, the logging sender is the local fallback | Accepted |
+| [0019](0019-codacy-review-scope.md) | Codacy reviews production code only, gates at medium severity, and reviews once | Accepted |
+| [0020](0020-bullmq-on-redis-with-a-separate-worker.md) | BullMQ on Redis with a separate worker for the ingestion queues | Accepted |
+| [0021](0021-s3-compatible-object-storage-with-rustfs.md) | S3-compatible object storage for Uploaded Resumes, with RustFS as the local store | Accepted |
+| [0022](0022-openapi-from-shared-schemas-with-swagger-ui-in-development.md) | OpenAPI generated from the shared Zod schemas, served by Swagger UI in development | Accepted |
 
 ## Pending decisions
 
@@ -29,5 +37,6 @@ Not yet decided. Each becomes an ADR when resolved.
 
 - **License** for the repository.
 - **LLM provider(s)** behind LangChain.
-- **Deployment target** for `main` builds.
+- **Deployment target** for `main` builds, including the Redis and the object store it provides (ADR-0020, ADR-0021).
+- **Virus scanning** of Uploaded Resumes, once the deployment target is known (#52).
 - **LinkedIn data access** approach and fallback.

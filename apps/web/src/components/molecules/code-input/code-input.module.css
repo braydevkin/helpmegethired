@@ -1,0 +1,14 @@
+.code-input {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.boxes {
+  display: flex;
+  gap: var(--space-code-gap);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}

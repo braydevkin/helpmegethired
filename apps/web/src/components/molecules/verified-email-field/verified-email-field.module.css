@@ -1,0 +1,20 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-label-gap);
+}
+
+.control {
+  position: relative;
+}
+
+.input {
+  padding-right: 92px;
+}
+
+.badge {
+  position: absolute;
+  top: 50%;
+  right: var(--badge-inset);
+  transform: translateY(-50%);
+}

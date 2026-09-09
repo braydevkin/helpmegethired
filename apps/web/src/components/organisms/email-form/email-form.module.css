@@ -1,0 +1,27 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+}
+
+.progress {
+  margin-bottom: var(--space-progress-gap);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.submit {
+  margin-top: var(--space-button-gap);
+}
+
+.footer-line {
+  margin-top: var(--space-footer-gap-wide);
+  font-size: var(--text-link-line);
+  color: var(--color-text-muted);
+}
+
+.footer-line a {
+  font-weight: 700;
+}

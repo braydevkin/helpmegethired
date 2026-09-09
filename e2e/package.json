@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@helpmegethired/eslint-config": "workspace:*",
+    "@helpmegethired/shared": "workspace:*",
     "@helpmegethired/tsconfig": "workspace:*",
     "@helpmegethired/web": "workspace:*",
     "@playwright/test": "^1.62.1",

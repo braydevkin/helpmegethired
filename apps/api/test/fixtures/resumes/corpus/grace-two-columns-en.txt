@@ -1,0 +1,38 @@
+Grace Brewster Hopper
+Staff Software Engineer
+
+
+CONTACT                           SUMMARY
+
+New York, NY                      Staff engineer working on compilers and developer
+                                  tooling. I like removing steps from other people's days.
++1 (212) 555-0142
+
+grace.hopper@example.com          EXPERIENCE
+linkedin.com/in/grace-hopper-     Staff Software Engineer — Harvard Computation Co
+example                           New York · 2019 – Present
+
+github.com/gracebh-example          Lead the build tooling group.
+                                    Cut CI time in half by caching compiler outputs.
+https://gracehopper.example.com
+                                  Senior Software Engineer — Eckert-Mauchly
+                                  Philadelphia · 2014 – 2019
+SKILLS
+                                    Wrote the first optimising passes of the in-house
+C++                                 compiler.
+Rust
+LLVM
+                                  Software Engineer — Remington Systems
+                                  Philadelphia · 2010 – 2014
+Bazel
+Python                              Maintained the COBOL runtime.
+Linux
+                                  EDUCATION
+LANGUAGES                         PhD in Mathematics, Yale University
+English - Native                  2004 – 2010
+
+                                  PROJECTS
+                                  Moth
+                                  A tiny bug tracker that lives in the repository.
+                                  https://github.com/gracebh-example/moth
+

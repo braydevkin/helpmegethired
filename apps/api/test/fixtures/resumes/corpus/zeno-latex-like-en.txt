@@ -1,0 +1,32 @@
+                             Zeno Kowalski
+                                     Security Engineer
+               Warsaw, Poland — +48 22 123 45 67 — zeno.kowalski@example.com
+               linkedin.com/in/zeno-kowalski-example · github.com/zenok-example
+
+
+Summary
+
+Security engineer on application security and identity. Nine years across banks and a
+scale-up.
+
+Experience
+Mar 2020 – Present         Senior Security Engineer, Vistula Bank, Warsaw
+                             Run the application security programme: threat modelling,
+                             code review, and a bug bounty.
+                             Replaced the legacy SSO with Keycloak and OpenID
+                             Connect.
+Jul 2016 – Feb 2020        Security Analyst, Mazovia Scale, Warsaw
+                             Hardened the Linux fleet and the Docker images, and set
+                             up Vault for secrets.
+
+Certifications: Offensive Security Certified Professional (OffSec, 2019); CISSP (ISC2,
+2022)
+
+Education
+2011 – 2016                MSc in Computer Science, Warsaw University of
+                           Technology
+
+Languages
+
+Polish - Native; English - Fluent
+

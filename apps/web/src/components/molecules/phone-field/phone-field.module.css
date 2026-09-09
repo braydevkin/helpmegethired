@@ -1,0 +1,19 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-label-gap);
+}
+
+.controls {
+  display: flex;
+  gap: var(--space-code-gap);
+}
+
+.dial-code {
+  flex: 0 0 var(--dial-code-width);
+  width: var(--dial-code-width);
+}
+
+.number {
+  flex: 1;
+}

@@ -1,0 +1,31 @@
+                              Xavier Dubois
+                                 Site Reliability Engineer
+                Lyon, France — +33 4 72 00 00 00 — xavier.dubois@example.com
+              linkedin.com/in/xavier-dubois-example · github.com/xdubois-example
+
+
+Summary
+
+SRE keeping a payments platform inside its error budget. Fond of Go, Kubernetes, and
+short runbooks.
+
+Languages: French (Native), English (Fluent), German (Intermediate (B2))
+
+Experience
+Feb 2021 – Present         Site Reliability Engineer, Rhône Payments, Lyon
+                             Own the Kubernetes clusters on GCP and the Terraform
+                             that builds them.
+                             Wrote the incident tooling in Go.
+Sep 2017 – Jan 2021        DevOps Engineer, Presqu'île Hosting, Lyon
+                             Moved deployments from Jenkins to GitLab CI and Helm.
+
+Education
+2012 – 2017                MEng in Computer Engineering, INSA Lyon
+
+Skills
+
+Go · Kubernetes · GCP · Terraform · Helm · GitLab CI · Prometheus
+
+Certifications
+2023                       Google Cloud Professional Cloud Architect, Google
+

@@ -1,0 +1,28 @@
+Wanda Ribeiro Teixeira
+Product Designer
+Salvador, BA | (71) 98222-3344 | wanda.teixeira@example.com
+linkedin.com/in/wanda-teixeira-example · https://wandateixeira.example.com
+
+RESUMO
+
+Product designer com cinco anos em fintechs, do discovery ao design system.
+
+Idiomas: Português (Nativo), Inglês (Fluente), Francês (Básico)
+
+EXPERIÊNCIA PROFISSIONAL
+Product Designer Sênior | Baía Pagamentos
+Salvador · set 2022 – Atual
+  Mantém o design system no Figma e no Storybook com o time de front-end.
+  Conduz testes de usabilidade mensais.
+UX Designer | Pelourinho Digital
+Salvador · fev 2020 – ago 2022
+  Desenhou o fluxo de abertura de conta que dobrou a conversão.
+
+FORMAÇÃO ACADÊMICA
+Bacharelado em Design, Universidade Federal da Bahia
+2014 – 2018
+
+HABILIDADES
+
+Figma, Storybook, Design Systems, Acessibilidade, UX
+

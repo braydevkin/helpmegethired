@@ -1,0 +1,298 @@
+{
+  "contact": {
+    "name": {
+      "value": "Kenji Nakamura",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "kenji.nakamura@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+1 (604) 555-0177",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/kenji-nakamura-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/kenjin-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Kenji Nakamura",
+        "Mobile Engineer",
+        "Vancouver, Canada | +1 (604) 555-0177 | kenji.nakamura@example.com",
+        "linkedin.com/in/kenji-nakamura-example · github.com/kenjin-example"
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
+    },
+    {
+      "kind": "summary",
+      "heading": "SUMMARY",
+      "lines": [
+        "Mobile engineer shipping iOS and Android apps, and teaching on weekends."
+      ],
+      "range": {
+        "start": 5,
+        "end": 9
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 8
+      }
+    },
+    {
+      "kind": "experience",
+      "heading": "EXPERIENCE",
+      "lines": [
+        "Senior Mobile Engineer | Pacific Apps",
+        "Vancouver · February 2022 – Present",
+        "Lead the shared Kotlin Multiplatform layer used by both apps.",
+        "Cut crash-free sessions below 0.3% of users.",
+        "Mobile Engineer | Harbour Media",
+        "Vancouver · August 2018 – January 2022",
+        "Built the news app for iOS in Swift.",
+        "Volunteer Instructor | Code Club Vancouver",
+        "Vancouver",
+        "Teach children to program on Saturdays."
+      ],
+      "range": {
+        "start": 9,
+        "end": 21
+      },
+      "linesRange": {
+        "start": 10,
+        "end": 20
+      }
+    },
+    {
+      "kind": "education",
+      "heading": "EDUCATION",
+      "lines": [
+        "BSc in Computer Science, University of British Columbia",
+        "2014 – 2018"
+      ],
+      "range": {
+        "start": 21,
+        "end": 25
+      },
+      "linesRange": {
+        "start": 22,
+        "end": 24
+      }
+    },
+    {
+      "kind": "skills",
+      "heading": "SKILLS",
+      "lines": [
+        "Swift, Kotlin, Kotlin Multiplatform, SwiftUI, GraphQL"
+      ],
+      "range": {
+        "start": 25,
+        "end": 29
+      },
+      "linesRange": {
+        "start": 27,
+        "end": 28
+      }
+    },
+    {
+      "kind": "languages",
+      "heading": "LANGUAGES",
+      "lines": [
+        "English - Native",
+        "Japanese - Fluent"
+      ],
+      "range": {
+        "start": 29,
+        "end": 32
+      },
+      "linesRange": {
+        "start": 30,
+        "end": 32
+      }
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "Mobile Engineer",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "Mobile engineer shipping iOS and Android apps, and teaching on weekends.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/kenji-nakamura-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/kenjin-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Senior Mobile Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Pacific Apps",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2022-02",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Lead the shared Kotlin Multiplatform layer used by both apps.\nCut crash-free sessions below 0.3% of users.",
+          "confidence": "high"
+        },
+        "skills": [
+          "Kotlin"
+        ]
+      },
+      {
+        "role": {
+          "value": "Mobile Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Harbour Media",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2018-08",
+            "end": "2022-01"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Built the news app for iOS in Swift.",
+          "confidence": "high"
+        },
+        "skills": [
+          "iOS",
+          "Swift"
+        ]
+      },
+      {
+        "role": {
+          "value": "Volunteer Instructor",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Code Club Vancouver",
+          "confidence": "high"
+        },
+        "period": null,
+        "description": {
+          "value": "Vancouver\nTeach children to program on Saturdays.",
+          "confidence": "high"
+        },
+        "skills": []
+      }
+    ],
+    "education": [
+      {
+        "institution": {
+          "value": "University of British Columbia",
+          "confidence": "high"
+        },
+        "degree": {
+          "value": "BSc",
+          "confidence": "high"
+        },
+        "fieldOfStudy": {
+          "value": "Computer Science",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2014-01",
+            "end": "2018-12"
+          },
+          "confidence": "high"
+        }
+      }
+    ],
+    "projects": [],
+    "skills": [
+      {
+        "name": "iOS",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Android",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Kotlin",
+        "category": "Languages & runtimes",
+        "confidence": "high"
+      },
+      {
+        "name": "Swift",
+        "category": "Languages & runtimes",
+        "confidence": "high"
+      },
+      {
+        "name": "SwiftUI",
+        "category": "Frameworks & data",
+        "confidence": "high"
+      },
+      {
+        "name": "GraphQL",
+        "category": "Frameworks & data",
+        "confidence": "high"
+      }
+    ],
+    "languages": [
+      {
+        "name": {
+          "value": "English",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Native",
+          "confidence": "medium"
+        }
+      },
+      {
+        "name": {
+          "value": "Japanese",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Fluent",
+          "confidence": "medium"
+        }
+      }
+    ],
+    "certifications": []
+  }
+}

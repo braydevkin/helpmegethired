@@ -1,0 +1,174 @@
+{
+  "contact": {
+    "name": {
+      "value": "Júlia Andrade Lima",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "julia.lima@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "(51) 98123-4567",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/julia-lima-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/julialima-",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Júlia Andrade Lima",
+        "Desenvolvedora Front-end",
+        "",
+        "Porto Alegre, RS (51) 98123-4567 julia.lima@example.com linkedin.com/in/julia-lima-example",
+        "",
+        "RESUMO FORMAÇÃO",
+        "ACADÊMICA",
+        "Desenvolvedora front-end em seu primeiro emprego,",
+        "cuidando do design system e da acessibilidade do produto. Bacharelado em Ciência",
+        "da Computação, PUCRS",
+        "2019 – 2022"
+      ],
+      "range": {
+        "start": 0,
+        "end": 11
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 11
+      }
+    },
+    {
+      "kind": "experience",
+      "heading": "EXPERIÊNCIA PROFISSIONAL",
+      "lines": [
+        "Desenvolvedora Front-end Júnior, Guaíba Software HABILIDADES",
+        "Porto Alegre · 03/2023 – Atual",
+        "React",
+        "Mantém o design system em React e Storybook.",
+        "TypeScript",
+        "Levou o produto ao nível AA de acessibilidade.",
+        "CSS",
+        "PROJETOS Storybook",
+        "Jest",
+        "Acessível · Extensão de navegador que aponta problemas",
+        "de contraste. (https://github.com/julialima- IDIOMAS",
+        "example/acessivel)",
+        "Português - Nativo",
+        "Inglês - Intermediário"
+      ],
+      "range": {
+        "start": 11,
+        "end": 26
+      },
+      "linesRange": {
+        "start": 12,
+        "end": 26
+      }
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "Desenvolvedora Front-end",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "RESUMO FORMAÇÃO ACADÊMICA Desenvolvedora front-end em seu primeiro emprego, cuidando do design system e da acessibilidade do produto. Bacharelado em Ciência da Computação, PUCRS 2019 – 2022",
+        "confidence": "low"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/julia-lima-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/julialima-",
+        "confidence": "high"
+      }
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Desenvolvedora Front-end Júnior",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Guaíba Software HABILIDADES",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2023-03",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "React\nMantém o design system em React e Storybook.\nTypeScript\nLevou o produto ao nível AA de acessibilidade.\nCSS\nPROJETOS Storybook\nJest\nAcessível · Extensão de navegador que aponta problemas\nde contraste. (https://github.com/julialima- IDIOMAS\nexample/acessivel)\nPortuguês - Nativo\nInglês - Intermediário",
+          "confidence": "high"
+        },
+        "skills": [
+          "React",
+          "Design Systems",
+          "Storybook",
+          "TypeScript",
+          "Accessibility",
+          "CSS",
+          "Jest"
+        ]
+      }
+    ],
+    "education": [],
+    "projects": [],
+    "skills": [
+      {
+        "name": "Design Systems",
+        "category": "Other",
+        "confidence": "medium"
+      },
+      {
+        "name": "Accessibility",
+        "category": "Other",
+        "confidence": "medium"
+      },
+      {
+        "name": "React",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Storybook",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "TypeScript",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "CSS",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "Jest",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      }
+    ],
+    "languages": [],
+    "certifications": []
+  }
+}

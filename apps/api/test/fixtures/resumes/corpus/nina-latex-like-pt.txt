@@ -1,0 +1,29 @@
+                    Nina Carvalho Duarte
+                                    Cientista de Dados
+               Campinas, SP — +55 19 98765-1234 — nina.duarte@example.com
+               linkedin.com/in/nina-duarte-example · github.com/ninacd-example
+
+
+Resumo
+
+Cientista de dados aplicando modelos de previsão a logística, com o pé na engenharia
+de dados.
+
+Experiência Profissional
+2020 – Atual               Cientista de Dados, Rota Logística, Campinas
+                             Modelos de previsão de demanda para 300 rotas.
+                             Pipeline de features em Spark.
+2015 – 2017                Analista de Dados, Unicamp Ventures, Campinas
+                             Painéis de acompanhamento das startups incubadas.
+
+Formação Acadêmica
+2017 – 2019                Mestrado em Estatística, Unicamp
+
+Habilidades
+
+Python · Pandas · scikit-learn · Spark · SQL
+
+Idiomas
+
+Português - Nativo; Inglês - Fluente
+

@@ -1,0 +1,313 @@
+{
+  "contact": {
+    "name": {
+      "value": "Igor Sokolov",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "igor.sokolov@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+31 20 123 4567",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/igor-sokolov-example",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/igorsk-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Igor Sokolov",
+        "Site Reliability Engineer",
+        "Amsterdam, Netherlands — +31 20 123 4567 — igor.sokolov@example.com",
+        "linkedin.com/in/igor-sokolov-example · github.com/igorsk-example"
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
+    },
+    {
+      "kind": "summary",
+      "heading": "Summary",
+      "lines": [
+        "SRE with a taste for boring systems and clear runbooks."
+      ],
+      "range": {
+        "start": 5,
+        "end": 9
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 8
+      }
+    },
+    {
+      "kind": "experience",
+      "heading": "Experience",
+      "lines": [
+        "2021 – Present Canal Cloud, Site Reliability Engineer, Amsterdam",
+        "Own the on-call rotation and the incident process for the",
+        "platform.",
+        "Brought the error budget policy to every product team.",
+        "2016 – 2021 Tulip Hosting, Systems Engineer, Utrecht",
+        "Ran the fleet of 400 servers and moved it to Kubernetes."
+      ],
+      "range": {
+        "start": 9,
+        "end": 17
+      },
+      "linesRange": {
+        "start": 10,
+        "end": 16
+      }
+    },
+    {
+      "kind": "education",
+      "heading": "Education",
+      "lines": [
+        "2012 – 2016 BSc in Computer Science, TU Delft"
+      ],
+      "range": {
+        "start": 17,
+        "end": 20
+      },
+      "linesRange": {
+        "start": 18,
+        "end": 19
+      }
+    },
+    {
+      "kind": "skills",
+      "heading": "Skills",
+      "lines": [
+        "Kubernetes · Terraform · Go · Prometheus · Linux · AWS"
+      ],
+      "range": {
+        "start": 20,
+        "end": 24
+      },
+      "linesRange": {
+        "start": 22,
+        "end": 23
+      }
+    },
+    {
+      "kind": "languages",
+      "heading": "Languages",
+      "lines": [
+        "Russian - Native; English - Fluent; Dutch - Intermediate"
+      ],
+      "range": {
+        "start": 24,
+        "end": 28
+      },
+      "linesRange": {
+        "start": 26,
+        "end": 27
+      }
+    },
+    {
+      "kind": "certifications",
+      "heading": "Certifications",
+      "lines": [
+        "2022 Certified Kubernetes Administrator, CNCF"
+      ],
+      "range": {
+        "start": 28,
+        "end": 30
+      },
+      "linesRange": {
+        "start": 29,
+        "end": 30
+      }
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "Site Reliability Engineer",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "SRE with a taste for boring systems and clear runbooks.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/igor-sokolov-example",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/igorsk-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Site Reliability Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Canal Cloud",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2021-01",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Own the on-call rotation and the incident process for the\nplatform.\nBrought the error budget policy to every product team.",
+          "confidence": "high"
+        },
+        "skills": []
+      },
+      {
+        "role": {
+          "value": "Systems Engineer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Tulip Hosting",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2016-01",
+            "end": "2021-12"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Ran the fleet of 400 servers and moved it to Kubernetes.",
+          "confidence": "high"
+        },
+        "skills": [
+          "Kubernetes"
+        ]
+      }
+    ],
+    "education": [
+      {
+        "institution": {
+          "value": "TU Delft",
+          "confidence": "high"
+        },
+        "degree": {
+          "value": "BSc",
+          "confidence": "high"
+        },
+        "fieldOfStudy": {
+          "value": "Computer Science",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2012-01",
+            "end": "2016-12"
+          },
+          "confidence": "high"
+        }
+      }
+    ],
+    "projects": [],
+    "skills": [
+      {
+        "name": "Kubernetes",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Terraform",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Go",
+        "category": "Languages & runtimes",
+        "confidence": "high"
+      },
+      {
+        "name": "Prometheus",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Linux",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "AWS",
+        "category": "Infrastructure",
+        "confidence": "high"
+      }
+    ],
+    "languages": [
+      {
+        "name": {
+          "value": "Russian",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Native",
+          "confidence": "medium"
+        }
+      },
+      {
+        "name": {
+          "value": "English",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Fluent",
+          "confidence": "medium"
+        }
+      },
+      {
+        "name": {
+          "value": "Dutch",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Intermediate",
+          "confidence": "medium"
+        }
+      }
+    ],
+    "certifications": [
+      {
+        "name": {
+          "value": "Certified Kubernetes Administrator",
+          "confidence": "medium"
+        },
+        "issuer": {
+          "value": "CNCF",
+          "confidence": "medium"
+        },
+        "year": {
+          "value": 2022,
+          "confidence": "medium"
+        }
+      }
+    ]
+  }
+}

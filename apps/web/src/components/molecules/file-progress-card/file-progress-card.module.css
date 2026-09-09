@@ -1,0 +1,46 @@
+.card {
+  padding: var(--card-padding);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.file {
+  flex: 1;
+  min-width: 0;
+}
+
+.name {
+  overflow: hidden;
+  font-size: var(--text-control-compact);
+  line-height: var(--leading-control);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.meta {
+  margin-top: 6px;
+  font-size: var(--text-file-meta);
+  line-height: var(--leading-control);
+  color: var(--color-text-secondary);
+}
+
+.percentage {
+  flex: none;
+  font-size: var(--text-percentage);
+  line-height: var(--leading-control);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-brand);
+}
+
+.bar {
+  margin-top: 18px;
+}

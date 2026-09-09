@@ -8,6 +8,33 @@ x-api-image: &api-image
 
 x-database-url: &database-url postgresql://${POSTGRES_USER:?}:${POSTGRES_PASSWORD:?}@postgres:5432/${POSTGRES_DB:?}
 
+x-storage-environment: &storage-environment
+  S3_ENDPOINT: http://storage:9000
+  S3_PUBLIC_ENDPOINT: http://localhost:${STORAGE_PORT:?}
+  S3_BUCKET: ${S3_BUCKET:?}
+  S3_ACCESS_KEY: ${S3_ACCESS_KEY:?}
+  S3_SECRET_KEY: ${S3_SECRET_KEY:?}
+  S3_REGION: ${S3_REGION:?}
+  PRESIGN_EXPIRES_SECONDS: ${PRESIGN_EXPIRES_SECONDS:?}
+
+x-api-environment: &api-environment
+  <<: *storage-environment
+  NODE_ENV: development
+  PORT: 3001
+  WEB_ORIGIN: http://localhost:${WEB_PORT:?}
+  DATABASE_URL: *database-url
+  REDIS_URL: redis://redis:6379
+
+x-api-dependencies: &api-dependencies
+  postgres:
+    condition: service_healthy
+  redis:
+    condition: service_healthy
+  migrate:
+    condition: service_completed_successfully
+  storage-init:
+    condition: service_completed_successfully
+
 services:
   postgres:
     image: pgvector/pgvector:pg17
@@ -25,6 +52,66 @@ services:
       timeout: 3s
       retries: 10
 
+  redis:
+    image: redis:8-alpine
+    command: ["redis-server", "--maxmemory-policy", "noeviction", "--appendonly", "yes"]
+    ports:
+      - "${REDIS_PORT:?}:6379"
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  storage:
+    image: rustfs/rustfs:1.0.0-rc.5
+    environment:
+      RUSTFS_ACCESS_KEY: ${S3_ACCESS_KEY:?}
+      RUSTFS_SECRET_KEY: ${S3_SECRET_KEY:?}
+      RUSTFS_CONSOLE_ENABLE: "true"
+    ports:
+      - "${STORAGE_PORT:?}:9000"
+      - "${STORAGE_CONSOLE_PORT:?}:9001"
+    volumes:
+      - storage-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
+  storage-init:
+    image: amazon/aws-cli:2.36.40
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:?}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:?}
+      AWS_DEFAULT_REGION: ${S3_REGION:?}
+      AWS_ENDPOINT_URL: http://storage:9000
+      S3_BUCKET: ${S3_BUCKET:?}
+      WEB_ORIGIN: http://localhost:${WEB_PORT:?}
+    entrypoint: ["sh", "-ec"]
+    command:
+      - |
+        aws s3api head-bucket --bucket "$$S3_BUCKET" 2>/dev/null || aws s3api create-bucket --bucket "$$S3_BUCKET"
+        aws s3api put-public-access-block --bucket "$$S3_BUCKET" \
+          --public-access-block-configuration BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true \
+          || echo "The store does not implement the public access block; the bucket has no policy and stays private"
+        aws s3api put-bucket-cors --bucket "$$S3_BUCKET" --cors-configuration "{
+          \"CORSRules\": [{
+            \"AllowedOrigins\": [\"$$WEB_ORIGIN\"],
+            \"AllowedMethods\": [\"PUT\", \"GET\", \"HEAD\"],
+            \"AllowedHeaders\": [\"Content-Type\", \"Content-Length\", \"x-amz-checksum-sha256\"],
+            \"ExposeHeaders\": [\"ETag\"],
+            \"MaxAgeSeconds\": 300
+          }]
+        }"
+    depends_on:
+      storage:
+        condition: service_healthy
+
   migrate:
     <<: *api-image
     environment:
@@ -36,26 +123,49 @@ services:
 
   api:
     <<: *api-image
-    environment:
-      NODE_ENV: development
-      PORT: 3001
-      WEB_ORIGIN: http://localhost:${WEB_PORT:?}
-      DATABASE_URL: *database-url
+    environment: *api-environment
     ports:
       - "${API_PORT:?}:3001"
     volumes:
       - ./apps/api/src:/workspace/apps/api/src
-    depends_on:
-      postgres:
-        condition: service_healthy
-      migrate:
-        condition: service_completed_successfully
+    depends_on: *api-dependencies
     healthcheck:
       test: ["CMD", "node", "--eval", "fetch('http://localhost:3001/health').then((response) => process.exit(response.ok ? 0 : 1), () => process.exit(1))"]
       interval: 5s
       timeout: 3s
       retries: 12
       start_period: 30s
+
+  worker:
+    <<: *api-image
+    environment:
+      <<: *api-environment
+      WORKER_CONCURRENCY: ${WORKER_CONCURRENCY:?}
+      EXTRACTION_TIMEOUT_MS: ${EXTRACTION_TIMEOUT_MS:?}
+      STALE_PROCESSING_MINUTES: ${STALE_PROCESSING_MINUTES:?}
+    command: ["pnpm", "--filter", "api", "dev:worker"]
+    volumes:
+      - ./apps/api/src:/workspace/apps/api/src
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    depends_on: *api-dependencies
+    healthcheck:
+      test: ["CMD", "test", "-f", "/tmp/helpmegethired-worker.ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 30s
+
+  queue-dashboard:
+    image: ghcr.io/felixmosh/bull-board:9.8.0
+    command: ["--redis", "redis://redis:6379"]
+    ports:
+      - "127.0.0.1:${QUEUE_DASHBOARD_PORT:?}:3000"
+    depends_on:
+      redis:
+        condition: service_healthy
 
   web:
     build:
@@ -65,11 +175,17 @@ services:
     environment:
       NODE_ENV: development
       API_URL: http://api:3001
+      DATABASE_URL: *database-url
+      AUTH_SECRET: ${AUTH_SECRET:?}
+      AUTH_RESEND_KEY: ${AUTH_RESEND_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-}
     ports:
       - "${WEB_PORT:?}:3000"
     volumes:
       - ./apps/web/src:/workspace/apps/web/src
     depends_on:
+      migrate:
+        condition: service_completed_successfully
       api:
         condition: service_healthy
     healthcheck:
@@ -81,3 +197,5 @@ services:
 
 volumes:
   postgres-data:
+  storage-data:
+  redis-data:

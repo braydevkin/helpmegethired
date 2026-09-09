@@ -1,0 +1,20 @@
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: var(--space-divider-block) 0;
+}
+
+.line {
+  flex: 1;
+  height: 1px;
+  background: var(--color-divider);
+}
+
+.label {
+  font-size: var(--text-hint);
+  line-height: var(--leading-control);
+  font-weight: 600;
+  text-transform: uppercase;
+  color: var(--color-text-placeholder);
+}

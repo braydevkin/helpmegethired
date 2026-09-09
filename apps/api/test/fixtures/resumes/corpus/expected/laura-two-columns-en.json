@@ -1,0 +1,111 @@
+{
+  "contact": {
+    "name": {
+      "value": "Laura Bianchi",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "laura.bianchi@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+39 02 1234 5678",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/laura-bianchi-",
+      "confidence": "high"
+    },
+    "githubUrl": null,
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Laura Bianchi",
+        "Data Analyst",
+        "",
+        "CONTACT SUMMARY",
+        "",
+        "Milan, Italy Data analyst turning warehouse tables into decisions,",
+        "with SQL and a little Python.",
+        "+39 02 1234 5678",
+        "",
+        "laura.bianchi@example.com EXPERIENCE",
+        "linkedin.com/in/laura-bianchi- Senior Data Analyst — Navigli Retail",
+        "example Milan · Jan 2021 – Present",
+        "Own the sales reporting for 120 stores.",
+        "SKILLS Built the demand forecast that drives replenishment.",
+        "SQL Data Analyst — Lombardia Insights",
+        "Python Milan · Sep 2018 – Dec 2020",
+        "dbt Delivered dashboards for retail and logistics clients.",
+        "Power BI",
+        "Snowflake EDUCATION",
+        "LANGUAGES MSc in Management Engineering, Politecnico di",
+        "Milano",
+        "Italian - Native 2016 – 2018",
+        "English - Fluent"
+      ],
+      "range": {
+        "start": 0,
+        "end": 23
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 23
+      }
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "Data Analyst",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "CONTACT SUMMARY Milan, Italy Data analyst turning warehouse tables into decisions, with SQL and a little Python. linkedin.com/in/laura-bianchi- Senior Data Analyst — Navigli Retail example Milan · Jan 2021 – Present Own the sales reporting for 120 stores. SKILLS Built the demand forecast that drives replenishment. SQL Data Analyst — Lombardia Insights Python Milan · Sep 2018 – Dec 2020 dbt Delivered dashboards for retail and logistics clients. Power BI Snowflake EDUCATION LANGUAGES MSc in Management Engineering, Politecnico di Milano Italian - Native 2016 – 2018 English - Fluent",
+        "confidence": "low"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/laura-bianchi-",
+        "confidence": "high"
+      },
+      "githubUrl": null
+    },
+    "experiences": [],
+    "education": [],
+    "projects": [],
+    "skills": [
+      {
+        "name": "SQL",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "Python",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "dbt",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Power BI",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Snowflake",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      }
+    ],
+    "languages": [],
+    "certifications": []
+  }
+}

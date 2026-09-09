@@ -84,6 +84,7 @@ Rules:
 - `hotfix/*` branches from `main`, targets `main`, and is merged back into `develop` immediately after (open a second PR `main → develop` or cherry-pick; never leave `develop` behind `main`).
 - A **release** is a PR from `develop` to `main`. It must include a release document (see below). On merge, `main` is tagged `vX.Y.Z`.
 - Nobody commits directly to `main` or `develop`. Both require a PR, a green CI, and a review.
+- **Merge method.** A pull request that crosses the `main` boundary, in either direction, is merged with a **merge commit** (`gh pr merge <n> --merge`). Squash and rebase rewrite the branch into a new commit and drop the second parent, so `main` stays outside `develop`'s history; git then falls back to the last commit the two branches actually share and reports every file of the next release as an add/add conflict, over content that is identical on both sides. Everything else, `feature/*` and `fix/*` into `develop`, is squashed as usual.
 - Keep branches short-lived. Rebase on the target branch before opening the PR; no merge commits from the target into the branch.
 - Delete the branch after merge.
 
@@ -114,25 +115,44 @@ Common rules:
 - One issue per feature or fix PR. Link it with `Closes #<n>`.
 - Fill in every section of the template. Empty sections are a review blocker.
 - Tag the people working on the change in the "Working on this" section. PR descriptions describe the work, not the tools used to produce it.
-- CI must be green: lint, typecheck, unit, integration, e2e.
+- CI must be green: lint, typecheck, unit, integration, e2e. The `Codacy Static Code Analysis` check must be green too: a pull request adds no new Codacy issue of medium or higher severity (see [architecture.md](architecture.md#cicd)). Read the findings with `codacy pull-request <n>` before asking for review.
+- Every open Codacy comment of medium or higher severity, from the AI Reviewer or an issue annotation, is fixed before review is requested. A comment that is not a defect is answered in its thread with the reason and ignored with `codacy issue <id> --ignore --ignore-reason <reason>`. None stays open. The AI Reviewer runs once, when the pull request opens; after the fixes, a second pass is requested with `Run Reviewer` in the summary comment only when someone wants one.
 - Reviewer checks the acceptance criteria from the issue, not just the diff.
 
 ## Releases
 
-Every PR to `main` ships a release document. No release document, no merge.
+Every PR to `main` ships a release document. No release document, no merge. There is no `release/*` branch (ADR-0010): the release is the pull request from `develop` to `main`, and the release document reaches `develop` like any other change, through its own pull request.
 
 1. Decide the version (`vX.Y.Z`) following the versioning rules above.
-2. Copy `docs/releases/template.md` to `docs/releases/vX.Y.Z.md` on the release (or hotfix) branch and fill it in: summary, changes grouped by type with issue links, breaking changes, migration steps, rollback plan, and verification done in the test environment.
-3. Add the entry to `docs/releases/README.md`.
-4. Open the PR to `main` with the release or hotfix template. The PR body links to the release document.
-5. After merge, tag `main` with `vX.Y.Z` and create a GitHub Release whose notes are the release document.
-6. For a hotfix, merge `main` back into `develop` right away.
+2. Open a release issue ("Release vX.Y.Z", type `docs`, the milestone being shipped) so the release shows on the board.
+3. Open the release pull request from `develop` to `main` with the release template (`gh pr create --base main --head develop --template release.md`). Its `Release document` check fails until the document is on `develop`; that is expected at this point.
+4. On a `feature/<issue>-release-vX.Y.Z` branch from `develop`, copy `docs/releases/template.md` to `docs/releases/vX.Y.Z.md` and fill it in: summary, changes grouped by type with issue and PR links, breaking changes, migration steps, rollback plan, and the verification done in the test environment. Reference the release pull request in the document and add the entry to `docs/releases/README.md`. Open a pull request to `develop` that closes the release issue, and merge it.
+5. The release pull request follows the new head of `develop`, so the `Release document` check turns green on its own. Review and merge it with a merge commit, never a squash, for the reason in the branching rules above. Nothing is merged back into `develop`: it already contains everything `main` received.
+6. After merge, tag `main` with `vX.Y.Z` and create a GitHub Release whose notes are the release document.
+7. For a hotfix, merge `main` back into `develop` right away.
+
+## Where documentation lives
+
+Two places, split by what the document is for:
+
+| Place | Holds | Changed through |
+| --- | --- | --- |
+| The repository, under `docs/` and the root | What the code is held to and how it is built: `CONTEXT.md`, product vision and requirements, architecture, security requirements, ADRs, this workflow, release notes | Pull request, reviewed with the code it concerns |
+| The [GitHub Wiki](https://github.com/braydevkin/helpmegethired/wiki) | Design definitions (screens, copy, tokens, components by stage, screenshots) and guides for contributors and Candidates | A push to the wiki repository, announced on the issue that drives it |
+
+Wiki pages are named `Design-<Feature>`, with screenshots under `design/<feature>/` in the wiki repository, or `Guide-<Topic>`, with screenshots under `guides/<topic>/`. The README documentation map keeps one link per wiki page.
+
+The wiki is public and has no pull request review. Because of that:
+
+- Nothing sensitive goes there: no secrets, credentials, non-public URLs or hostnames, Candidate data, or details of infrastructure, security, or performance. Those documents stay in the repository or are not written.
+- A wiki change is driven by an issue like any other change. Announce it on the issue, clone `git@github.com:braydevkin/helpmegethired.wiki.git`, edit, and push with a Conventional Commit message that references the issue (`docs(design): update the done screen copy (#34)`). Editing the wiki is restricted to collaborators.
+- A design change that affects open tasks updates those tasks in the same move.
 
 ## Definition of done
 
 - Acceptance criteria met and demonstrated (tests, screenshots, or recording).
 - Tests added at the appropriate level.
-- Docs updated: `docs/`, ADR if a decision was made, README map if a document was added.
+- Docs updated: `docs/` or the wiki page, ADR if a decision was made, README map if a document or wiki page was added.
 - No new dependency or tooling without an ADR.
 - Issue closed by the merged PR.
 
@@ -144,3 +164,4 @@ Claude Code follows `CLAUDE.md`. In practice:
 - It branches from `develop` (or from `main` for a hotfix) and never targets `main` with a feature or fix.
 - It does not commit or push unless asked.
 - If it proposes something outside the stack, it must propose an ADR first.
+- It reads the Codacy findings of the pull request it works on with the Codacy Cloud CLI (`codacy pull-request <n>`, after a one-time `codacy login`) and the AI Reviewer comments with `gh api`, and fixes every open one of medium or higher severity before asking for review: all of them, not only the ones that fail the check. A comment it judges wrong is answered with the reason and ignored through the CLI, never left open. It does not trigger another reviewer run unless asked. With the `codacy-skills` plugin installed (`claude plugin marketplace add codacy/codacy-skills`, then `claude plugin install codacy-skills@codacy`), it does the same in natural language.

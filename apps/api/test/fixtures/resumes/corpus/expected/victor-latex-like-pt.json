@@ -1,0 +1,306 @@
+{
+  "contact": {
+    "name": {
+      "value": "Victor Hugo Almeida",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "victor.almeida@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+55 92 99111-2222",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/victor-almeida-example",
+      "confidence": "high"
+    },
+    "githubUrl": null,
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Victor Hugo Almeida",
+        "Administrador de Redes",
+        "Manaus, AM — +55 92 99111-2222 — victor.almeida@example.com",
+        "linkedin.com/in/victor-almeida-example"
+      ],
+      "range": {
+        "start": 0,
+        "end": 5
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 4
+      }
+    },
+    {
+      "kind": "summary",
+      "heading": "Resumo",
+      "lines": [
+        "Administrador de redes com dez anos em provedores de internet e hospitais."
+      ],
+      "range": {
+        "start": 5,
+        "end": 9
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 8
+      }
+    },
+    {
+      "kind": "experience",
+      "heading": "Experiência Profissional",
+      "lines": [
+        "jan. 2019 – Atual Administrador de Redes Sênior, Rio Negro Telecom,",
+        "Manaus",
+        "Opera a rede de 30 mil assinantes com roteadores Cisco e",
+        "monitoramento em Zabbix.",
+        "Implantou VPN entre as filiais.",
+        "mar. 2015 – dez. 2018 Técnico de Redes, Hospital Solimões, Manaus",
+        "Cuidou do Active Directory e do DNS de 800 estações",
+        "Windows.",
+        "",
+        "Certificações: CCNP Enterprise (Cisco, 2022); CCNA (Cisco, 2017)"
+      ],
+      "range": {
+        "start": 9,
+        "end": 21
+      },
+      "linesRange": {
+        "start": 10,
+        "end": 20
+      }
+    },
+    {
+      "kind": "education",
+      "heading": "Formação Acadêmica",
+      "lines": [
+        "2011 – 2014 Tecnólogo em Redes de Computadores, Universidade do",
+        "Estado do Amazonas"
+      ],
+      "range": {
+        "start": 21,
+        "end": 25
+      },
+      "linesRange": {
+        "start": 22,
+        "end": 24
+      }
+    },
+    {
+      "kind": "skills",
+      "heading": "Habilidades",
+      "lines": [
+        "Cisco · Zabbix · VPN · Active Directory · DNS · Linux"
+      ],
+      "range": {
+        "start": 25,
+        "end": 29
+      },
+      "linesRange": {
+        "start": 27,
+        "end": 28
+      }
+    },
+    {
+      "kind": "languages",
+      "heading": "Idiomas",
+      "lines": [
+        "Português - Nativo; Inglês - Básico"
+      ],
+      "range": {
+        "start": 29,
+        "end": 32
+      },
+      "linesRange": {
+        "start": 31,
+        "end": 32
+      }
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "Administrador de Redes",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "Administrador de redes com dez anos em provedores de internet e hospitais.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/victor-almeida-example",
+        "confidence": "high"
+      },
+      "githubUrl": null
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Administrador de Redes Sênior",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Rio Negro Telecom",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2019-01",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Manaus\nOpera a rede de 30 mil assinantes com roteadores Cisco e\nmonitoramento em Zabbix.\nImplantou VPN entre as filiais.",
+          "confidence": "high"
+        },
+        "skills": [
+          "Cisco",
+          "Zabbix",
+          "VPN"
+        ]
+      },
+      {
+        "role": {
+          "value": "Técnico de Redes",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Hospital Solimões",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2015-03",
+            "end": "2018-12"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Cuidou do Active Directory e do DNS de 800 estações\nWindows.",
+          "confidence": "high"
+        },
+        "skills": [
+          "Active Directory",
+          "DNS"
+        ]
+      }
+    ],
+    "education": [
+      {
+        "institution": {
+          "value": "Universidade do Estado do Amazonas",
+          "confidence": "high"
+        },
+        "degree": {
+          "value": "Tecnólogo",
+          "confidence": "high"
+        },
+        "fieldOfStudy": {
+          "value": "Redes de Computadores",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2011-01",
+            "end": "2014-12"
+          },
+          "confidence": "high"
+        }
+      }
+    ],
+    "projects": [],
+    "skills": [
+      {
+        "name": "Cisco",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Zabbix",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "VPN",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Active Directory",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "DNS",
+        "category": "Infrastructure",
+        "confidence": "high"
+      },
+      {
+        "name": "Linux",
+        "category": "Infrastructure",
+        "confidence": "high"
+      }
+    ],
+    "languages": [
+      {
+        "name": {
+          "value": "Português",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Nativo",
+          "confidence": "medium"
+        }
+      },
+      {
+        "name": {
+          "value": "Inglês",
+          "confidence": "medium"
+        },
+        "level": {
+          "value": "Básico",
+          "confidence": "medium"
+        }
+      }
+    ],
+    "certifications": [
+      {
+        "name": {
+          "value": "CCNP Enterprise",
+          "confidence": "medium"
+        },
+        "issuer": {
+          "value": "Cisco",
+          "confidence": "medium"
+        },
+        "year": {
+          "value": 2022,
+          "confidence": "medium"
+        }
+      },
+      {
+        "name": {
+          "value": "CCNA",
+          "confidence": "medium"
+        },
+        "issuer": {
+          "value": "Cisco",
+          "confidence": "medium"
+        },
+        "year": {
+          "value": 2017,
+          "confidence": "medium"
+        }
+      }
+    ]
+  }
+}

@@ -1,5 +1,7 @@
 # Help Me Get Hired
 
+[![Codacy grade](https://app.codacy.com/project/badge/Grade/ecdf71ba014045b78e8865e80211ae5f)](https://app.codacy.com/gh/braydevkin/helpmegethired/dashboard)
+
 > A community-driven platform for keeping the knowledge of selection processes alive, in the age of AI.
 
 ## Why this project exists
@@ -34,11 +36,13 @@ The full product definition lives in [docs/product/vision.md](docs/product/visio
 | Backend | NestJS |
 | AI orchestration | LangChain |
 | Database / RAG | PostgreSQL + pgvector |
+| Transactional email | Resend (HTTP API), behind a sender abstraction |
 | Monorepo | Turborepo + pnpm workspaces |
 | Unit / integration tests | Vitest |
 | End-to-end tests | Playwright |
 | Local runtime | Docker (whole monorepo) |
 | CI/CD | GitHub Actions |
+| Static analysis | Codacy |
 | Task management | GitHub Projects |
 
 Each of these choices is recorded with its reasoning in [docs/adr](docs/adr/README.md).
@@ -58,14 +62,15 @@ docker compose up
 
 | Service | URL |
 | --- | --- |
-| Web | http://localhost:3000 |
-| API | http://localhost:3001/health |
+| Web | <http://localhost:3000> |
+| API | <http://localhost:3001/health> |
 | PostgreSQL (pgvector) | `postgres://helpmegethired:helpmegethired@localhost:5432/helpmegethired` |
 
 - Edits under `apps/web/src` and `apps/api/src` reload inside the running containers. After changing dependencies, configuration files, or `packages/shared`, run `docker compose up --build`.
 - `docker compose up --wait` exits with zero only when every service reports healthy. Use it to check the stack before running tests against it.
 - Host ports and database credentials are the variables in `.env`. Change them there when a port is already taken on your machine.
 - `docker compose up` applies pending database migrations before the API starts. To run them by hand, set `DATABASE_URL` (or copy `apps/api/.env.example` to `apps/api/.env`) and use `pnpm db:migrate` or `pnpm db:migrate:down`.
+- Sign in sends a one-time code by email. With `AUTH_RESEND_KEY` and `EMAIL_FROM` blank, as `.env.example` ships them, no email leaves the stack: the code is printed in the `web` service logs and readable at `http://localhost:3000/development/verification-code?email=<the email>`. Set both to send real codes through Resend. The web app's own variables (`API_URL`, `DATABASE_URL`, `AUTH_SECRET`, `AUTH_RESEND_KEY`, `EMAIL_FROM`) are listed in `apps/web/.env.example` for running it natively.
 - `docker compose down` stops the stack and keeps the database volume; add `--volumes` to start from an empty database.
 
 To run the apps natively against your own tooling instead, see the local setup in [CONTRIBUTING.md](CONTRIBUTING.md).
@@ -77,7 +82,14 @@ To run the apps natively against your own tooling instead, see the local setup i
 | [docs/product/vision.md](docs/product/vision.md) | Why the project exists, who it serves, what success looks like |
 | [docs/product/requirements.md](docs/product/requirements.md) | Functional requirements, application flow, technical constraints |
 | [docs/architecture.md](docs/architecture.md) | System architecture, monorepo layout, AI pipeline, data model |
+| [docs/security.md](docs/security.md) | Security requirements the code is held to: what is checked, where, with which limits |
 | [docs/workflow.md](docs/workflow.md) | Gitflow branching, how tasks are created, refined, built, reviewed, and released |
+| [Wiki](https://github.com/braydevkin/helpmegethired/wiki) | Design definitions, screenshots, and guides; the repository keeps what the code is held to |
+| [Wiki: Design: Account](https://github.com/braydevkin/helpmegethired/wiki/Design-Account) | The sign in and sign up design: screens, copy, tokens, components by stage, and open points |
+| [Wiki: Design: Resume Upload](https://github.com/braydevkin/helpmegethired/wiki/Design-Resume-Upload) | The upload step design: states, copy, the pipeline the Candidate sees, tokens, components by stage, and open points |
+| [Wiki: Design: Profile](https://github.com/braydevkin/helpmegethired/wiki/Design-Profile) | The Profile review page design: cards, copy, tokens, components by stage, and open points |
+| [Wiki: Guide: Walk the upload API](https://github.com/braydevkin/helpmegethired/wiki/Guide-Walk-the-upload-API) | Take a PDF to a confirmed Profile by hand in Swagger UI, one screenshot per step; the Playwright API scenario is its automated twin |
+| [apps/api/openapi/openapi.json](apps/api/openapi/openapi.json) | The OpenAPI document generated from the shared schemas; Swagger UI serves it at `/docs` in development |
 | [docs/releases/](docs/releases/README.md) | Release notes, one document per production release |
 | [docs/adr/](docs/adr/README.md) | Architecture Decision Records |
 | [CONTEXT.md](CONTEXT.md) | Glossary: the canonical words for the concepts in this project |

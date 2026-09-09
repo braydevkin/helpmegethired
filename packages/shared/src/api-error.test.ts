@@ -20,6 +20,12 @@ describe("ApiErrorSchema", () => {
     expect(ApiErrorSchema.safeParse(body).success).toBe(true);
   });
 
+  it("accepts a machine-readable code next to the message", () => {
+    const body = { statusCode: 409, message: "The object is missing", error: "Conflict", code: "upload_incomplete" };
+
+    expect(ApiErrorSchema.safeParse(body)).toEqual({ success: true, data: body });
+  });
+
   it.each([
     ["a success status", { statusCode: 200, message: "ok" }],
     ["a missing message", { statusCode: 500 }],

@@ -1,6 +1,6 @@
 import type { INestApplicationContext } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { AccountSchema } from "@helpmegethired/shared";
+import { AccountSchema, type AccountInformation } from "@helpmegethired/shared";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { EnvironmentModule } from "../config/environment.module";
@@ -8,7 +8,14 @@ import { DatabaseModule } from "../database/database.module";
 import { AccountRepository, DuplicateEmailError } from "./account.repository";
 import { AuthModule } from "./auth.module";
 
-const passwordHash = "scrypt$32768$8$1$c2FsdA==$a2V5";
+const freshEmail = () => `${crypto.randomUUID()}@candidate.example`;
+
+const information: AccountInformation = {
+  name: "Ada",
+  lastName: "Lovelace",
+  phone: { countryCode: "+44", number: "7700900123" },
+  address: "London, UK",
+};
 
 describe("AccountRepository", () => {
   let context: INestApplicationContext;
@@ -27,35 +34,43 @@ describe("AccountRepository", () => {
     await context.close();
   });
 
-  it("stores an Account and reads it back by id and by email without the password hash", async () => {
-    const email = `${crypto.randomUUID()}@candidate.example`;
+  it("stores an Account with only its email and reads it back by id", async () => {
+    const email = freshEmail();
 
-    const created = await accounts.create({ email, passwordHash });
+    const created = await accounts.create({ email });
 
     expect(AccountSchema.safeParse(created)).toMatchObject({ success: true });
-    expect(created).not.toHaveProperty("passwordHash");
+    expect(created).toMatchObject({ email, name: null, lastName: null, phone: null, address: null });
     expect(await accounts.findById(created.id)).toEqual(created);
-    expect(await accounts.findByEmail(email)).toEqual(created);
   });
 
-  it("reads the stored credentials by email", async () => {
-    const email = `${crypto.randomUUID()}@candidate.example`;
+  it("stores the identity information and reads it back", async () => {
+    const created = await accounts.create({ email: freshEmail() });
 
-    const created = await accounts.create({ email, passwordHash });
+    const updated = await accounts.updateInformation(created.id, information);
 
-    expect(await accounts.findCredentialsByEmail(email)).toEqual({ account: created, passwordHash });
+    expect(updated).toEqual({ ...created, ...information });
+    expect(await accounts.findById(created.id)).toEqual(updated);
+  });
+
+  it("stores an omitted address as null", async () => {
+    const created = await accounts.create({ email: freshEmail() });
+
+    const updated = await accounts.updateInformation(created.id, { ...information, address: null });
+
+    expect(updated?.address).toBeNull();
   });
 
   it("answers undefined for an Account that does not exist", async () => {
     expect(await accounts.findById(crypto.randomUUID())).toBeUndefined();
-    expect(await accounts.findCredentialsByEmail("nobody@candidate.example")).toBeUndefined();
+    expect(await accounts.updateInformation(crypto.randomUUID(), information)).toBeUndefined();
   });
 
   it("refuses a second Account with the same email", async () => {
-    const email = `${crypto.randomUUID()}@candidate.example`;
+    const email = freshEmail();
 
-    await accounts.create({ email, passwordHash });
+    await accounts.create({ email });
 
-    await expect(accounts.create({ email, passwordHash })).rejects.toThrow(DuplicateEmailError);
+    await expect(accounts.create({ email })).rejects.toThrow(DuplicateEmailError);
   });
 });

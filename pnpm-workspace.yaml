@@ -15,4 +15,6 @@ catalog:
   zod: ^4.5.4
 
 allowBuilds:
+  "@scarf/scarf": false
   "@swc/core": false
+  msgpackr-extract: false

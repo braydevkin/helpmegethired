@@ -1,0 +1,45 @@
+.screen {
+  display: flex;
+  flex-direction: column;
+}
+
+.progress {
+  margin-bottom: var(--space-progress-gap);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+}
+
+.submit {
+  margin-top: 22px;
+}
+
+.actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: var(--space-button-gap);
+  font-size: var(--text-link-line);
+  color: var(--color-text-muted);
+}
+
+.change-email {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: var(--text-link-line);
+  line-height: var(--leading-control);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.change-email:hover:enabled {
+  color: var(--color-ink);
+}
+
+.change-email:disabled {
+  cursor: progress;
+}

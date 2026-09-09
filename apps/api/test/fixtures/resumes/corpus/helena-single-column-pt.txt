@@ -1,0 +1,35 @@
+Helena Martins Rocha
+Engenheira de Software
+Florianópolis, SC | (48) 99876-5432 | helena.rocha@example.com
+linkedin.com/in/helena-rocha-example · github.com/helenamr-example
+
+RESUMO
+
+Engenheira de software que mantém um trabalho fixo e uma consultoria em paralelo, sem
+deixar nenhum dos dois cair.
+
+EXPERIÊNCIA PROFISSIONAL
+Engenheira de Software Sênior | Ilha Tech
+Florianópolis · 01/2020 – Atual
+   Lidera o time da API de pagamentos.
+   Reduziu o tempo de build de 20 para 6 minutos.
+Consultora de Software | Rocha Consultoria
+Remoto · 06/2019 – 12/2022
+   Atendeu cinco clientes em paralelo com o trabalho fixo.
+   Projetos de integração em Node.js e PostgreSQL.
+Engenheira de Software | Litoral Digital
+Florianópolis · 03/2017 – 12/2019
+   Desenvolveu o aplicativo de entregas em React Native.
+
+FORMAÇÃO ACADÊMICA
+Bacharelado em Sistemas de Informação, UFSC
+2013 – 2016
+
+HABILIDADES
+
+TypeScript, Node.js, React Native, PostgreSQL, AWS
+
+IDIOMAS
+   Português - Nativo
+   Inglês - Avançado
+

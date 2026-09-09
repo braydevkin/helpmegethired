@@ -1,0 +1,208 @@
+{
+  "contact": {
+    "name": {
+      "value": "Carla Mendes Ribeiro",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "carla.ribeiro@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+351 912 345 678",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/carla-ribeiro-example",
+      "confidence": "high"
+    },
+    "githubUrl": null,
+    "otherUrls": [
+      {
+        "value": "https://carlaribeiro.example.com",
+        "confidence": "high"
+      },
+      {
+        "value": "https://carlaribeiro.example.com/tile",
+        "confidence": "high"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Carla Mendes Ribeiro",
+        "Product Designer & Front-end Developer",
+        "",
+        "Lisbon, Portugal +351 912 345 678 carla.ribeiro@example.com",
+        "",
+        "linkedin.com/in/carla-ribeiro-example https://carlaribeiro.example.com",
+        "",
+        "SUMMARY EDUCATION",
+        "",
+        "Designer who codes. I prototype in Figma, ship in React, BA in Communication",
+        "and measure what happens after. Design, Universidade de",
+        "Lisboa",
+        "2014 – 2018"
+      ],
+      "range": {
+        "start": 0,
+        "end": 13
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 13
+      }
+    },
+    {
+      "kind": "experience",
+      "heading": "EXPERIENCE",
+      "lines": [
+        "Product Designer, Tagus Labs SKILLS",
+        "Lisbon · January 2022 – Present",
+        "Figma",
+        "Redesigned the onboarding flow, lifting activation from",
+        "React",
+        "31% to 47%.",
+        "Next.js",
+        "Maintain the design system used by three product",
+        "teams. TypeScript",
+        "CSS",
+        "Front-end Developer, Azul Interactive Accessibility",
+        "Porto · September 2018 – December 2021",
+        "User research",
+        "Built marketing sites and web apps in React and Next.js",
+        "for retail clients. LANGUAGES",
+        "PROJECTS Portuguese - Native",
+        "English - Fluent",
+        "Tile · A colour contrast checker for design tokens.",
+        "Spanish - Basic",
+        "(https://carlaribeiro.example.com/tile)"
+      ],
+      "range": {
+        "start": 13,
+        "end": 34
+      },
+      "linesRange": {
+        "start": 14,
+        "end": 34
+      }
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "Product Designer & Front-end Developer",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "SUMMARY EDUCATION Designer who codes. I prototype in Figma, ship in React, BA in Communication and measure what happens after. Design, Universidade de Lisboa 2014 – 2018",
+        "confidence": "low"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/carla-ribeiro-example",
+        "confidence": "high"
+      },
+      "githubUrl": null
+    },
+    "experiences": [
+      {
+        "role": {
+          "value": "Product Designer",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "Tagus Labs SKILLS",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2022-01",
+            "end": null
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "Figma\nRedesigned the onboarding flow, lifting activation from\nReact\n31% to 47%.\nNext.js\nMaintain the design system used by three product\nteams. TypeScript",
+          "confidence": "high"
+        },
+        "skills": [
+          "Figma",
+          "React",
+          "Next.js",
+          "Design Systems",
+          "TypeScript"
+        ]
+      },
+      {
+        "role": {
+          "value": "Front-end Developer, Azul Interactive Accessibility",
+          "confidence": "high"
+        },
+        "company": {
+          "value": "CSS",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2018-09",
+            "end": "2021-12"
+          },
+          "confidence": "high"
+        },
+        "description": {
+          "value": "User research\nBuilt marketing sites and web apps in React and Next.js\nfor retail clients. LANGUAGES\nPROJECTS Portuguese - Native\nEnglish - Fluent\nTile · A colour contrast checker for design tokens.\nSpanish - Basic\n(https://carlaribeiro.example.com/tile)",
+          "confidence": "high"
+        },
+        "skills": [
+          "React",
+          "Next.js"
+        ]
+      }
+    ],
+    "education": [],
+    "projects": [],
+    "skills": [
+      {
+        "name": "Figma",
+        "category": "Other",
+        "confidence": "medium"
+      },
+      {
+        "name": "React",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Next.js",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Design Systems",
+        "category": "Other",
+        "confidence": "medium"
+      },
+      {
+        "name": "TypeScript",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "CSS",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "Accessibility",
+        "category": "Other",
+        "confidence": "medium"
+      }
+    ],
+    "languages": [],
+    "certifications": []
+  }
+}

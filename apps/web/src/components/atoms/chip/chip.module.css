@@ -1,0 +1,18 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: var(--chip-padding);
+  border: 1px solid var(--color-chip-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-chip-bg);
+  color: var(--color-chip-text);
+  font-size: var(--text-entry-meta);
+  line-height: var(--leading-control);
+  font-weight: 600;
+}
+
+.compact {
+  padding: var(--chip-padding-compact);
+  font-size: var(--text-group-name);
+  font-weight: 700;
+}

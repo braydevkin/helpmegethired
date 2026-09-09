@@ -8,7 +8,15 @@ import type { AuthenticatedRequest } from "./authenticated-request";
 import { Public } from "./public.decorator";
 import { SessionGuard, bearerTokenOf } from "./session.guard";
 
-const account: Account = { id: crypto.randomUUID(), email: "ada@example.com", createdAt: new Date().toISOString() };
+const account: Account = {
+  id: crypto.randomUUID(),
+  email: "ada@example.com",
+  name: null,
+  lastName: null,
+  phone: null,
+  address: null,
+  createdAt: new Date().toISOString(),
+};
 const liveToken = "live-token";
 
 class ProtectedController {

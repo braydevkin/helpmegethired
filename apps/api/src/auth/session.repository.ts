@@ -2,7 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import type { Account, Id } from "@helpmegethired/shared";
 
 import { DATABASE, type Database } from "../database/database";
-import { toAccount } from "./account.mapper";
+import { accountColumns, toAccount } from "./account.mapper";
 
 export interface NewSession {
   accountId: Id;
@@ -25,7 +25,7 @@ export class SessionRepository {
     const row = await this.database
       .selectFrom("sessions")
       .innerJoin("accounts", "accounts.id", "sessions.account_id")
-      .select(["accounts.id", "accounts.email", "accounts.created_at"])
+      .select(accountColumns.map((column) => `accounts.${column}` as const))
       .where("sessions.token_hash", "=", tokenHash)
       .where("sessions.expires_at", ">", now)
       .executeTakeFirst();

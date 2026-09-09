@@ -1,0 +1,7 @@
+.label {
+  display: block;
+  font-size: var(--text-label);
+  line-height: var(--leading-control);
+  font-weight: 700;
+  color: var(--color-text-label);
+}

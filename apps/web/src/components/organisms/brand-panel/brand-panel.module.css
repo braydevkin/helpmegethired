@@ -1,0 +1,94 @@
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: var(--brand-panel-padding);
+  background: var(--color-brand-deep);
+  color: var(--color-panel-text);
+}
+
+.glow {
+  position: absolute;
+  inset: auto -160px -220px auto;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, var(--color-panel-glow), var(--color-panel-glow-end) 70%);
+}
+
+.brand,
+.message,
+.footer {
+  position: relative;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.name {
+  font-size: var(--text-brand-name);
+  line-height: var(--leading-control);
+  font-weight: 700;
+  letter-spacing: var(--tracking-brand-name);
+}
+
+.message {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-panel-message-gap);
+  max-width: var(--form-card-max-width);
+}
+
+.tagline {
+  font-size: var(--text-brand-tagline);
+  line-height: var(--leading-brand-tagline);
+  font-weight: 800;
+  letter-spacing: var(--tracking-brand-tagline);
+}
+
+.lead {
+  font-size: var(--text-brand-lead);
+  line-height: var(--leading-lead);
+  color: var(--color-panel-lead);
+}
+
+.claims {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-claims-gap);
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.claim {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: var(--text-claim);
+  line-height: var(--leading-control);
+  color: var(--color-panel-claim);
+}
+
+.check {
+  display: grid;
+  place-items: center;
+  width: var(--claim-check-size);
+  height: var(--claim-check-size);
+  border-radius: 50%;
+  background: var(--color-accent-tint);
+  color: var(--color-accent);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.footer {
+  font-size: var(--text-label);
+  line-height: var(--leading-control);
+  color: var(--color-panel-footer);
+}

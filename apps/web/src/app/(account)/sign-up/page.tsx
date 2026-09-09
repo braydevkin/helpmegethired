@@ -1,19 +1,14 @@
+import { DEFAULT_DIAL_CODE } from "@helpmegethired/shared";
 import type { Metadata } from "next";
 
-import { SIGN_IN_PATH } from "../../paths";
-import { signUpAction } from "../actions";
-import { CredentialsForm } from "../credentials-form";
+import { dialCodeOptions } from "./dial-codes";
+import { SignUpFlow } from "./sign-up-flow";
+import { signUpStart } from "./sign-up-start";
 
 export const metadata: Metadata = { title: "Sign up | Help Me Get Hired" };
 
-export default function SignUpPage() {
-  return (
-    <CredentialsForm
-      title="Create your Account"
-      submitLabel="Sign up"
-      passwordAutoComplete="new-password"
-      action={signUpAction}
-      alternative={{ prompt: "Already have an Account?", href: SIGN_IN_PATH, label: "Sign in" }}
-    />
-  );
+export default async function SignUpPage() {
+  const start = await signUpStart();
+
+  return <SignUpFlow start={start} dialCodes={dialCodeOptions} defaultDialCode={DEFAULT_DIAL_CODE} />;
 }

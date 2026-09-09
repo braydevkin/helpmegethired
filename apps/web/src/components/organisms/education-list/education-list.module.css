@@ -1,0 +1,16 @@
+.entries {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-timeline-entry);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.note {
+  margin-top: 10px;
+  font-size: var(--text-entry-title);
+  line-height: var(--leading-description);
+  font-weight: 600;
+  color: var(--color-warning-value);
+}

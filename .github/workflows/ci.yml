@@ -8,6 +8,9 @@ concurrency:
   group: ci-${{ github.event.pull_request.number }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -15,6 +18,9 @@ jobs:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-workspace
       - run: pnpm lint
+
+      - name: Check the committed OpenAPI document against the code
+        run: pnpm --filter @helpmegethired/api openapi:check
 
   typecheck:
     runs-on: ubuntu-latest
@@ -35,7 +41,10 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: ./.github/actions/setup-workspace
-      - uses: ./.github/actions/start-postgres
+      - uses: ./.github/actions/start-services
+
+      - name: Install poppler for the extraction tests
+        run: sudo apt-get update && sudo apt-get install --yes --no-install-recommends poppler-utils
 
       - name: Apply and revert the migrations
         run: |
@@ -57,10 +66,13 @@ jobs:
 
       - run: pnpm --filter e2e exec playwright install --with-deps chromium
 
+      - name: Build the shared schemas the API scenario validates with
+        run: pnpm --filter @helpmegethired/shared build
+
       - name: Run Playwright against the stack
         run: |
           . ./.env.example
-          E2E_BASE_URL="http://localhost:${WEB_PORT}" pnpm --filter e2e test:e2e
+          E2E_BASE_URL="http://localhost:${WEB_PORT}" E2E_API_URL="http://localhost:${API_PORT}" pnpm --filter e2e test:e2e
 
       - name: Show the stack logs
         if: failure()

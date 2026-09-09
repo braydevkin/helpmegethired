@@ -1,0 +1,153 @@
+{
+  "contact": {
+    "name": {
+      "value": "Marcos Vinícius Pereira",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "marcos.pereira@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "(85) 99988-7766",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://www.linkedin.com/in/marcos-",
+      "confidence": "high"
+    },
+    "githubUrl": null,
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "contact",
+      "heading": "Contato",
+      "lines": [
+        "(85) 99988-7766",
+        "Marcos Vinícius Pereira",
+        "marcos.pereira@example.com Gerente de Engenharia na Sertão Digital",
+        "www.linkedin.com/in/marcos- Fortaleza, Ceará, Brasil",
+        "pereira-example"
+      ],
+      "range": {
+        "start": 0,
+        "end": 6
+      },
+      "linesRange": {
+        "start": 1,
+        "end": 6
+      }
+    },
+    {
+      "kind": "summary",
+      "heading": "Resumo",
+      "lines": [
+        "Principais",
+        "competências Gerente de engenharia de dois times de produto. Antes disso,",
+        "Gestão de Engenharia dez anos como desenvolvedor backend.",
+        "Java",
+        "PostgreSQL Experiência Profissional",
+        "Sertão Digital",
+        "Idiomas Gerente de Engenharia",
+        "Português (Nativo) março de 2016 – Atual",
+        "Inglês (Avançado) Fortaleza",
+        "",
+        "Lidera dois times de produto, quatorze pessoas ao todo.",
+        "",
+        "Sertão Digital",
+        "Desenvolvedor Backend Sênior",
+        "janeiro de 2012 – fevereiro de 2016",
+        "Fortaleza",
+        "",
+        "Projetou o serviço de pedidos em Java sobre PostgreSQL."
+      ],
+      "range": {
+        "start": 6,
+        "end": 26
+      },
+      "linesRange": {
+        "start": 7,
+        "end": 25
+      }
+    },
+    {
+      "kind": "education",
+      "heading": "Formação Acadêmica",
+      "lines": [
+        "Universidade Federal do Ceará",
+        "Bacharelado em Computação · (2007 – 2011)"
+      ],
+      "range": {
+        "start": 26,
+        "end": 29
+      },
+      "linesRange": {
+        "start": 27,
+        "end": 29
+      }
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "pereira-example",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "Principais competências Gerente de engenharia de dois times de produto. Antes disso, Gestão de Engenharia dez anos como desenvolvedor backend. Java PostgreSQL Experiência Profissional Sertão Digital Idiomas Gerente de Engenharia Português (Nativo) março de 2016 – Atual Inglês (Avançado) Fortaleza Lidera dois times de produto, quatorze pessoas ao todo. Sertão Digital Desenvolvedor Backend Sênior janeiro de 2012 – fevereiro de 2016 Fortaleza Projetou o serviço de pedidos em Java sobre PostgreSQL.",
+        "confidence": "high"
+      },
+      "linkedinUrl": {
+        "value": "https://www.linkedin.com/in/marcos-",
+        "confidence": "high"
+      },
+      "githubUrl": null
+    },
+    "experiences": [],
+    "education": [
+      {
+        "institution": {
+          "value": "Universidade Federal do Ceará",
+          "confidence": "high"
+        },
+        "degree": {
+          "value": "Bacharelado",
+          "confidence": "high"
+        },
+        "fieldOfStudy": {
+          "value": "Computação",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2007-01",
+            "end": "2011-12"
+          },
+          "confidence": "high"
+        }
+      }
+    ],
+    "projects": [],
+    "skills": [
+      {
+        "name": "Engineering Management",
+        "category": "Other",
+        "confidence": "medium"
+      },
+      {
+        "name": "Java",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "PostgreSQL",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      }
+    ],
+    "languages": [],
+    "certifications": []
+  }
+}

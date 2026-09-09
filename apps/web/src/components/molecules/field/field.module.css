@@ -1,0 +1,26 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-label-gap);
+}
+
+.label-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.optional {
+  font-size: var(--text-hint);
+  line-height: var(--leading-control);
+  font-weight: 600;
+  color: var(--color-text-placeholder);
+}
+
+.hint {
+  margin-top: 0;
+}
+
+.error {
+  margin-top: 2px;
+}

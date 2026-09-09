@@ -1,0 +1,221 @@
+{
+  "contact": {
+    "name": {
+      "value": "Grace Brewster Hopper",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "grace.hopper@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "+1 (212) 555-0142",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/grace-hopper-",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/gracebh-example",
+      "confidence": "high"
+    },
+    "otherUrls": [
+      {
+        "value": "https://gracehopper.example.com",
+        "confidence": "high"
+      }
+    ]
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Grace Brewster Hopper",
+        "Staff Software Engineer",
+        "",
+        "CONTACT SUMMARY",
+        "",
+        "New York, NY Staff engineer working on compilers and developer",
+        "tooling. I like removing steps from other people's days.",
+        "+1 (212) 555-0142",
+        "",
+        "grace.hopper@example.com EXPERIENCE",
+        "linkedin.com/in/grace-hopper- Staff Software Engineer — Harvard Computation Co",
+        "example New York · 2019 – Present",
+        "",
+        "github.com/gracebh-example Lead the build tooling group.",
+        "Cut CI time in half by caching compiler outputs.",
+        "https://gracehopper.example.com",
+        "Senior Software Engineer — Eckert-Mauchly",
+        "Philadelphia · 2014 – 2019"
+      ],
+      "range": {
+        "start": 0,
+        "end": 18
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 18
+      }
+    },
+    {
+      "kind": "skills",
+      "heading": "SKILLS",
+      "lines": [
+        "Wrote the first optimising passes of the in-house",
+        "C++ compiler.",
+        "Rust",
+        "LLVM",
+        "Software Engineer — Remington Systems",
+        "Philadelphia · 2010 – 2014",
+        "Bazel",
+        "Python Maintained the COBOL runtime.",
+        "Linux"
+      ],
+      "range": {
+        "start": 18,
+        "end": 28
+      },
+      "linesRange": {
+        "start": 19,
+        "end": 28
+      }
+    },
+    {
+      "kind": "education",
+      "heading": "EDUCATION",
+      "lines": [
+        "LANGUAGES PhD in Mathematics, Yale University",
+        "English - Native 2004 – 2010"
+      ],
+      "range": {
+        "start": 28,
+        "end": 32
+      },
+      "linesRange": {
+        "start": 29,
+        "end": 31
+      }
+    },
+    {
+      "kind": "projects",
+      "heading": "PROJECTS",
+      "lines": [
+        "Moth",
+        "A tiny bug tracker that lives in the repository.",
+        "https://github.com/gracebh-example/moth"
+      ],
+      "range": {
+        "start": 32,
+        "end": 36
+      },
+      "linesRange": {
+        "start": 33,
+        "end": 36
+      }
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "Staff Software Engineer",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "CONTACT SUMMARY New York, NY Staff engineer working on compilers and developer tooling. I like removing steps from other people's days. linkedin.com/in/grace-hopper- Staff Software Engineer — Harvard Computation Co example New York · 2019 – Present github.com/gracebh-example Lead the build tooling group. Cut CI time in half by caching compiler outputs. Senior Software Engineer — Eckert-Mauchly Philadelphia · 2014 – 2019",
+        "confidence": "low"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/grace-hopper-",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/gracebh-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [],
+    "education": [
+      {
+        "institution": {
+          "value": "Yale University",
+          "confidence": "high"
+        },
+        "degree": {
+          "value": "LANGUAGES PhD",
+          "confidence": "high"
+        },
+        "fieldOfStudy": {
+          "value": "Mathematics",
+          "confidence": "high"
+        },
+        "period": {
+          "value": {
+            "start": "2004-01",
+            "end": "2010-12"
+          },
+          "confidence": "high"
+        }
+      }
+    ],
+    "projects": [
+      {
+        "name": {
+          "value": "Moth",
+          "confidence": "high"
+        },
+        "description": {
+          "value": "A tiny bug tracker that lives in the repository.",
+          "confidence": "high"
+        },
+        "url": {
+          "value": "https://github.com/gracebh-example/moth",
+          "confidence": "high"
+        },
+        "skills": []
+      }
+    ],
+    "skills": [
+      {
+        "name": "C++",
+        "category": "Languages & runtimes",
+        "confidence": "high"
+      },
+      {
+        "name": "Rust",
+        "category": "Languages & runtimes",
+        "confidence": "high"
+      },
+      {
+        "name": "LLVM",
+        "category": "Other",
+        "confidence": "high"
+      },
+      {
+        "name": "Bazel",
+        "category": "Other",
+        "confidence": "high"
+      },
+      {
+        "name": "Python",
+        "category": "Languages & runtimes",
+        "confidence": "high"
+      },
+      {
+        "name": "COBOL",
+        "category": "Languages & runtimes",
+        "confidence": "high"
+      },
+      {
+        "name": "Linux",
+        "category": "Infrastructure",
+        "confidence": "high"
+      }
+    ],
+    "languages": [],
+    "certifications": []
+  }
+}

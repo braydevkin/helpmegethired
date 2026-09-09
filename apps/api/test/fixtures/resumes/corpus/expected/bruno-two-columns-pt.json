@@ -1,0 +1,213 @@
+{
+  "contact": {
+    "name": {
+      "value": "Bruno Henrique da Silva",
+      "confidence": "medium"
+    },
+    "email": {
+      "value": "bruno.hsilva@example.com",
+      "confidence": "high"
+    },
+    "phone": {
+      "value": "(31) 98877-6655",
+      "confidence": "high"
+    },
+    "linkedinUrl": {
+      "value": "https://linkedin.com/in/bruno-hsilva-",
+      "confidence": "high"
+    },
+    "githubUrl": {
+      "value": "https://github.com/brunohs-example",
+      "confidence": "high"
+    },
+    "otherUrls": []
+  },
+  "sections": [
+    {
+      "kind": "header",
+      "heading": null,
+      "lines": [
+        "Bruno Henrique da Silva",
+        "Desenvolvedor Full Stack",
+        "",
+        "CONTATO RESUMO",
+        "",
+        "Belo Horizonte, MG Desenvolvedor full stack com sete anos entre React,",
+        "Node.js e bancos relacionais. Gosto de produtos",
+        "(31) 98877-6655",
+        "pequenos com times pequenos e de código que dá para",
+        "bruno.hsilva@example.com ler.",
+        "",
+        "linkedin.com/in/bruno-hsilva- EXPERIÊNCIA PROFISSIONAL",
+        "example",
+        "Desenvolvedor Full Stack Pleno — Mineral Digital",
+        "github.com/brunohs-example Belo Horizonte · 08/2020 – Atual",
+        "Desenvolve o portal do cliente em React e a API em",
+        "HABILIDADES NestJS.",
+        "JavaScript Migrou a autenticação para códigos de uso único,",
+        "TypeScript eliminando as senhas.",
+        "React Desenvolvedor Júnior — Alameda Sistemas",
+        "Node.js Contagem · 02/2018 – 07/2020",
+        "NestJS",
+        "Manteve o ERP em PHP e escreveu os primeiros",
+        "PostgreSQL testes automatizados da empresa.",
+        "Docker",
+        "Git FORMAÇÃO ACADÊMICA",
+        "IDIOMAS Tecnólogo em Análise e Desenvolvimento de",
+        "Sistemas, PUC Minas",
+        "Português - Nativo 2015 – 2017",
+        "Inglês - Avançado"
+      ],
+      "range": {
+        "start": 0,
+        "end": 30
+      },
+      "linesRange": {
+        "start": 0,
+        "end": 30
+      }
+    },
+    {
+      "kind": "projects",
+      "heading": "PROJETOS",
+      "lines": [],
+      "range": {
+        "start": 30,
+        "end": 31
+      },
+      "linesRange": {
+        "start": 31,
+        "end": 31
+      }
+    },
+    {
+      "kind": "certifications",
+      "heading": "CERTIFICAÇÕES",
+      "lines": [
+        "Fila Zero",
+        "Scrum Foundation Professional Aplicativo de senhas para postos de saúde, feito em um",
+        "(CertiProf, 2021) fim de semana de hackathon."
+      ],
+      "range": {
+        "start": 31,
+        "end": 35
+      },
+      "linesRange": {
+        "start": 32,
+        "end": 35
+      }
+    }
+  ],
+  "draft": {
+    "parserVersion": "rules/3",
+    "basicProfile": {
+      "headline": {
+        "value": "Desenvolvedor Full Stack",
+        "confidence": "medium"
+      },
+      "summary": {
+        "value": "CONTATO RESUMO Belo Horizonte, MG Desenvolvedor full stack com sete anos entre React, Node.js e bancos relacionais. Gosto de produtos pequenos com times pequenos e de código que dá para linkedin.com/in/bruno-hsilva- EXPERIÊNCIA PROFISSIONAL example Desenvolvedor Full Stack Pleno — Mineral Digital github.com/brunohs-example Belo Horizonte · 08/2020 – Atual Desenvolve o portal do cliente em React e a API em HABILIDADES NestJS. JavaScript Migrou a autenticação para códigos de uso único, TypeScript eliminando as senhas. React Desenvolvedor Júnior — Alameda Sistemas Node.js Contagem · 02/2018 – 07/2020 NestJS Manteve o ERP em PHP e escreveu os primeiros PostgreSQL testes automatizados da empresa. Docker Git FORMAÇÃO ACADÊMICA IDIOMAS Tecnólogo em Análise e Desenvolvimento de Sistemas, PUC Minas Português - Nativo 2015 – 2017 Inglês - Avançado",
+        "confidence": "low"
+      },
+      "linkedinUrl": {
+        "value": "https://linkedin.com/in/bruno-hsilva-",
+        "confidence": "high"
+      },
+      "githubUrl": {
+        "value": "https://github.com/brunohs-example",
+        "confidence": "high"
+      }
+    },
+    "experiences": [],
+    "education": [],
+    "projects": [],
+    "skills": [
+      {
+        "name": "React",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Node.js",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "NestJS",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "JavaScript",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "TypeScript",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "PHP",
+        "category": "Languages & runtimes",
+        "confidence": "medium"
+      },
+      {
+        "name": "PostgreSQL",
+        "category": "Frameworks & data",
+        "confidence": "medium"
+      },
+      {
+        "name": "Docker",
+        "category": "Infrastructure",
+        "confidence": "medium"
+      },
+      {
+        "name": "Git",
+        "category": "Other",
+        "confidence": "medium"
+      },
+      {
+        "name": "Scrum",
+        "category": "Other",
+        "confidence": "medium"
+      }
+    ],
+    "languages": [],
+    "certifications": [
+      {
+        "name": {
+          "value": "Fila Zero",
+          "confidence": "medium"
+        },
+        "issuer": null,
+        "year": null
+      },
+      {
+        "name": {
+          "value": "Scrum Foundation Professional Aplicativo de senhas para postos de saúde",
+          "confidence": "medium"
+        },
+        "issuer": {
+          "value": "feito em um",
+          "confidence": "medium"
+        },
+        "year": null
+      },
+      {
+        "name": {
+          "value": "CertiProf",
+          "confidence": "medium"
+        },
+        "issuer": {
+          "value": "fim de semana de hackathon.",
+          "confidence": "medium"
+        },
+        "year": {
+          "value": 2021,
+          "confidence": "medium"
+        }
+      }
+    ]
+  }
+}
