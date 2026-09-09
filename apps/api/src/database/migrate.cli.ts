@@ -2,9 +2,18 @@ import type { MigrationResultSet } from "kysely/migration";
 
 import { loadLocalEnvironment } from "../config/load-local-environment";
 import { validateDatabaseEnvironment } from "../config/validate-environment";
-import { createDatabase } from "./database";
-import { isMigrateCommand, migrateCommands } from "./migrate-command";
+import { createDatabase, type Database } from "./database";
+import { isMigrateCommand, type MigrateCommand, migrateCommands } from "./migrate-command";
 import { migrateDown, migrateToLatest } from "./migrator";
+
+function migrate(command: MigrateCommand, database: Database): Promise<MigrationResultSet> {
+  switch (command) {
+    case "up":
+      return migrateToLatest(database);
+    case "down":
+      return migrateDown(database);
+  }
+}
 
 function report({ results = [], error }: MigrationResultSet): void {
   for (const result of results) {
@@ -27,7 +36,7 @@ async function main(command: string | undefined): Promise<void> {
   const database = createDatabase(DATABASE_URL);
 
   try {
-    const resultSet = await (command === "up" ? migrateToLatest(database) : migrateDown(database));
+    const resultSet = await migrate(command, database);
 
     report(resultSet);
 
