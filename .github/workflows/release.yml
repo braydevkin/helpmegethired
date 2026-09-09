@@ -1,0 +1,24 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Publish every release document that has no GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: .github/scripts/publish-releases.sh "$GITHUB_SHA"
