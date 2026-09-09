@@ -8,4 +8,5 @@ Use [template.md](template.md). Name the file after the tag: `vX.Y.Z.md`. Write 
 
 | Version | Date | Type | Summary |
 | --- | --- | --- | --- |
+| [v0.2.0](v0.2.0.md) | 2026-09-09 | Release | Passwordless Account, Resume upload and extraction, and the Profile parsed from a Resume. |
 | [v0.1.0](v0.1.0.md) | 2026-09-02 | Release | Foundation of the platform, Account sign up and sign in, and the profile ingestion design. |
