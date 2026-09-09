@@ -13,8 +13,14 @@ shopt -s nullglob
 readonly commit="${1:?Usage: publish-releases.sh <commit the tags point at>}"
 readonly version_pattern='^v[0-9]+\.[0-9]+\.[0-9]+$'
 
+# Reads "- **Name:** value" from a document. The repository has no .gitattributes, so a
+# document can arrive with CRLF endings; a stray carriage return in a tag would fail the
+# check below and block a release for nothing.
 field() {
-  sed -n "s/^- \*\*$1:\*\* \(.*\)$/\1/p" "$2" | head -1
+  sed -n "s/^[[:space:]]*[-*][[:space:]]*\*\*$1:\*\*[[:space:]]*\(.*\)$/\1/p" "$2" |
+    tr -d '\r' |
+    sed 's/[[:space:]]*$//' |
+    head -1
 }
 
 documents=(docs/releases/v*.md)
