@@ -335,7 +335,7 @@
         <mxCell id="m7e4w2c1xJSXz9RF5DLA-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=#3700CC;fillColor=#6a00ff;align=center;verticalAlign=middle;rounded=0;fontColor=#ffffff;fontStyle=1" value="Provide Job Description&amp;nbsp;" vertex="1">
           <mxGeometry height="50" width="130" x="827" y="820" as="geometry" />
         </mxCell>
-        <mxCell id="m7e4w2c1xJSXz9RF5DLA-14" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=#006EAF;fillColor=#1ba1e2;align=left;verticalAlign=middle;rounded=0;fontColor=light-dark(#FFFFFF,#FFFFFF);fontStyle=1" value="&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Functional Requirements&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;ol&gt;&lt;li&gt;Account Register&lt;/li&gt;&lt;li&gt;Upload Resume PDF&lt;/li&gt;&lt;li&gt;Read Linkedin Profile&lt;/li&gt;&lt;li&gt;Build Profile&lt;/li&gt;&lt;li&gt;Paste Job Description&lt;/li&gt;&lt;li&gt;A.I Analysis&lt;/li&gt;&lt;li&gt;A.I Recommendations for resume&lt;/li&gt;&lt;li&gt;A.I Recommendations for studies&lt;/li&gt;&lt;li&gt;A.I Mock Interview&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="m7e4w2c1xJSXz9RF5DLA-14" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=#006EAF;fillColor=#1ba1e2;align=left;verticalAlign=middle;rounded=0;fontColor=light-dark(#FFFFFF,#FFFFFF);fontStyle=1" value="&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Functional Requirements&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;ol&gt;&lt;li&gt;Account Register&lt;/li&gt;&lt;li&gt;Upload Resume PDF&lt;/li&gt;&lt;li&gt;Build Profile&lt;/li&gt;&lt;li&gt;Paste Job Description&lt;/li&gt;&lt;li&gt;A.I Analysis&lt;/li&gt;&lt;li&gt;A.I Recommendations for resume&lt;/li&gt;&lt;li&gt;A.I Recommendations for studies&lt;/li&gt;&lt;li&gt;A.I Mock Interview&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="320" width="237" x="803" y="1250" as="geometry" />
         </mxCell>
         <mxCell id="m7e4w2c1xJSXz9RF5DLA-15" edge="1" parent="1" source="Wp2Jg7VBWXD_ZV2vzEN--4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="m7e4w2c1xJSXz9RF5DLA-7" value="">
@@ -363,25 +363,31 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="m7e4w2c1xJSXz9RF5DLA-19" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;fontStyle=1" value="Upload Resume PDF" vertex="1">
-          <mxGeometry height="60" width="120" x="56" y="1270" as="geometry" />
+          <mxGeometry height="60" width="120" x="28" y="1270" as="geometry" />
         </mxCell>
         <mxCell id="m7e4w2c1xJSXz9RF5DLA-25" edge="1" parent="1" source="m7e4w2c1xJSXz9RF5DLA-21" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="m7e4w2c1xJSXz9RF5DLA-24" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="m7e4w2c1xJSXz9RF5DLA-21" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;fontStyle=1" value="Paste Linkedin URL Profile (Removed)" vertex="1">
-          <mxGeometry height="60" width="120" x="236" y="1270" as="geometry" />
+        <mxCell id="m7e4w2c1xJSXz9RF5DLA-21" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;fontStyle=1" value="Confirm Profile" vertex="1">
+          <mxGeometry height="60" width="120" x="180" y="1270" as="geometry" />
+        </mxCell>
+        <mxCell id="hgh-journey-profile-analysis" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;fontStyle=1" value="Profile analysis with the evidence behind it" vertex="1">
+          <mxGeometry height="60" width="120" x="636" y="1270" as="geometry" />
+        </mxCell>
+        <mxCell id="hgh-journey-curation-to-analysis" edge="1" parent="1" source="m7e4w2c1xJSXz9RF5DLA-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="hgh-journey-profile-analysis" value="">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="m7e4w2c1xJSXz9RF5DLA-27" edge="1" parent="1" source="m7e4w2c1xJSXz9RF5DLA-24" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="m7e4w2c1xJSXz9RF5DLA-26" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="m7e4w2c1xJSXz9RF5DLA-24" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;fontStyle=1" value="A.I Profile Analysis" vertex="1">
-          <mxGeometry height="60" width="120" x="436" y="1270" as="geometry" />
+        <mxCell id="m7e4w2c1xJSXz9RF5DLA-24" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;fontStyle=1" value="Choose the Model and supply the Model Key" vertex="1">
+          <mxGeometry height="60" width="120" x="332" y="1270" as="geometry" />
         </mxCell>
-        <mxCell id="m7e4w2c1xJSXz9RF5DLA-29" edge="1" parent="1" source="m7e4w2c1xJSXz9RF5DLA-26" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="m7e4w2c1xJSXz9RF5DLA-28" value="">
+        <mxCell id="m7e4w2c1xJSXz9RF5DLA-29" edge="1" parent="1" source="hgh-journey-profile-analysis" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="m7e4w2c1xJSXz9RF5DLA-28" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="m7e4w2c1xJSXz9RF5DLA-26" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;fontStyle=1" value="Profile Page&amp;nbsp;with strengths and weaknesses" vertex="1">
-          <mxGeometry height="60" width="120" x="636" y="1270" as="geometry" />
+        <mxCell id="m7e4w2c1xJSXz9RF5DLA-26" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;fontStyle=1" value="Profile Curation" vertex="1">
+          <mxGeometry height="60" width="120" x="484" y="1270" as="geometry" />
         </mxCell>
         <mxCell id="m7e4w2c1xJSXz9RF5DLA-31" edge="1" parent="1" source="m7e4w2c1xJSXz9RF5DLA-28" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="m7e4w2c1xJSXz9RF5DLA-30" value="">
           <mxGeometry relative="1" as="geometry" />
@@ -392,7 +398,7 @@
         <mxCell id="m7e4w2c1xJSXz9RF5DLA-33" edge="1" parent="1" source="m7e4w2c1xJSXz9RF5DLA-30" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="m7e4w2c1xJSXz9RF5DLA-32" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="m7e4w2c1xJSXz9RF5DLA-30" parent="1" style="whiteSpace=wrap;html=1;fillColor=#a20025;strokeColor=#6F0000;fontColor=#ffffff;rounded=0;fontStyle=1;" value="A.I Analysis comparing with profile" vertex="1">
+        <mxCell id="m7e4w2c1xJSXz9RF5DLA-30" parent="1" style="whiteSpace=wrap;html=1;fillColor=#a20025;strokeColor=#6F0000;fontColor=#ffffff;rounded=0;fontStyle=1;" value="A.I Analysis comparing with profile: strengths and weaknesses for that role" vertex="1">
           <mxGeometry height="60" width="120" x="436" y="1370" as="geometry" />
         </mxCell>
         <mxCell id="m7e4w2c1xJSXz9RF5DLA-35" edge="1" parent="1" source="m7e4w2c1xJSXz9RF5DLA-32" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="m7e4w2c1xJSXz9RF5DLA-34" value="">
@@ -416,7 +422,7 @@
         <mxCell id="m7e4w2c1xJSXz9RF5DLA-38" parent="1" style="whiteSpace=wrap;html=1;fillColor=#a20025;strokeColor=#6F0000;fontColor=#ffffff;rounded=0;fontStyle=1;" value="Preparation summary with all success rates" vertex="1">
           <mxGeometry height="60" width="120" x="-122" y="1490" as="geometry" />
         </mxCell>
-        <mxCell id="m7e4w2c1xJSXz9RF5DLA-40" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=#3A5431;fillColor=#6d8764;align=left;verticalAlign=middle;rounded=0;fontColor=#ffffff;fontStyle=1" value="&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Technical Details&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;ol&gt;&lt;li&gt;Reading Files&lt;/li&gt;&lt;li&gt;Reading LinkedIn via API&lt;/li&gt;&lt;li&gt;Profile building by segment; queues, reads, recognizes, and saves&lt;/li&gt;&lt;li&gt;If the process fails, it must resume where it left off; percentage and progress of profile building&lt;/li&gt;&lt;li&gt;It is not possible to perform multiple uploads and analyze multiple profiles&lt;/li&gt;&lt;li&gt;All AI analysis layers must run sequentially; the next one only runs once the previous one has been completed&lt;/li&gt;&lt;li&gt;Before any AI analysis, we must ensure the use of RAG to optimize token consumption&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;" vertex="1">
+        <mxCell id="m7e4w2c1xJSXz9RF5DLA-40" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=#3A5431;fillColor=#6d8764;align=left;verticalAlign=middle;rounded=0;fontColor=#ffffff;fontStyle=1" value="&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Technical Details&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;ol&gt;&lt;li&gt;Reading Files&lt;/li&gt;&lt;li&gt;Profile building by segment; queues, reads, recognizes, and saves&lt;/li&gt;&lt;li&gt;If the process fails, it must resume where it left off; percentage and progress of profile building&lt;/li&gt;&lt;li&gt;It is not possible to perform multiple uploads and analyze multiple profiles&lt;/li&gt;&lt;li&gt;All AI analysis layers must run sequentially; the next one only runs once the previous one has been completed&lt;/li&gt;&lt;li&gt;Before any AI analysis, we must ensure the use of RAG to optimize token consumption&lt;/li&gt;&lt;li&gt;Every AI analysis after Profile Curation reads Statements, never the Profile or the extracted text&lt;/li&gt;&lt;li&gt;The Candidate supplies their own Model Key; the platform holds no generation key&lt;/li&gt;&lt;/ol&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="320" width="280" x="1040" y="1250" as="geometry" />
         </mxCell>
         <mxCell id="7FJIQb3O7DcRJx4gMGss-1" edge="1" parent="1" source="m7e4w2c1xJSXz9RF5DLA-41" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="m7e4w2c1xJSXz9RF5DLA-54">
@@ -625,7 +631,7 @@
         <mxCell id="_1Yni4JS15Jf2bndmvW9-23" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="570" width="1284" x="-144" y="2530" as="geometry" />
         </mxCell>
-        <mxCell id="_1Yni4JS15Jf2bndmvW9-24" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;fontStyle=1" value="A.I Profile Analysis" vertex="1">
+        <mxCell id="_1Yni4JS15Jf2bndmvW9-24" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#a20025;fontColor=#ffffff;strokeColor=#6F0000;fontStyle=1" value="Profile Curation" vertex="1">
           <mxGeometry height="30" width="261" x="-144" y="2500" as="geometry" />
         </mxCell>
         <mxCell id="_1Yni4JS15Jf2bndmvW9-30" edge="1" parent="1" source="_1Yni4JS15Jf2bndmvW9-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="_1Yni4JS15Jf2bndmvW9-29" value="">
@@ -636,13 +642,13 @@
             <mxPoint x="-64" y="2770" as="targetPoint" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="_1Yni4JS15Jf2bndmvW9-25" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#008a00;strokeColor=#005700;fontStyle=1;fontColor=#ffffff;" value="Is user profile completed?" vertex="1">
+        <mxCell id="_1Yni4JS15Jf2bndmvW9-25" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#008a00;strokeColor=#005700;fontStyle=1;fontColor=#ffffff;" value="Profile confirmed and Model Key stored?" vertex="1">
           <mxGeometry height="50" width="120" x="-124" y="2640" as="geometry" />
         </mxCell>
         <mxCell id="mgHUCYuPgl1R2iPnmNqR-5" edge="1" parent="1" source="_1Yni4JS15Jf2bndmvW9-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="mgHUCYuPgl1R2iPnmNqR-4" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="_1Yni4JS15Jf2bndmvW9-29" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="Create Curatorial Units" vertex="1">
+        <mxCell id="_1Yni4JS15Jf2bndmvW9-29" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="Create Curation Units" vertex="1">
           <mxGeometry height="50" width="120" x="131" y="2640" as="geometry" />
         </mxCell>
         <mxCell id="mgHUCYuPgl1R2iPnmNqR-14" edge="1" parent="1" source="mgHUCYuPgl1R2iPnmNqR-4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="mgHUCYuPgl1R2iPnmNqR-13" value="">
