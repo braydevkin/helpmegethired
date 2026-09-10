@@ -1,6 +1,6 @@
 # Requirements
 
-Derived from `arch/helpmegethired-architecture.drawio`. When the diagram and this document disagree, this document wins and the diagram should be updated.
+Derived from `arch/hgh.drawio`. When the diagram and this document disagree, this document wins and the diagram should be updated.
 
 ## Functional requirements
 

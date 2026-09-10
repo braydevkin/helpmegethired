@@ -26,7 +26,7 @@ A candidate walks through a single, sequential journey:
 8. **AI mock interview** for the target role.
 9. **Preparation summary** with success rates across every step.
 
-The full product definition lives in [docs/product/vision.md](docs/product/vision.md) and [docs/product/requirements.md](docs/product/requirements.md). The original idea diagram is in [arch/helpmegethired-architecture.drawio](arch/helpmegethired-architecture.drawio).
+The full product definition lives in [docs/product/vision.md](docs/product/vision.md) and [docs/product/requirements.md](docs/product/requirements.md). The original idea diagram is in [arch/hgh.drawio](arch/hgh.drawio).
 
 ## Tech stack
 

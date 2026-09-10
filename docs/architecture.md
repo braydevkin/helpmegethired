@@ -217,7 +217,7 @@ start ──▶ ingestions (queued) + ingestion_segments (pending), one transact
 
 ### Resume upload and extraction (FR-02, TC-01)
 
-The Candidate uploads a PDF, the platform extracts its text once, and an Ingestion builds the Profile from that text. The screens are [Design: Resume Upload](https://github.com/braydevkin/helpmegethired/wiki/Design-Resume-Upload) and [Design: Profile](https://github.com/braydevkin/helpmegethired/wiki/Design-Profile) on the wiki; the maintainer's upload lane is `design/resume/system-design.png` there, from `arch/helpmegethired-architecture.drawio`. The decisions are ADR-0020 (queues and worker) and ADR-0021 (object storage); the limits and error codes are fixed by #52. The terms (Uploaded Resume, Ingestion, Segment, Step, Progress, the seven Profile parts, Confidence) are in [CONTEXT.md](../CONTEXT.md).
+The Candidate uploads a PDF, the platform extracts its text once, and an Ingestion builds the Profile from that text. The screens are [Design: Resume Upload](https://github.com/braydevkin/helpmegethired/wiki/Design-Resume-Upload) and [Design: Profile](https://github.com/braydevkin/helpmegethired/wiki/Design-Profile) on the wiki; the maintainer's upload lane is `design/resume/system-design.png` there, from `arch/hgh.drawio`. The decisions are ADR-0020 (queues and worker) and ADR-0021 (object storage); the limits and error codes are fixed by #52. The terms (Uploaded Resume, Ingestion, Segment, Step, Progress, the seven Profile parts, Confidence) are in [CONTEXT.md](../CONTEXT.md).
 
 ```
 browser                 api                    object store          redis            worker                    postgres
