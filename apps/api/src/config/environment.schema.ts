@@ -71,16 +71,19 @@ const isEncryptionKey = (value: string): boolean =>
 export const ModelEnvironmentSchema = z.object({
   MODEL_ADAPTER: settingOf(z.enum(["anthropic"], { error: "must be anthropic, or blank for the development stand-in" })),
   MODEL_KEY_ENCRYPTION_KEY: settingOf(z.string().refine(isEncryptionKey, { error: `must be ${MODEL_KEY_ENCRYPTION_KEY_BYTES} bytes encoded in base64` })),
+  EMBEDDING_API_KEY: settingOf(z.string()),
 });
 
 interface ModelSettings {
   NODE_ENV: string;
   MODEL_ADAPTER: string | null;
   MODEL_KEY_ENCRYPTION_KEY: string | null;
+  EMBEDDING_API_KEY: string | null;
 }
 
-// The development stand-ins accept every key and encrypt with a key published in this repository:
-// that is what lets CI and the local stack run with no secret, and why production refuses them.
+// The development stand-ins accept every key, encrypt with a key published in this repository, and
+// embed with a digest instead of a model: that is what lets CI and the local stack run with no
+// secret, and why production refuses them.
 function requireProductionModelSettings(environment: ModelSettings, context: z.RefinementCtx): void {
   if (environment.NODE_ENV !== "production") {
     return;
@@ -94,6 +97,10 @@ function requireProductionModelSettings(environment: ModelSettings, context: z.R
     context.addIssue({ code: "custom", path: ["MODEL_KEY_ENCRYPTION_KEY"], message: "is required in production" });
   } else if (decodeEncryptionKey(environment.MODEL_KEY_ENCRYPTION_KEY).equals(DEVELOPMENT_MODEL_KEY_ENCRYPTION_KEY)) {
     context.addIssue({ code: "custom", path: ["MODEL_KEY_ENCRYPTION_KEY"], message: "must not be the development key in production" });
+  }
+
+  if (environment.EMBEDDING_API_KEY === null) {
+    context.addIssue({ code: "custom", path: ["EMBEDDING_API_KEY"], message: "is required in production" });
   }
 }
 

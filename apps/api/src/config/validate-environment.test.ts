@@ -32,6 +32,7 @@ const complete = {
   PRESIGN_EXPIRES_SECONDS: "120",
   MODEL_ADAPTER: "anthropic",
   MODEL_KEY_ENCRYPTION_KEY: encryptionKey,
+  EMBEDDING_API_KEY: "platform-embedding-key",
 };
 
 const required = {
@@ -43,16 +44,19 @@ const required = {
 
 describe("the model settings", () => {
   it("read a blank value as unset, and answer null so ConfigService never falls back to the blank in process.env", () => {
-    const parsed = validateEnvironment({ ...required, NODE_ENV: "development", MODEL_ADAPTER: "", MODEL_KEY_ENCRYPTION_KEY: "" });
+    const parsed = validateEnvironment({ ...required, NODE_ENV: "development", MODEL_ADAPTER: "", MODEL_KEY_ENCRYPTION_KEY: "", EMBEDDING_API_KEY: "" });
 
     expect(parsed.MODEL_ADAPTER).toBeNull();
     expect(parsed.MODEL_KEY_ENCRYPTION_KEY).toBeNull();
+    expect(parsed.EMBEDDING_API_KEY).toBeNull();
   });
 
   it.each([
     ["no model adapter", { ...complete, MODEL_ADAPTER: undefined }, "MODEL_ADAPTER is required in production"],
     ["a blank model adapter", { ...complete, MODEL_ADAPTER: "" }, "MODEL_ADAPTER is required in production"],
     ["no encryption key", { ...complete, MODEL_KEY_ENCRYPTION_KEY: undefined }, "MODEL_KEY_ENCRYPTION_KEY is required in production"],
+    ["no platform embedding key", { ...complete, EMBEDDING_API_KEY: undefined }, "EMBEDDING_API_KEY is required in production"],
+    ["a blank platform embedding key", { ...complete, EMBEDDING_API_KEY: "" }, "EMBEDDING_API_KEY is required in production"],
     [
       "the development encryption key",
       { ...complete, MODEL_KEY_ENCRYPTION_KEY: Buffer.from("development-only-model-key-00000").toString("base64") },
@@ -90,6 +94,7 @@ describe("validateEnvironment", () => {
       PRESIGN_EXPIRES_SECONDS: 120,
       MODEL_ADAPTER: "anthropic",
       MODEL_KEY_ENCRYPTION_KEY: encryptionKey,
+      EMBEDDING_API_KEY: "platform-embedding-key",
     });
   });
 
@@ -104,6 +109,7 @@ describe("validateEnvironment", () => {
       PRESIGN_EXPIRES_SECONDS: 300,
       MODEL_ADAPTER: null,
       MODEL_KEY_ENCRYPTION_KEY: null,
+      EMBEDDING_API_KEY: null,
       ...required,
     });
   });
