@@ -104,14 +104,14 @@ Every text a model reads is attacker-controlled: the stored Resume text, the Pro
 ### Retrieval
 
 - Every retrieval query filters by `account_id` in SQL, before similarity ordering, under the same structural rule as every Candidate-owned table ([architecture.md](architecture.md#backend-appsapi), #49). No query retrieves across Accounts, and the two-Account helper proves it for every retrieval path.
-- Only Statements are retrieved: never the Profile rows, never the extracted text (#101). A rejected Statement and the Statements of a superseded Curation are never retrieved (#119).
+- Profile Curation is the one layer that reads the Profile, one Curation Unit at a time, because it is what produces the Statements; it retrieves nothing (ADR-0024). Every layer after it retrieves only Statements: never the Profile rows, never the extracted text. A rejected Statement and the Statements of a superseded Curation are never retrieved (#119).
 
 ### Output
 
 - Every model response is parsed by a Zod schema from `packages/shared`. A response that does not validate is a failed call: it is never repaired, never partially saved, and never shown.
 - The ATS score is an integer from 0 to 10, and nothing else validates.
 - A Statement's Evidence must resolve against the Account's own Profile before the Statement is saved. One that does not is discarded, and the discard is logged by unit id (#113).
-- Model output reaches the web app as data and is rendered as text. It never reaches `dangerouslySetInnerHTML` or a Markdown renderer that passes HTML through.
+- Model output, and every attacker-controlled text it was drawn from (the Resume text, the Profile, a Job Description), reach the web app as data and are rendered as text. None of them reaches `dangerouslySetInnerHTML` or a Markdown renderer that passes HTML through.
 
 ### Spend
 
@@ -141,7 +141,7 @@ The canary: the system instructions of a test prompt carry a random marker, and 
 - [ ] A log line carries ids, the Model, the prompt version, token counts, latency, and the outcome, and a test asserts it carries no content
 - [ ] The injection fixtures run through the layer, the output validates, and the canary never appears
 
-### Open items
+### Still open for the AI pipeline
 
 - **The embedding ceiling's number and period**: #133.
 - **Provider retention**: a Profile sent for generation is governed by the Candidate's own agreement with their Provider, not by one the platform holds (ADR-0023). The provider page states it (#120); the platform makes no claim of its own.
