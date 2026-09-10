@@ -3,7 +3,7 @@ import { EMPTY_BASIC_PROFILE, type Id, type Ingestion, type Profile, type Profil
 
 import { Clock } from "../common/clock";
 import { IngestionRepository } from "../ingestion/ingestion.repository";
-import { careerYears } from "../parser";
+import { careerDuration } from "../parser";
 import { UploadedResumeRepository } from "../resumes/uploaded-resume.repository";
 import { ProfileNotFoundError } from "./profile-errors";
 import { ProfileRepository, type ProfileRows } from "./profile.repository";
@@ -47,10 +47,10 @@ export class ProfileService {
     return {
       accountId,
       ...partsOf(rows),
-      yearsOfExperience: careerYears(
+      yearsOfExperience: careerDuration(
         rows.experiences.flatMap((experience) => (experience.period ? [experience.period] : [])),
         this.clock.now(),
-      ),
+      ).years,
       reviewFlags: flags,
       source: await this.sourceOf(accountId, ingestion),
       confirmedAt: confirmedAt?.toISOString() ?? null,

@@ -1,4 +1,4 @@
-export { careerMonths, careerYears } from "./career";
+export { careerDuration } from "./career";
 export { extractCertifications } from "./certifications";
 export { cleanText } from "./clean";
 export { type Contact } from "./contact";
