@@ -61,11 +61,11 @@ These are the LangChain tools the LLM can call. They run in this order for a giv
 | Uploaded Resume | The PDF a Candidate uploaded, its status, and the text extracted from it. The PDF itself is deleted once the text is kept. |
 | Basic Profile | Headline, summary, LinkedIn URL, GitHub URL. Name, e-mail, and phone belong to the Account, never to the Profile. |
 | Experiences | Work history. Input to Profile Curation. |
-| Education | Academic history. |
+| Education | Academic history. Counted into the facts every Curation prompt receives. |
 | Projects | Personal or professional projects. Input to Profile Curation. |
-| Skills | Technologies and competences, grouped by category. |
-| Languages | Spoken languages with a level. |
-| Certifications | Credentials with issuer and year. |
+| Skills | Technologies and competences, grouped by category. Input to Profile Curation. |
+| Languages | Spoken languages with a level. Counted into the facts every Curation prompt receives. |
+| Certifications | Credentials with issuer and year. Counted into the facts every Curation prompt receives. |
 | Statements | Self-contained sentences about the Candidate, each with its Evidence, produced by Profile Curation; embedded for RAG and read by every later AI layer. |
 | Job Descriptions | Stored per user; embedded for RAG. |
 | Learnings | What the user should learn, accumulated across applications. |
@@ -84,7 +84,7 @@ These constraints are product decisions and must be honoured by any implementati
 | TC-06 | All AI analysis layers run **sequentially**. The next one only runs once the previous one has completed. |
 | TC-07 | Before any AI analysis, RAG is used to optimise token consumption. |
 | TC-08 | Every AI analysis after Profile Curation reads curated **Statements**, never the Profile and never the extracted text (ADR-0024). |
-| TC-09 | The Candidate supplies their own **Model Key**; the platform holds no generation key and no balance (ADR-0023). |
+| TC-09 | The Candidate supplies their own **Model Key** for generation; the platform holds no generation key and no balance. Embeddings run on one platform key, the platform's only AI spend (ADR-0023). |
 
 ## Open questions
 
