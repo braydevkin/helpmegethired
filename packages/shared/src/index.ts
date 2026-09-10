@@ -15,6 +15,7 @@ export * from "./ingestion.js";
 export * from "./curation-metrics.js";
 export * from "./curation.js";
 export * from "./statement.js";
+export * from "./curation-output.js";
 export * from "./model-catalogue.js";
 export * from "./model-choice.js";
 export * from "./health.js";

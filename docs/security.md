@@ -83,7 +83,7 @@ Every text a model reads is attacker-controlled: the stored Resume text, the Pro
 
 | Key | Belongs to | Lives in | Never |
 | --- | --- | --- | --- |
-| Platform embedding key | The platform | The API and worker environment, validated at startup; a production configuration without it refuses to start | In the web app, a response, or a log line |
+| Platform embedding key | The platform | `EMBEDDING_API_KEY` in the API and worker environment, validated at startup; a production configuration without it refuses to start | In the web app, a response, or a log line |
 | Model Key | The Candidate | `account_model_choices`, encrypted at rest (#110) | Returned by any endpoint, in a log line, an error message, an exception payload, or the OpenAPI document, or handled by the web app's server side |
 | Model Key encryption key | The platform | `MODEL_KEY_ENCRYPTION_KEY`, 32 random bytes in base64, in the API and worker environment, validated at startup; a production configuration without it, or with the development key the code falls back to elsewhere, refuses to start | In the database, next to what it encrypts |
 

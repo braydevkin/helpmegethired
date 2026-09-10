@@ -26,6 +26,7 @@ x-api-environment: &api-environment
   REDIS_URL: redis://redis:6379
   MODEL_ADAPTER: ${MODEL_ADAPTER:-}
   MODEL_KEY_ENCRYPTION_KEY: ${MODEL_KEY_ENCRYPTION_KEY:-}
+  EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
 
 x-api-dependencies: &api-dependencies
   postgres:

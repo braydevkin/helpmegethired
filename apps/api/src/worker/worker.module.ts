@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 
 import { EnvironmentModule } from "../config/environment.module";
+import { CurationModelsModule } from "../curation/model/curation-models.module";
 import { DatabaseModule } from "../database/database.module";
 import { ExtractionModule } from "../extraction/extraction.module";
 import { IngestionModule } from "../ingestion/ingestion.module";
@@ -13,7 +14,16 @@ import { ResumeExtractionWorker } from "./resume-extraction.worker";
 import { WorkerReadiness } from "./worker-readiness";
 
 @Module({
-  imports: [EnvironmentModule, DatabaseModule, IngestionModule, ResumesModule, ExtractionModule, ProfileIngestionModule, ReconciliationModule],
+  imports: [
+    EnvironmentModule,
+    DatabaseModule,
+    IngestionModule,
+    ResumesModule,
+    ExtractionModule,
+    ProfileIngestionModule,
+    ReconciliationModule,
+    CurationModelsModule,
+  ],
   providers: [IngestionWorker, ResumeExtractionWorker, ReconciliationWorker, WorkerReadiness],
 })
 export class WorkerModule {}
