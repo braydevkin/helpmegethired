@@ -1,10 +1,16 @@
 import type { ColumnType, Generated, Insertable, Selectable } from "kysely";
 import type {
+  CurationFailureReason,
+  CurationStatus,
+  CurationUnitFailureReason,
+  CurationUnitKind,
+  CurationUnitStatus,
   IngestionSource,
   IngestionStatus,
   ResumeUploadErrorCode,
   SegmentStatus,
   SkillCategory,
+  StatementReviewState,
   UploadedResumeStatus,
 } from "@helpmegethired/shared";
 
@@ -59,6 +65,7 @@ export type IngestionRow = Selectable<IngestionsTable>;
 export type NewIngestionRow = Insertable<IngestionsTable>;
 
 type JsonColumn = ColumnType<unknown, string, string>;
+type DefaultedJsonColumn = ColumnType<unknown, string | undefined, string>;
 
 export interface IngestionSegmentsTable {
   id: Generated<string>;
@@ -169,6 +176,66 @@ export type SkillRow = Selectable<SkillsTable>;
 export type LanguageRow = Selectable<LanguagesTable>;
 export type CertificationRow = Selectable<CertificationsTable>;
 
+export interface CurationsTable {
+  id: Generated<string>;
+  account_id: string;
+  source_ingestion_id: string;
+  status: Generated<CurationStatus>;
+  attempts: Generated<number>;
+  max_attempts: number;
+  prompt_version: string;
+  model_id: string;
+  failure_reason: CurationFailureReason | null;
+  resume_after: Date | null;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+  started_at: Date | null;
+  completed_at: Date | null;
+}
+
+export type CurationRow = Selectable<CurationsTable>;
+export type NewCurationRow = Insertable<CurationsTable>;
+
+export interface CurationUnitsTable {
+  id: Generated<string>;
+  curation_id: string;
+  kind: CurationUnitKind;
+  position: number;
+  status: Generated<CurationUnitStatus>;
+  attempts: Generated<number>;
+  failure_reason: CurationUnitFailureReason | null;
+  truncated: Generated<boolean>;
+  subject_id: string | null;
+  title: string;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+}
+
+export type CurationUnitRow = Selectable<CurationUnitsTable>;
+export type NewCurationUnitRow = Insertable<CurationUnitsTable>;
+
+// pgvector reads and writes a vector as its text form, `[0.1,0.2,...]`.
+export interface StatementsTable {
+  id: Generated<string>;
+  curation_id: string;
+  unit_id: string;
+  account_id: string;
+  source_ingestion_id: string;
+  text: string;
+  labels: DefaultedJsonColumn;
+  evidence: JsonColumn;
+  prompt_version: string;
+  model_id: string;
+  review_state: Generated<StatementReviewState>;
+  reviewed_at: Date | null;
+  embedding: string | null;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+}
+
+export type StatementRow = Selectable<StatementsTable>;
+export type NewStatementRow = Insertable<StatementsTable>;
+
 export interface DatabaseSchema {
   accounts: AccountsTable;
   sessions: SessionsTable;
@@ -183,4 +250,7 @@ export interface DatabaseSchema {
   skills: SkillsTable;
   languages: LanguagesTable;
   certifications: CertificationsTable;
+  curations: CurationsTable;
+  curation_units: CurationUnitsTable;
+  statements: StatementsTable;
 }
