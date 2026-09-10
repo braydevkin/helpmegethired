@@ -374,6 +374,7 @@ Preparation summary with success rates
 - Every layer calls RAG first and passes only retrieved context to the LLM, never the full profile.
 - The model is reached behind LangChain and is never referenced directly by services. Generation runs on the Account's Model Choice, `claude-sonnet-5` at Anthropic in phase one, using the Candidate's own Model Key; an Account with no Model Key blocks its analysis with a reason instead of falling back to anything (ADR-0023).
 - The adapter is selected by platform configuration, not by the presence of a Model Key: unset outside production selects a deterministic fake that also stands in for the Provider when a key is validated, so CI and the local stack run the whole pipeline with no provider account; unset in production refuses to start, as the email sender does (ADR-0018, ADR-0023).
+- Every model call is held to the rules in [security.md, "AI pipeline"](security.md#ai-pipeline-tc-06-tc-07): where each key lives, how Candidate content is fenced off from the instructions, Account-scoped retrieval, schema-validated output, the embedding budget, and what a log line may carry.
 
 ## Data (PostgreSQL + pgvector)
 
