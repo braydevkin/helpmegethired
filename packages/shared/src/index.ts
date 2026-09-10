@@ -12,4 +12,8 @@ export * from "./resume.js";
 export * from "./resume-upload.js";
 export * from "./resume-routes.js";
 export * from "./ingestion.js";
+export * from "./curation-metrics.js";
+export * from "./curation.js";
+export * from "./statement.js";
+export * from "./model-catalogue.js";
 export * from "./health.js";
