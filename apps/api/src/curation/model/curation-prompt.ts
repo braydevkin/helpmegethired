@@ -25,7 +25,7 @@ const SOURCE_TAG = "source";
 // The Candidate's text is attacker-controlled (docs/security.md, "AI pipeline"): anything in it
 // that reads as one of these tags loses its angle bracket, so it can neither close its own block
 // and continue as instructions nor open a source that was never given.
-const OWN_TAG = new RegExp(String.raw`<(\s*/?\s*(?:${CONTENT_TAG}|${SOURCE_TAG})\b)`, "gi");
+const OWN_TAG = /<(\s*\/?\s*(?:candidate_content|source)\b)/giu;
 
 export const neutraliseTags = (text: string): string => text.replace(OWN_TAG, "‹$1");
 
