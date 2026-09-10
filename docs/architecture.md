@@ -348,7 +348,7 @@ LangChain orchestrates tool calls. Each tool wraps a NestJS service (the busines
 ```
 Job Description
    │
-   ▼  RAG: retrieve relevant profile chunks + JD chunks from pgvector
+   ▼  RAG: retrieve the Statements closest to the Job Description embedding from pgvector
 Resume ATS Level ──── score 0–10
    │
    ▼  (only if score < 8)
@@ -382,7 +382,7 @@ One database serves both relational data and vector search.
 - Relational tables for Account, Session, One-Time Code, Uploaded Resume, Ingestion, Segment, the seven Profile parts, Job Descriptions, Learnings, and pipeline runs. Tables arrive with the task that needs them, each through a migration; `accounts`, `sessions`, `verification_tokens`, `ingestions`, and `ingestion_segments` are the first, then `uploaded_resumes`, then the Profile tables `basic_profiles`, `experiences`, `education`, `projects`, `skills`, `languages`, and `certifications`. Every Profile row carries `account_id`, `source_ingestion_id`, and `segment_id`, cascading from all three; the ordered parts keep the Segment's position and the row's position inside it; the Confidence of each field stays on the Segment's recognized output, not on the rows; and the Basic Profile row holds the confirmation time. The job queue lives in Redis (ADR-0020), and the PDF bytes in the object store (ADR-0021), never in PostgreSQL.
 - The `vector` extension is enabled by the first migration, so every later migration can declare embedding columns.
 - Embeddings run on one platform key at `text-embedding-3-small` into `vector(1536)`. The embedding model and its dimension are properties of the platform, not of an Account: `vector(n)` is fixed per column, so a second dimension is a new ADR and a re-embedding, never a setting (ADR-0023).
-- Embeddings stored in pgvector columns alongside the rows they describe (profile chunks, job description chunks, learnings).
+- Embeddings stored in pgvector columns alongside the rows they describe (Statements, Job Descriptions, Learnings).
 - RAG queries are scoped by Account id. Retrieval across Accounts is never performed.
 
 ## Testing

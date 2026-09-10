@@ -104,6 +104,28 @@ _Avoid_: Phase, stage
 The share of an Ingestion that is done, as a whole percentage derived from the persisted Steps of its Segments.
 _Avoid_: Status bar, completion
 
+### Profile curation
+
+**Curation**:
+One run of profile curation for a confirmed Profile. At most one active per Account; replaced only when it completes, exactly as an Ingestion replaces a Profile.
+_Avoid_: Analysis, enrichment, chunking
+
+**Curation Unit**:
+The unit of work inside a Curation: one Experience, one Project, the cross-cutting competences unit, or the synthesis unit. Mirrors a Segment inside an Ingestion.
+_Avoid_: Chunk, task, pass (in code)
+
+**Statement**:
+A self-contained sentence about the Candidate produced by a Curation Unit, which reads correctly with nothing around it. What is embedded and retrieved.
+_Avoid_: Chunk, insight, finding, fact
+
+**Evidence**:
+The pointer a Statement carries back to the Experience, Project, or span of extracted text it was drawn from. A Statement whose Evidence does not resolve is never saved.
+_Avoid_: Citation, source, reference
+
+**Statement review**:
+The Candidate's judgement on one Statement: accepted, rejected, or not yet reviewed. A rejected Statement is never retrieved for a Job Description.
+_Avoid_: Feedback, rating, vote
+
 ### Documents
 
 **Resume**:
