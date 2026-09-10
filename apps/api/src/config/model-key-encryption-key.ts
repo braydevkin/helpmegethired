@@ -6,5 +6,5 @@ export const DEVELOPMENT_MODEL_KEY_ENCRYPTION_KEY = Buffer.from("development-onl
 
 export const decodeEncryptionKey = (encoded: string): Buffer => Buffer.from(encoded, "base64");
 
-export const modelKeyEncryptionKeyOf = (configured: string | undefined): Buffer =>
-  configured === undefined ? DEVELOPMENT_MODEL_KEY_ENCRYPTION_KEY : decodeEncryptionKey(configured);
+export const modelKeyEncryptionKeyOf = (configured: string | null): Buffer =>
+  configured === null ? DEVELOPMENT_MODEL_KEY_ENCRYPTION_KEY : decodeEncryptionKey(configured);

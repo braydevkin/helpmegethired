@@ -42,11 +42,11 @@ const required = {
 };
 
 describe("the model settings", () => {
-  it("leave both unset outside production, a blank value counting as unset", () => {
+  it("read a blank value as unset, and answer null so ConfigService never falls back to the blank in process.env", () => {
     const parsed = validateEnvironment({ ...required, NODE_ENV: "development", MODEL_ADAPTER: "", MODEL_KEY_ENCRYPTION_KEY: "" });
 
-    expect(parsed.MODEL_ADAPTER).toBeUndefined();
-    expect(parsed.MODEL_KEY_ENCRYPTION_KEY).toBeUndefined();
+    expect(parsed.MODEL_ADAPTER).toBeNull();
+    expect(parsed.MODEL_KEY_ENCRYPTION_KEY).toBeNull();
   });
 
   it.each([
@@ -102,6 +102,8 @@ describe("validateEnvironment", () => {
       STALE_PROCESSING_MINUTES: 10,
       S3_REGION: "us-east-1",
       PRESIGN_EXPIRES_SECONDS: 300,
+      MODEL_ADAPTER: null,
+      MODEL_KEY_ENCRYPTION_KEY: null,
       ...required,
     });
   });

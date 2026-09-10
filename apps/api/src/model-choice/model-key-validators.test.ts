@@ -19,7 +19,7 @@ describe("AnthropicModelKeyValidator", () => {
     const [url, init] = fetchModel.mock.calls[0] ?? [];
 
     expect(url).toBe("https://api.anthropic.com/v1/models/claude-sonnet-5");
-    expect(init?.method ?? "GET").toBe("GET");
+    expect(init?.method).toBe("GET");
     expect(init?.headers).toEqual({ "x-api-key": modelKey, "anthropic-version": "2023-06-01" });
     expect(init?.signal).toBeInstanceOf(AbortSignal);
   });
@@ -60,10 +60,10 @@ describe("selectModelKeyValidator", () => {
   });
 
   it("selects the development validator outside production when none is named", () => {
-    expect(selectModelKeyValidator({ NODE_ENV: "test", MODEL_ADAPTER: undefined })).toBeInstanceOf(DevelopmentModelKeyValidator);
+    expect(selectModelKeyValidator({ NODE_ENV: "test", MODEL_ADAPTER: null })).toBeInstanceOf(DevelopmentModelKeyValidator);
   });
 
   it("refuses to start in production with no adapter named", () => {
-    expect(() => selectModelKeyValidator({ NODE_ENV: "production", MODEL_ADAPTER: undefined })).toThrow(MissingModelAdapterError);
+    expect(() => selectModelKeyValidator({ NODE_ENV: "production", MODEL_ADAPTER: null })).toThrow(MissingModelAdapterError);
   });
 });

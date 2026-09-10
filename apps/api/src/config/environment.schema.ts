@@ -60,24 +60,23 @@ export type StorageEnvironment = z.infer<typeof StorageEnvironmentSchema>;
 
 const blankAsUnset = (value: unknown): unknown => (value === "" ? undefined : value);
 
+// Unset and blank both become null, never undefined: ConfigService answers an undefined
+// validated value from process.env, where compose's blank would come back as "".
+const settingOf = <Schema extends z.ZodType<string>>(schema: Schema) =>
+  z.preprocess(blankAsUnset, schema.optional()).transform((value) => value ?? null);
+
 const isEncryptionKey = (value: string): boolean =>
   /^[A-Za-z0-9+/]+={0,2}$/.test(value) && decodeEncryptionKey(value).length === MODEL_KEY_ENCRYPTION_KEY_BYTES;
 
 export const ModelEnvironmentSchema = z.object({
-  MODEL_ADAPTER: z.preprocess(blankAsUnset, z.enum(["anthropic"], { error: "must be anthropic, or blank for the development stand-in" }).optional()),
-  MODEL_KEY_ENCRYPTION_KEY: z.preprocess(
-    blankAsUnset,
-    z
-      .string()
-      .refine(isEncryptionKey, { error: `must be ${MODEL_KEY_ENCRYPTION_KEY_BYTES} bytes encoded in base64` })
-      .optional(),
-  ),
+  MODEL_ADAPTER: settingOf(z.enum(["anthropic"], { error: "must be anthropic, or blank for the development stand-in" })),
+  MODEL_KEY_ENCRYPTION_KEY: settingOf(z.string().refine(isEncryptionKey, { error: `must be ${MODEL_KEY_ENCRYPTION_KEY_BYTES} bytes encoded in base64` })),
 });
 
 interface ModelSettings {
   NODE_ENV: string;
-  MODEL_ADAPTER?: string;
-  MODEL_KEY_ENCRYPTION_KEY?: string;
+  MODEL_ADAPTER: string | null;
+  MODEL_KEY_ENCRYPTION_KEY: string | null;
 }
 
 // The development stand-ins accept every key and encrypt with a key published in this repository:
@@ -87,11 +86,11 @@ function requireProductionModelSettings(environment: ModelSettings, context: z.R
     return;
   }
 
-  if (environment.MODEL_ADAPTER === undefined) {
+  if (environment.MODEL_ADAPTER === null) {
     context.addIssue({ code: "custom", path: ["MODEL_ADAPTER"], message: "is required in production" });
   }
 
-  if (environment.MODEL_KEY_ENCRYPTION_KEY === undefined) {
+  if (environment.MODEL_KEY_ENCRYPTION_KEY === null) {
     context.addIssue({ code: "custom", path: ["MODEL_KEY_ENCRYPTION_KEY"], message: "is required in production" });
   } else if (decodeEncryptionKey(environment.MODEL_KEY_ENCRYPTION_KEY).equals(DEVELOPMENT_MODEL_KEY_ENCRYPTION_KEY)) {
     context.addIssue({ code: "custom", path: ["MODEL_KEY_ENCRYPTION_KEY"], message: "must not be the development key in production" });

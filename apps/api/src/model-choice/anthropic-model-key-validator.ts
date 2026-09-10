@@ -27,6 +27,7 @@ export class AnthropicModelKeyValidator extends ModelKeyValidator {
   async validate({ modelId }: ModelKeyTarget, modelKey: string): Promise<ModelKeyVerdict> {
     try {
       const response = await this.fetchModel(`${MODELS_URL}/${encodeURIComponent(modelId)}`, {
+        method: "GET",
         headers: { "x-api-key": modelKey, "anthropic-version": ANTHROPIC_VERSION },
         signal: AbortSignal.timeout(VALIDATION_TIMEOUT_MS),
       });
