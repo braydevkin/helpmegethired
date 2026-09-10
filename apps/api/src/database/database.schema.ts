@@ -7,6 +7,8 @@ import type {
   CurationUnitStatus,
   IngestionSource,
   IngestionStatus,
+  ModelId,
+  Provider,
   ResumeUploadErrorCode,
   SegmentStatus,
   SkillCategory,
@@ -236,6 +238,15 @@ export interface StatementsTable {
 export type StatementRow = Selectable<StatementsTable>;
 export type NewStatementRow = Insertable<StatementsTable>;
 
+export interface AccountModelChoicesTable {
+  account_id: string;
+  provider: Provider;
+  model_id: ModelId;
+  sealed_key: Buffer | null;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+}
+
 export interface DatabaseSchema {
   accounts: AccountsTable;
   sessions: SessionsTable;
@@ -253,4 +264,5 @@ export interface DatabaseSchema {
   curations: CurationsTable;
   curation_units: CurationUnitsTable;
   statements: StatementsTable;
+  account_model_choices: AccountModelChoicesTable;
 }

@@ -85,8 +85,10 @@ Every text a model reads is attacker-controlled: the stored Resume text, the Pro
 | --- | --- | --- | --- |
 | Platform embedding key | The platform | The API and worker environment, validated at startup; a production configuration without it refuses to start | In the web app, a response, or a log line |
 | Model Key | The Candidate | `account_model_choices`, encrypted at rest (#110) | Returned by any endpoint, in a log line, an error message, an exception payload, or the OpenAPI document, or handled by the web app's server side |
-| Model Key encryption key | The platform | The API and worker environment, validated at startup; a production configuration without it refuses to start | In the database, next to what it encrypts |
+| Model Key encryption key | The platform | `MODEL_KEY_ENCRYPTION_KEY`, 32 random bytes in base64, in the API and worker environment, validated at startup; a production configuration without it, or with the development key the code falls back to elsewhere, refuses to start | In the database, next to what it encrypts |
 
+- The Model Key is sealed with AES-256-GCM under a fresh IV per write, with the Account id as additional authenticated data, so a tampered ciphertext or one copied onto another Account's row never opens.
+- The Provider check is selected by `MODEL_ADAPTER`, never by the presence of a key: `anthropic` retrieves the pinned model with the key, spending no tokens; blank selects the development stand-in, and only outside production. The Provider's answer is read as a status only, so its body never reaches a log line or a response.
 - The Model Key travels from the browser to the API and never enters the web app process: it is not submitted through a Next.js server action or route handler, and `apps/web/src/proxy.ts` forwards no bodies (ADR-0023).
 - A key is checked against the Provider when it is saved, so an invalid one is refused where the Candidate can fix it. Reading the Model Choice answers whether a key is stored, never the key or a fragment that could be decrypted.
 - Revoking a key deletes its ciphertext. The Model Choice stays, and new analyses are blocked with a reason.

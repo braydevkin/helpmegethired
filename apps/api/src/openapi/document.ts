@@ -1,14 +1,18 @@
 import {
   AccountInformationSchema,
+  AccountModelChoiceSchema,
   AccountSchema,
   ApiErrorSchema,
   HealthStatusSchema,
+  ModelChoiceRequestSchema,
+  ModelChoiceStateSchema,
   ProfileSchema,
   ResumeUploadReceiptSchema,
   ResumeUploadSchema,
   UploadedResumeListSchema,
   UploadedResumeSchema,
   UploadedResumeStatusSchema,
+  type ModelChoiceErrorCode,
   type ResumeUploadErrorCode,
 } from "@helpmegethired/shared";
 import { z, type ZodType } from "zod";
@@ -56,6 +60,9 @@ const COMPONENTS: Record<string, { schema: ZodType; io: "input" | "output" }> = 
   UploadedResume: { schema: UploadedResumeSchema, io: "output" },
   UploadedResumeList: { schema: UploadedResumeListSchema, io: "output" },
   Profile: { schema: ProfileSchema, io: "output" },
+  ModelChoiceState: { schema: ModelChoiceStateSchema, io: "output" },
+  ModelChoiceRequest: { schema: ModelChoiceRequestSchema, io: "input" },
+  AccountModelChoice: { schema: AccountModelChoiceSchema, io: "output" },
 };
 
 const ref = (name: string): JsonSchema => ({ $ref: `#/components/schemas/${name}` });
@@ -67,7 +74,7 @@ const json = (description: string, schema: JsonSchema, headers?: Record<string, 
 });
 
 // An error answer is the shared ApiError, narrowed to the codes that route can carry.
-const error = (description: string, codes: readonly ResumeUploadErrorCode[] = []): JsonSchema =>
+const error = (description: string, codes: readonly (ResumeUploadErrorCode | ModelChoiceErrorCode)[] = []): JsonSchema =>
   json(
     description,
     codes.length === 0 ? ref("ApiError") : { allOf: [ref("ApiError"), { type: "object", properties: { code: { type: "string", enum: codes } }, required: ["code"] }] },
@@ -122,6 +129,47 @@ const paths: OpenApiDocument["paths"] = {
       description: "Deletes the Session the bearer token names. The web app clears its cookie afterwards.",
       operationId: "signOut",
       responses: { "204": { description: "The Session is gone" }, "401": unauthorized },
+    },
+  },
+  "/account/model": {
+    get: {
+      tags: ["Model Choice"],
+      summary: "The Account's Model Choice",
+      description:
+        "The Provider, the Model, and whether a Model Key is stored; never the key or any part of it. An Account that has not chosen yet answers `choice: null`.",
+      operationId: "getModelChoice",
+      responses: { "200": json("The Model Choice, or none yet", ref("ModelChoiceState")), "401": unauthorized },
+    },
+    put: {
+      tags: ["Model Choice"],
+      summary: "Choose the Model and store the Model Key",
+      description:
+        "Checks the key with the Provider without spending tokens, then stores it encrypted, replacing any earlier choice and key. Only the catalogue pairing is accepted. A refused key replaces nothing, and the key is never answered back.",
+      operationId: "saveModelChoice",
+      requestBody: body("ModelChoiceRequest"),
+      responses: {
+        "200": json("The stored choice", ref("AccountModelChoice")),
+        "400": error("The body did not pass the shared schema; `unsupported_model_choice` when the Provider or the Model is not in the catalogue"),
+        "401": unauthorized,
+        "422": error("`model_key_invalid` when the Provider does not accept the key; `model_key_not_permitted` when it does but not for the chosen Model", [
+          "model_key_invalid",
+          "model_key_not_permitted",
+        ]),
+        "503": error("`provider_unavailable` when the Provider could not be reached to check the key", ["provider_unavailable"]),
+      },
+    },
+  },
+  "/account/model/key": {
+    delete: {
+      tags: ["Model Choice"],
+      summary: "Revoke the Model Key",
+      description: "Deletes the stored key. The Model Choice stays, and no new analysis starts until another key is stored.",
+      operationId: "revokeModelKey",
+      responses: {
+        "200": json("The choice, with no key stored", ref("AccountModelChoice")),
+        "401": unauthorized,
+        "404": error("The Account has not chosen a Model yet"),
+      },
     },
   },
   "/resumes": {
@@ -243,6 +291,7 @@ export const openApiDocument = (): OpenApiDocument => ({
   tags: [
     { name: "Health", description: "Liveness" },
     { name: "Account", description: "The signed-in Candidate's Account Information and Session" },
+    { name: "Model Choice", description: "The Provider and Model an Account analyses with, and its Model Key" },
     { name: "Resumes", description: "Uploaded Resumes: the presigned upload, its completion, and the record's status" },
     { name: "Profile", description: "The Profile the Ingestion built and its confirmation" },
   ],

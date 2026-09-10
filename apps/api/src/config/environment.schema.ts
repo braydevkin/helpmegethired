@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { DEVELOPMENT_MODEL_KEY_ENCRYPTION_KEY, MODEL_KEY_ENCRYPTION_KEY_BYTES, decodeEncryptionKey } from "./model-key-encryption-key";
+
 const portRange = { error: "must be between 1 and 65535" };
 
 const requiredOr = (invalid: string) => (issue: { input: unknown }) =>
@@ -56,8 +58,49 @@ export const StorageEnvironmentSchema = z.object({
 
 export type StorageEnvironment = z.infer<typeof StorageEnvironmentSchema>;
 
+const blankAsUnset = (value: unknown): unknown => (value === "" ? undefined : value);
+
+const isEncryptionKey = (value: string): boolean =>
+  /^[A-Za-z0-9+/]+={0,2}$/.test(value) && decodeEncryptionKey(value).length === MODEL_KEY_ENCRYPTION_KEY_BYTES;
+
+export const ModelEnvironmentSchema = z.object({
+  MODEL_ADAPTER: z.preprocess(blankAsUnset, z.enum(["anthropic"], { error: "must be anthropic, or blank for the development stand-in" }).optional()),
+  MODEL_KEY_ENCRYPTION_KEY: z.preprocess(
+    blankAsUnset,
+    z
+      .string()
+      .refine(isEncryptionKey, { error: `must be ${MODEL_KEY_ENCRYPTION_KEY_BYTES} bytes encoded in base64` })
+      .optional(),
+  ),
+});
+
+interface ModelSettings {
+  NODE_ENV: string;
+  MODEL_ADAPTER?: string;
+  MODEL_KEY_ENCRYPTION_KEY?: string;
+}
+
+// The development stand-ins accept every key and encrypt with a key published in this repository:
+// that is what lets CI and the local stack run with no secret, and why production refuses them.
+function requireProductionModelSettings(environment: ModelSettings, context: z.RefinementCtx): void {
+  if (environment.NODE_ENV !== "production") {
+    return;
+  }
+
+  if (environment.MODEL_ADAPTER === undefined) {
+    context.addIssue({ code: "custom", path: ["MODEL_ADAPTER"], message: "is required in production" });
+  }
+
+  if (environment.MODEL_KEY_ENCRYPTION_KEY === undefined) {
+    context.addIssue({ code: "custom", path: ["MODEL_KEY_ENCRYPTION_KEY"], message: "is required in production" });
+  } else if (decodeEncryptionKey(environment.MODEL_KEY_ENCRYPTION_KEY).equals(DEVELOPMENT_MODEL_KEY_ENCRYPTION_KEY)) {
+    context.addIssue({ code: "custom", path: ["MODEL_KEY_ENCRYPTION_KEY"], message: "must not be the development key in production" });
+  }
+}
+
 export const EnvironmentSchema = DatabaseEnvironmentSchema.extend(QueueEnvironmentSchema.shape)
   .extend(StorageEnvironmentSchema.shape)
+  .extend(ModelEnvironmentSchema.shape)
   .extend({
     NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
     PORT: z.coerce
@@ -67,6 +110,7 @@ export const EnvironmentSchema = DatabaseEnvironmentSchema.extend(QueueEnvironme
       .max(65535, portRange)
       .default(3001),
     WEB_ORIGIN: z.url({ error: requiredOr("must be an absolute URL") }),
-  });
+  })
+  .superRefine(requireProductionModelSettings);
 
 export type Environment = z.infer<typeof EnvironmentSchema>;

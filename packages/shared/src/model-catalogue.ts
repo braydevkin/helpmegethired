@@ -31,7 +31,7 @@ export const MODEL_CATALOGUE: ModelCatalogue = ModelCatalogueSchema.parse([
   },
 ]);
 
-const isInCatalogue = ({ provider, modelId }: { provider: Provider; modelId: ModelId }): boolean =>
+export const isCataloguePairing = ({ provider, modelId }: { provider: Provider; modelId: ModelId }): boolean =>
   MODEL_CATALOGUE.some((entry) => entry.provider === provider && entry.modelId === modelId);
 
 // Strict, so an object that still carries the Model Key is refused instead of being passed on
@@ -42,6 +42,6 @@ export const AccountModelChoiceSchema = z
     modelId: ModelIdSchema,
     keyStored: z.boolean(),
   })
-  .refine(isInCatalogue, { message: "Only a pairing in the catalogue can be chosen", path: ["modelId"] });
+  .refine(isCataloguePairing, { message: "Only a pairing in the catalogue can be chosen", path: ["modelId"] });
 
 export type AccountModelChoice = z.infer<typeof AccountModelChoiceSchema>;
