@@ -16,9 +16,9 @@ AI is a tool here, not a replacement for thinking. Every AI-assisted step in the
 
 A candidate walks through a single, sequential journey:
 
-1. **Sign up** and build a profile from an uploaded resume PDF and a LinkedIn profile URL.
-2. **AI profile analysis** produces a profile page with strengths and weaknesses.
-3. **Paste a job description**, which is analysed against the profile.
+1. **Sign up**, build a profile from an uploaded resume PDF, and confirm it.
+2. **Profile curation** reads the confirmed profile once, on the candidate's own model key, into statements that each show the evidence behind them.
+3. **Paste a job description**, which is analysed against those statements, including the strengths and weaknesses for that role.
 4. **ATS scoring** rates the resume from 0 to 10 for that specific job description.
 5. **Resume recommendations** rebuild the resume when the ATS score is below 8, based on the candidate's experiences, projects, and profile.
 6. **Study recommendations** derive what to learn from previous applications and turn it into a structured study plan.

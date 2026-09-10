@@ -47,7 +47,7 @@ _Avoid_: API key, token, credentials, secret
 ### Profile
 
 **Profile**:
-The structured picture of a Candidate built from their Resume and LinkedIn data. Composed of seven parts: one Basic Profile and the lists of Experiences, Education, Projects, Skills, Languages, and Certifications. Belongs to exactly one Account. Reviewed by the Candidate, who confirms it once every field that needs review has been checked.
+The structured picture of a Candidate built from their Uploaded Resume. Composed of seven parts: one Basic Profile and the lists of Experiences, Education, Projects, Skills, Languages, and Certifications. Belongs to exactly one Account. Reviewed by the Candidate, who confirms it once every field that needs review has been checked.
 _Avoid_: CV, resume data
 
 **Basic Profile**:
@@ -89,7 +89,7 @@ _Avoid_: Score, accuracy, certainty, probability
 ### Profile building
 
 **Ingestion**:
-One run of profile building for an Account from one source (an Uploaded Resume or a LinkedIn profile). Made of ordered Segments, processed through a queue, resumable after a failure, and at most one active per Account. When it completes, it replaces what the previous Ingestion from the same source wrote and never touches what another source wrote; until then the previous Profile stays as it was.
+One run of profile building for an Account from one source, which is always an Uploaded Resume. Made of ordered Segments, processed through a queue, resumable after a failure, and at most one active per Account. When it completes, it replaces what the previous Ingestion from the same source wrote and never touches what another source wrote; until then the previous Profile stays as it was.
 _Avoid_: Import, upload job, parsing
 
 **Segment**:
