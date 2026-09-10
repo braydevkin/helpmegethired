@@ -7,6 +7,7 @@ import { replacePasswordsWithOneTimeCodes } from "./0004-replace-passwords-with-
 import { createUploadedResumes } from "./0005-create-uploaded-resumes";
 import { createProfileTables } from "./0006-create-profile-tables";
 import { createCurationTables } from "./0007-create-curation-tables";
+import { createAccountModelChoices } from "./0008-create-account-model-choices";
 
 export const migrations: Record<string, Migration> = {
   "0001-enable-vector-and-create-accounts": enableVectorAndCreateAccounts,
@@ -16,4 +17,5 @@ export const migrations: Record<string, Migration> = {
   "0005-create-uploaded-resumes": createUploadedResumes,
   "0006-create-profile-tables": createProfileTables,
   "0007-create-curation-tables": createCurationTables,
+  "0008-create-account-model-choices": createAccountModelChoices,
 };

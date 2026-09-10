@@ -16,6 +16,8 @@ const storage = {
   S3_SECRET_KEY: "storage-secret-key",
 };
 
+const encryptionKey = Buffer.alloc(32, 7).toString("base64");
+
 const complete = {
   NODE_ENV: "production",
   PORT: "8080",
@@ -28,6 +30,8 @@ const complete = {
   ...storage,
   S3_REGION: "eu-west-1",
   PRESIGN_EXPIRES_SECONDS: "120",
+  MODEL_ADAPTER: "anthropic",
+  MODEL_KEY_ENCRYPTION_KEY: encryptionKey,
 };
 
 const required = {
@@ -36,6 +40,39 @@ const required = {
   REDIS_URL: complete.REDIS_URL,
   ...storage,
 };
+
+describe("the model settings", () => {
+  it("read a blank value as unset, and answer null so ConfigService never falls back to the blank in process.env", () => {
+    const parsed = validateEnvironment({ ...required, NODE_ENV: "development", MODEL_ADAPTER: "", MODEL_KEY_ENCRYPTION_KEY: "" });
+
+    expect(parsed.MODEL_ADAPTER).toBeNull();
+    expect(parsed.MODEL_KEY_ENCRYPTION_KEY).toBeNull();
+  });
+
+  it.each([
+    ["no model adapter", { ...complete, MODEL_ADAPTER: undefined }, "MODEL_ADAPTER is required in production"],
+    ["a blank model adapter", { ...complete, MODEL_ADAPTER: "" }, "MODEL_ADAPTER is required in production"],
+    ["no encryption key", { ...complete, MODEL_KEY_ENCRYPTION_KEY: undefined }, "MODEL_KEY_ENCRYPTION_KEY is required in production"],
+    [
+      "the development encryption key",
+      { ...complete, MODEL_KEY_ENCRYPTION_KEY: Buffer.from("development-only-model-key-00000").toString("base64") },
+      "MODEL_KEY_ENCRYPTION_KEY must not be the development key in production",
+    ],
+  ])("refuse to start production with %s", (_label, input, expectedProblem) => {
+    expect(() => validateEnvironment(input)).toThrow(expectedProblem);
+  });
+
+  it.each([
+    ["an encryption key of the wrong size", { ...complete, MODEL_KEY_ENCRYPTION_KEY: Buffer.alloc(16, 7).toString("base64") }],
+    ["an encryption key that is not base64", { ...complete, MODEL_KEY_ENCRYPTION_KEY: "not base64 at all, but long enough to pass" }],
+  ])("refuse %s in any environment", (_label, input) => {
+    expect(() => validateEnvironment({ ...input, NODE_ENV: "development" })).toThrow("MODEL_KEY_ENCRYPTION_KEY must be 32 bytes encoded in base64");
+  });
+
+  it("refuses an adapter it does not know", () => {
+    expect(() => validateEnvironment({ ...complete, MODEL_ADAPTER: "openai" })).toThrow("MODEL_ADAPTER must be anthropic, or blank for the development stand-in");
+  });
+});
 
 describe("validateEnvironment", () => {
   it("parses every variable into its typed value", () => {
@@ -51,6 +88,8 @@ describe("validateEnvironment", () => {
       ...storage,
       S3_REGION: "eu-west-1",
       PRESIGN_EXPIRES_SECONDS: 120,
+      MODEL_ADAPTER: "anthropic",
+      MODEL_KEY_ENCRYPTION_KEY: encryptionKey,
     });
   });
 
@@ -63,6 +102,8 @@ describe("validateEnvironment", () => {
       STALE_PROCESSING_MINUTES: 10,
       S3_REGION: "us-east-1",
       PRESIGN_EXPIRES_SECONDS: 300,
+      MODEL_ADAPTER: null,
+      MODEL_KEY_ENCRYPTION_KEY: null,
       ...required,
     });
   });

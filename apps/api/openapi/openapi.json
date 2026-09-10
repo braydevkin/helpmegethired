@@ -21,6 +21,10 @@
       "description": "The signed-in Candidate's Account Information and Session"
     },
     {
+      "name": "Model Choice",
+      "description": "The Provider and Model an Account analyses with, and its Model Key"
+    },
+    {
       "name": "Resumes",
       "description": "Uploaded Resumes: the presigned upload, its completion, and the record's status"
     },
@@ -156,6 +160,187 @@
           },
           "401": {
             "description": "No valid Session bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/model": {
+      "get": {
+        "tags": [
+          "Model Choice"
+        ],
+        "summary": "The Account's Model Choice",
+        "description": "The Provider, the Model, and whether a Model Key is stored; never the key or any part of it. An Account that has not chosen yet answers `choice: null`.",
+        "operationId": "getModelChoice",
+        "responses": {
+          "200": {
+            "description": "The Model Choice, or none yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelChoiceState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid Session bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Model Choice"
+        ],
+        "summary": "Choose the Model and store the Model Key",
+        "description": "Checks the key with the Provider without spending tokens, then stores it encrypted, replacing any earlier choice and key. Only the catalogue pairing is accepted. A refused key replaces nothing, and the key is never answered back.",
+        "operationId": "saveModelChoice",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ModelChoiceRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The stored choice",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountModelChoice"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The body did not pass the shared schema; `unsupported_model_choice` when the Provider or the Model is not in the catalogue",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid Session bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`model_key_invalid` when the Provider does not accept the key; `model_key_not_permitted` when it does but not for the chosen Model",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "model_key_invalid",
+                            "model_key_not_permitted"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "`provider_unavailable` when the Provider could not be reached to check the key",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "provider_unavailable"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/model/key": {
+      "delete": {
+        "tags": [
+          "Model Choice"
+        ],
+        "summary": "Revoke the Model Key",
+        "description": "Deletes the stored key. The Model Choice stays, and no new analysis starts until another key is stored.",
+        "operationId": "revokeModelKey",
+        "responses": {
+          "200": {
+            "description": "The choice, with no key stored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountModelChoice"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid Session bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The Account has not chosen a Model yet",
             "content": {
               "application/json": {
                 "schema": {
@@ -1863,6 +2048,102 @@
           "reviewFlags",
           "source",
           "confirmedAt"
+        ],
+        "additionalProperties": false
+      },
+      "ModelChoiceState": {
+        "type": "object",
+        "properties": {
+          "choice": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "provider": {
+                    "type": "string",
+                    "enum": [
+                      "anthropic"
+                    ]
+                  },
+                  "modelId": {
+                    "type": "string",
+                    "enum": [
+                      "claude-sonnet-5"
+                    ]
+                  },
+                  "keyStored": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "provider",
+                  "modelId",
+                  "keyStored"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "choice"
+        ],
+        "additionalProperties": false
+      },
+      "ModelChoiceRequest": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "anthropic"
+            ]
+          },
+          "modelId": {
+            "type": "string",
+            "enum": [
+              "claude-sonnet-5"
+            ]
+          },
+          "key": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 512
+          }
+        },
+        "required": [
+          "provider",
+          "modelId",
+          "key"
+        ],
+        "additionalProperties": false
+      },
+      "AccountModelChoice": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "enum": [
+              "anthropic"
+            ]
+          },
+          "modelId": {
+            "type": "string",
+            "enum": [
+              "claude-sonnet-5"
+            ]
+          },
+          "keyStored": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "provider",
+          "modelId",
+          "keyStored"
         ],
         "additionalProperties": false
       }

@@ -24,6 +24,8 @@ x-api-environment: &api-environment
   WEB_ORIGIN: http://localhost:${WEB_PORT:?}
   DATABASE_URL: *database-url
   REDIS_URL: redis://redis:6379
+  MODEL_ADAPTER: ${MODEL_ADAPTER:-}
+  MODEL_KEY_ENCRYPTION_KEY: ${MODEL_KEY_ENCRYPTION_KEY:-}
 
 x-api-dependencies: &api-dependencies
   postgres:

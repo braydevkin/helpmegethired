@@ -23,13 +23,16 @@ const refsIn = (value: unknown): string[] => {
 const responseSchemaOf = (response: JsonSchema): unknown => (response.content as Record<string, { schema: unknown }> | undefined)?.["application/json"]?.schema;
 
 describe("the OpenAPI document", () => {
-  it("describes every resume, Profile, Account, and health route", () => {
+  it("describes every resume, Profile, Account, Model Choice, and health route", () => {
     expect(operations.map(({ method, path }) => `${method.toUpperCase()} ${path}`).sort()).toEqual(
       [
         "GET /health",
         "GET /auth/account",
         "PATCH /auth/account",
         "POST /auth/sign-out",
+        "GET /account/model",
+        "PUT /account/model",
+        "DELETE /account/model/key",
         "POST /resumes",
         "GET /resumes",
         "POST /resumes/{id}/complete",
