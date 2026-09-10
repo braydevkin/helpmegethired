@@ -54,8 +54,8 @@ const CurationUnitFieldsSchema = z.object({
 
 const unitHasSubject = (kind: CurationUnitKind): boolean => kind === "experience" || kind === "project";
 
-// The subject is the Experience or Project the unit reads; the cross-cutting and synthesis units
-// read the whole Profile and have none.
+// The subject is the Experience or Project the unit reads. The cross-cutting unit reads across
+// them and the synthesis unit reads what the others produced, so neither has one.
 export const CurationUnitSchema = CurationUnitFieldsSchema.refine((unit) => unitHasSubject(unit.kind) === (unit.subjectId !== null), {
   message: "Only an Experience or Project unit names a subject, and it always does",
   path: ["subjectId"],

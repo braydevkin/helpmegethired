@@ -79,7 +79,7 @@ Workspace conventions:
 - Unit and component tests run on Vitest with a jsdom environment and Testing Library, next to the code as `*.test.tsx`. CSS Modules keep their authored class names under Vitest (`classNameStrategy: "non-scoped"`), so a test can assert on them.
 - Linting combines the shared configuration with the Next.js plugin (`core-web-vitals`), the React Hooks plugin, and the app's own `atomic-design/no-upward-stage-imports` rule under `apps/web/eslint/`.
 - Manrope is loaded once with `next/font/google` (weights 400 to 800) in the root layout and exposed as `--font-manrope`; the design tokens from the Account design (palette, type scale, spacing, radii, focus ring, transitions, layout widths) are CSS custom properties in `globals.css`, declared once and read by every component.
-- Pages follow the application flow: sign up and sign in, then the journey (upload resume, LinkedIn URL, profile page, job description, analysis, resume recommendations, study recommendations, mock interview, summary).
+- Pages follow the application flow: sign up and sign in, then the journey (upload resume, profile page, choose the Model and supply the Model Key, Profile Curation and its analysis page, job description, analysis, resume recommendations, study recommendations, mock interview, summary).
 - Because steps are sequential (TC-06), the UI exposes a step as available only when the backend reports the previous step complete. The UI never decides step order on its own.
 - Profile-building progress (TC-04) is shown as a percentage, driven by backend state.
 
@@ -140,7 +140,8 @@ The résumé step of the journey follows [Design: Resume Upload](https://github.
   - `storage` (the `ObjectStorage` abstraction over the S3 clients)
   - `parser` (rule-based extraction of Profile parts from text; pure functions)
   - `ingestion` (Ingestion, Segments, Steps, the Segment processors)
-  - `queue` (the BullMQ connection and the two queues)
+  - `curation` (Curations, Curation Units, Statements, their review, the runner, and model access)
+  - `queue` (the BullMQ connection and the queues)
   - `job-descriptions` (store, embed)
   - `analysis` (the sequential AI pipeline)
   - `learnings` (store, study plans)
@@ -182,7 +183,7 @@ The `storage` module is the only code that talks to the object store, following 
 
 ### Profile ingestion (TC-03, TC-04, TC-05)
 
-Profile building is an **Ingestion**: one run for one Account from one source, split into ordered **Segments**, each of which goes through three **Steps**. The vocabulary is in [CONTEXT.md](../CONTEXT.md); the queue decision is ADR-0020. The `ingestion` module holds the state machine and its persistence; the resume Segment processors are described under [Resume upload and extraction](#resume-upload-and-extraction-fr-02-tc-01), the LinkedIn ones arrive with their own milestone.
+Profile building is an **Ingestion**: one run for one Account from one source, split into ordered **Segments**, each of which goes through three **Steps**. The vocabulary is in [CONTEXT.md](../CONTEXT.md); the queue decision is ADR-0020. The `ingestion` module holds the state machine and its persistence; the resume Segment processors are described under [Resume upload and extraction](#resume-upload-and-extraction-fr-02-tc-01).
 
 ```
 start ──▶ ingestions (queued) + ingestion_segments (pending), one transaction
@@ -211,7 +212,7 @@ start ──▶ ingestions (queued) + ingestion_segments (pending), one transact
 
 **Processors.** A `SegmentProcessor` implements `read`, `recognize`, and `save` for one Segment `kind`; the `SegmentProcessorRegistry` resolves the processor by kind. The module that owns a source registers its processors when it starts, so the `ingestion` module knows no kind: the worker loads `ProfileIngestionModule`, which registers the resume kinds listed under [Segments from sections](#segments-from-sections), and the API process registers none. The tests keep a scripted processor for the state machine.
 
-**Observers.** An Ingestion carries its `source` (`upload`, later `linkedin`) and its `completed_at`. What follows its end is not the runner's business either: an `IngestionObserver` registered the same way is called with the completed Ingestion inside the transaction that marks it completed, and with the failed one once every attempt is used. The resume observer replaces the previous Profile and settles the Uploaded Resume, as described under [Replace by source Ingestion](#replace-by-source-ingestion).
+**Observers.** An Ingestion carries its `source` (`upload`, the only source since LinkedIn reading was removed) and its `completed_at`. What follows its end is not the runner's business either: an `IngestionObserver` registered the same way is called with the completed Ingestion inside the transaction that marks it completed, and with the failed one once every attempt is used. The resume observer replaces the previous Profile and settles the Uploaded Resume, as described under [Replace by source Ingestion](#replace-by-source-ingestion).
 
 **Queue.** `IngestionQueue` is the abstraction (`enqueue`, `work`); `BullMqIngestionQueue` implements it on the `profile-ingestion` queue with exponential backoff between retries, completed jobs expired after a day, and failed jobs kept for inspection. The `QueueModule` builds two connection configurations from `REDIS_URL`: the producer one keeps the driver's finite retries and `enqueue` gives up after five seconds, so a request never hangs on a Redis outage and the Ingestion is logged for the reconciliation job; the consumer one retries for ever, which BullMQ requires for its blocking reads. Only the [worker](#the-worker) registers processors, and its consumer takes `WORKER_CONCURRENCY` jobs at a time under a 30-second lock renewed while the run is alive. A job whose lock expires is stalled: the queue re-delivers it up to `max_attempts - 1` times, one fewer than the row allows attempts because every re-delivery increments `attempts`, and a job stalled beyond that is failed in the queue and left to the reconciliation job. The tests run the state machine through a recording queue and two scenarios through the real one: a retry after a failed Step, and a re-delivery after a worker that holds the lock is closed without finishing.
 
@@ -250,19 +251,20 @@ browser                 api                    object store          redis      
 
 `done` means the Profile is saved, not only the text extracted: the record stays `processing` while the Ingestion runs, and the upload page derives its "Building your profile" stage from the Ingestion's Progress. A `failed` record carries one error code, which the page turns into a message: `not_pdf`, `too_large`, `too_many_pages`, `encrypted_pdf`, `corrupt_pdf`, `scanned_pdf`, `upload_incomplete`, `extraction_failed` (retries exhausted on a transient error), and `profile_build_failed` (the Ingestion exhausted its attempts). `POST /resumes` never refuses a new upload; `complete` answers `409 ingestion_active` while the Account has another record `uploaded` or `processing` or an active Ingestion (TC-05). Uploading the same bytes twice (same Account, same SHA-256) answers the existing record and creates no second job. Both rules are indexes, not only checks: `uploaded_resumes_one_live_per_file_idx` is unique on `(account_id, sha256)` while the record is not `failed` or `expired`, so a rejected file can be uploaded again, and `uploaded_resumes_one_in_flight_per_account_idx` is unique on `account_id` while the record is `uploaded` or `processing`, so two concurrent `complete` calls cannot both pass. The `resumes` module maps its errors to HTTP in one exception filter: not found is `404`, and the two conflicts carry their code in the `ApiError` body.
 
-#### The three queues
+#### The four queues
 
 | Queue | One job per | Job id | Producer | Consumer |
 | --- | --- | --- | --- | --- |
 | `resume-extraction` | Uploaded Resume | the record id | `complete`, or the reconciliation job | the extraction processor on the worker |
 | `profile-ingestion` | Ingestion | the Ingestion id | the extraction processor, after it creates the Ingestion | the Ingestion runner on the worker |
+| `profile-curation` | Curation | the Curation id | the confirmation or the stored Model Key that completes the [trigger](#profile-curation-tc-04-tc-05-tc-06), `retry`, or the reconciliation job | the Curation runner on the worker |
 | `reconciliation` | interval | the job scheduler `reconciliation` | every worker, upserting the same scheduler at start | one worker at a time, one run at a time |
 
-The job id equal to the record id makes every add idempotent, and every processor begins by reading what is already persisted and skipping it, so a re-delivery after a crash, a stalled lock, or a reconciliation run never repeats work. Both rows carry `attempts` and `max_attempts`; the processor increments `attempts` in the write that marks the row `processing` or `running`, before doing any work, so a run killed without reporting still counts and the reconciliation job never re-enqueues past the limit. Backoff is exponential, and failed jobs are kept so the queue dashboard shows them. The enqueue always happens after the PostgreSQL transaction commits; an enqueue failure is logged and left to the reconciliation job, never surfaced as a request error.
+The job id equal to the record id makes every add idempotent, and every processor begins by reading what is already persisted and skipping it, so a re-delivery after a crash, a stalled lock, or a reconciliation run never repeats work. Every row carries `attempts` and `max_attempts`; the processor increments `attempts` in the write that marks the row `processing` or `running`, before doing any work, so a run killed without reporting still counts and the reconciliation job never re-enqueues past the limit. Backoff is exponential, and failed jobs are kept so the queue dashboard shows them. The enqueue always happens after the PostgreSQL transaction commits; an enqueue failure is logged and left to the reconciliation job, never surfaced as a request error.
 
 #### The worker
 
-`apps/api/src/worker.ts` is a second Nest entrypoint (`createApplicationContext(WorkerModule)`) that hosts every processor: extraction, the Ingestion runner, and the reconciliation job. It runs with `WORKER_CONCURRENCY` jobs at a time (default 4), renews the lock of every active job, and closes every queue on `SIGTERM`. The `worker` compose service is built from the API image with the same environment as `api`, no port, and a memory limit, so a hostile PDF can exhaust the worker and never the API. The API process registers no processor.
+`apps/api/src/worker.ts` is a second Nest entrypoint (`createApplicationContext(WorkerModule)`) that hosts every processor: extraction, the Ingestion runner, the Curation runner, and the reconciliation job. It runs with `WORKER_CONCURRENCY` jobs at a time (default 4), renews the lock of every active job, and closes every queue on `SIGTERM`. The `worker` compose service is built from the API image with the same environment as `api`, no port, and a memory limit, so a hostile PDF can exhaust the worker and never the API. The API process registers no processor.
 
 #### Extraction
 
@@ -286,7 +288,7 @@ The header processor reads the name and the e-mail only to compare them with the
 
 #### Replace by source Ingestion
 
-Every Profile row records the Ingestion that wrote it (`source_ingestion_id`). `GET /profile` reads the rows of the latest completed Ingestion of the resume source (`ingestions.completed_at`), and answers an empty Profile with no source while none has completed. When an Ingestion completes, the resume observer deletes, in the same transaction, the rows written by the earlier Ingestions of that source and marks the Uploaded Resume `done`; the new rows carry no confirmation, so the review flags show again and the confirmation is reset. When an Ingestion fails for good, the observer fails the Uploaded Resume with `profile_build_failed` and the previous Profile stays readable, so the Candidate never sees a half-built Profile. A resume Ingestion never touches rows from another source; how two sources merge the Basic Profile is decided with the LinkedIn milestone.
+Every Profile row records the Ingestion that wrote it (`source_ingestion_id`). `GET /profile` reads the rows of the latest completed Ingestion of the resume source (`ingestions.completed_at`), and answers an empty Profile with no source while none has completed. When an Ingestion completes, the resume observer deletes, in the same transaction, the rows written by the earlier Ingestions of that source and marks the Uploaded Resume `done`; the new rows carry no confirmation, so the review flags show again and the confirmation is reset. When an Ingestion fails for good, the observer fails the Uploaded Resume with `profile_build_failed` and the previous Profile stays readable, so the Candidate never sees a half-built Profile. A resume Ingestion never touches rows from another source.
 
 **Review flags and confirmation.** The flags are not stored: `GET /profile` derives them from the Segments' recognized output of the Ingestion it reads, one flag per field recognised with `low` Confidence, named by its part, its entry (the role, the institution, the project name), and the field, plus the header's name or e-mail mismatch. `POST /profile/confirm` records the time on the Basic Profile row once (a repeat keeps it), after which the flags are empty until the next Ingestion replaces the rows. The years of experience are derived on read from the Experiences' periods with the overlap merge.
 
@@ -341,14 +343,131 @@ Every route is Candidate-owned: another Account's id answers `404` everywhere. S
 
 The upload page composes its single percentage from the byte progress of the `PUT` (0 to 25), the record status (`uploaded` 25, `processing` 30), and the Ingestion Progress mapped onto 30 to 100. Nothing on the page comes from a timer.
 
-### AI pipeline (TC-06, TC-07)
+### Profile Curation (TC-04, TC-05, TC-06)
 
-LangChain orchestrates tool calls. Each tool wraps a NestJS service (the business logic). The pipeline for one job description:
+Profile Curation turns a confirmed Profile into the Statements every later AI layer reads (ADR-0024). It has the moving parts of an [Ingestion](#profile-ingestion-tc-03-tc-04-tc-05), a row per run, a row per unit of work, a queue, resumption, and reconciliation, and adds what an Ingestion does not have: one model call per unit, on the Candidate's own Model Key (ADR-0023). The terms (Curation, Curation Unit, Statement, Evidence, Statement review) are in [CONTEXT.md](../CONTEXT.md); the rules every model call is held to are in [security.md, "AI pipeline"](security.md#ai-pipeline-tc-06-tc-07). The `curation` module holds the state machine, its persistence, and the model access; the runner runs on the worker only, and the API process registers no processor.
 
 ```
-Job Description
+confirm, a Model Key already stored ──┐
+                                      ├─▶ curations (queued) + curation_units (pending), one transaction
+Model Key stored, Profile confirmed ──┘                                            │ after commit
+                                                  profile-curation job, id = curation id
+                                                                                  │
+                             worker: run(curationId) ◀─────────────────────────────┘
+                                      │
+                   before each unit: status still running? otherwise stop, no error
+                                      │
+             every unit not yet saved, three at a time, the synthesis unit last:
+               computed facts + unit input (≤ 8,000 characters) ──▶ model ──▶ schema ──▶ Evidence resolves?
+                                      │                                                  │ yes: Statement saved
+                                      │                                                  │ no: discarded, logged
+                   every unit saved ──▶ embed every Statement + completed, one transaction
+                   a call fails ──▶ unit keeps its outcome; attempts < max ? queued (retry) : failed
+                   a Provider rate limit ──▶ resume_after, queued, the attempt kept
+```
+
+**Trigger.** A Curation starts once the Profile is confirmed and a Model Key is stored, whichever comes last. `POST /profile/confirm` creates it when a key is already stored; `PUT /account/model` creates it when it stores a key for a confirmed Profile that has no Curation for its Ingestion. Confirm never requires a key, answers `200` on every repeat, and never answers `409`. Either path creates a Curation only when the Account has none for that `source_ingestion_id` outside `failed` and `cancelled`, and a unique violation on the active index means another request just created it, so the existing one is answered. The job is added after the commit with the Curation id as job id; a failed enqueue leaves the row `queued` for [reconciliation](#curation-reconciliation) and never fails the request.
+
+#### Curation state machine
+
+A Curation is `queued` (waiting for a worker, on the first attempt, after a failed one, or after a rate limit), `running` (a worker is processing it), `completed` (every unit saved and every Statement embedded), `failed` (every attempt used), `cancelled` (stopped by the Candidate), or `superseded` (replaced by a new Ingestion or by a completed re-run). The last four free the Account. The worker increments `attempts` in the write that moves the row to `running`, before any call, so a run killed without reporting still counts; `max_attempts` is 3, as for an Ingestion, and is sent to BullMQ as the job's attempts.
+
+| From | To | Written by | When |
+| --- | --- | --- | --- |
+| — | `queued` | API, the confirmation or the stored key that completes the trigger, or `rerun` | The Curation and its units are inserted in one transaction |
+| `queued` | `running` | Worker | The job starts; `attempts` is incremented in the same write |
+| `running` | `queued` | Worker | A call produced no usable output and `attempts` is below `max_attempts` (retried with backoff), or the Provider rate-limited the Candidate's key or reported an exhausted quota (`resume_after` set, the attempt not consumed) |
+| `running` | `completed` | Worker | The last vectors are written, in the same transaction |
+| `running` | `failed` | Worker, or the reconciliation job | `attempts` reached `max_attempts`; the reason is one the Candidate can read |
+| `queued`, `running` | `cancelled` | API, `POST /profile/curation/cancel` | The Candidate stops it; saved Statements are kept and nothing is indexed |
+| `failed`, `cancelled` | `queued` | API, `POST /profile/curation/retry` | `attempts` reset, reason cleared, re-enqueued under the same job id |
+| any | `superseded` | The resume observer, or the completion of a re-run | A new Ingestion replaced the Profile, or a re-run completed and became current |
+
+**One active Curation per Account.** The partial unique index `curations_one_active_per_account_idx` on `account_id where status in ('queued', 'running')` enforces it in the database, not in a service (TC-05). It is one active Ingestion and one active Curation per Account, not a lock across both: a new Resume can be uploaded while a Curation runs, and its Ingestion then supersedes that Curation.
+
+**Unit states.** A Curation Unit is `pending`, `running`, `saved`, or `failed`, and carries its own `attempts`, the outcome of its last call as `failure_reason` (an outcome code from [security.md](security.md#ai-pipeline-tc-06-tc-07), never the Provider's message), and whether its input was `truncated`.
+
+#### Curation Units
+
+The units are derived in the transaction that creates the Curation, so progress has a denominator from the first second: one `experience` unit per Experience, one `project` unit per Project, one `cross_cutting` unit for the competences that appear in more than one place, and one `synthesis` unit, ordered by position with the synthesis unit last. There is no cap; the thirty corpus Resumes give 2 to 8 units, median 4.
+
+- **Input.** Each unit's subject, capped at 8,000 characters and cut at a line boundary, with `truncated` recorded when the cap applied, inside the delimiters the security rules require. The deterministic facts computed by the pure metrics module (career duration, duration per company and per Project, the counts of roles, projects, certifications, languages, and education) sit outside the Candidate block as computed facts, so the model judges and never counts. The synthesis unit reads the Statements the other units saved.
+- **Resumption.** A retry calls the same `run(curationId)`. The runner reads which units are already `saved` and processes only the others, so a retry pays only for what is left.
+- **Concurrency.** Three units run at a time; the synthesis unit runs alone once every other unit is saved. The integration suite pins concurrency to 1 so the order is deterministic.
+- **Stopping at a boundary.** The runner re-reads the Curation's status before each unit and before writing `completed`; anything other than `running` ends the run cleanly, with no error and no retry. Every Statement write is conditional on the Curation still being `running`, so a runner that lost the race to a cancel, a supersede, or a re-run writes nothing and wastes at most one call.
+- **Failure.** A timeout, invalid JSON, a response that fails the schema, and a truncated response are one event: the call produced no usable output. It fails that unit, not the run, and records the outcome on the unit row, never on the queue. A Provider rate limit is not a failure: it says nothing about the input, so the Curation returns to `queued` with `resume_after` and keeps the attempt.
+
+#### Statements and Evidence
+
+A unit's response is parsed by the shared Statement schema and its Statements are saved as soon as they validate. Each `statements` row holds the sentence, its labels for filtering before retrieval, its Evidence, the prompt version, the Model, `source_ingestion_id`, the review state with `reviewed_at`, and, once the Curation completes, the embedding.
+
+- **Evidence** points at an Experience, a Project, or a span of the extracted text (`experience`, `project`, `text_span`), with the quoted span and its offsets. It is resolved against the Account's own Profile before the Statement is saved; a Statement whose Evidence does not resolve is discarded, never persisted, and the discard is logged with the unit id. This is the one programmatic check against a hallucination entering the index as fact. A Statement that is wrong but cites real Evidence passes it, which is what Statement review is for.
+- **Versions.** The prompt version and the Model are on every row because the output is non-deterministic and kept indefinitely: an improved prompt reaches an already-curated Candidate only through a re-run, and every Statement stays readable back to what produced it.
+- **Statement review.** The Candidate marks a Statement `accepted` or `rejected`, or clears it back to `unreviewed`. A rejected Statement keeps its row and its embedding and is excluded from retrieval by a partial index; accepted and unreviewed Statements are both retrieved, since acceptance is an affirmation, not a precondition. Review does not carry across a re-run in this release, because a new Statement has no stable identity to inherit it from (#126).
+
+#### Embedding and retrieval
+
+Once every unit is saved, every Statement of the Curation is embedded through the platform embedding model into `vector(1536)` (ADR-0023), and `completed` is written in the same transaction as the last vectors, before the job returns. An embedding failure is a failure of the Curation, not of a unit: attempts and backoff apply, and no Statement is left half-indexed. The per-Account embedding budget is checked before every embedding call, and reaching it pauses the Curation with `resume_after` rather than failing it (#133).
+
+Retrieval reads the Statements of the Account's current Curation, the latest `completed` one, excluding rejected ones, filtered by `account_id` in SQL before similarity ordering. No later layer reads the Profile or the extracted text (ADR-0024); the extracted text stays on the Uploaded Resume as an auditable fallback.
+
+#### Invalidation and re-run
+
+- **A new Ingestion supersedes.** In the transaction that replaces the Profile rows, the [resume observer](#replace-by-source-ingestion) moves the Account's current Curation, and a `queued` or `running` one, to `superseded` and deletes their Statements and embeddings. A running runner stops at its next unit boundary. Nothing restarts by itself: the new Ingestion resets the confirmation, so the next confirm (with a Model Key stored) creates a fresh Curation, and the Job Description steps stay locked until it completes.
+- **Cancel** stops a `queued` or `running` Curation at a unit boundary, keeping its saved Statements and indexing nothing. **Retry** takes a `failed` or `cancelled` one back to `queued` and resumes at the first unsaved unit.
+- **Re-run** builds a new Curation alongside the current completed one, which stays current and retrievable. When the new one completes it becomes current, and the previous one, its Statements, and its embeddings are superseded and deleted in one transaction; a re-run that fails or is cancelled leaves the previous one intact and indexed. Re-run spends the Candidate's tokens, so it is gated: it is available when the current Curation is `failed` or `cancelled`, when a newly confirmed Ingestion produced a fresh Curation, or when the Model Choice changed since the current one was produced, and refused with a reason on an unchanged completed Curation.
+
+#### Model access
+
+`CurationModel` (a prompt in, validated structured output out) and `EmbeddingModel` are the abstractions the runner depends on; no provider SDK type crosses into a service (ADR-0004). Generation uses `@langchain/anthropic` pinned to the Model of the catalogue in `packages/shared`, with the Candidate's Model Key passed per call; embedding uses the platform key.
+
+- `selectCurationModel` and `selectEmbeddingModel` choose the adapter from platform configuration, the way `selectCodeSender` chooses the email sender (ADR-0018). Unset outside production selects the deterministic fake: output derived from its input, valid against the shared schemas, with Evidence that resolves, a deterministic 1536-dimension vector, and a failure or a schema-invalid response on demand, so every failure path is testable without a Provider. A production configuration without the platform embedding key refuses to start.
+- An Account with no Model Key never reaches the fake: its Curation is never created, and a revoked key blocks new Curations with a reason (ADR-0023).
+- The Model Choice and the encrypted Model Key live in `account_model_choices`, one row per Account; the key is never returned by any endpoint, and it is checked against the Provider when it is saved (#110).
+- Token counts are recorded per call for the structured log line and never displayed.
+
+#### Curation reconciliation
+
+The [reconciliation job](#reconciliation) settles Curations with the same guarantees as Ingestions: one conditional write per row, one log line with ids only per action, and counters in its report for Curations re-enqueued, reset, and failed.
+
+| Rule | Condition | Action |
+| --- | --- | --- |
+| Re-enqueue an orphan | `queued` with no live job and no `resume_after` in the future | job added, with the Curation id as job id |
+| Wait out a rate limit | `queued` with `resume_after` in the future | skipped; enqueued on the first run after that time |
+| Reset a stale run | `running` past the stale threshold with no active job | back to `queued` and re-enqueued while `attempts` is below `max_attempts`, otherwise `failed` with a readable reason, which frees the Account |
+
+A worker killed mid-run would otherwise leave a `running` row for ever, and because one active Curation per Account is a unique index, that row would block every retry, every re-run, and every future Curation of the Account.
+
+#### Curation routes
+
+Every route is Candidate-owned, and the schemas live in `packages/shared` (`CurationSchema`, `CurationUnitSchema`, `CurationProgressSchema`, `CurationMetricsSchema`, `StatementSchema`, `EvidenceSchema`, `StatementReviewSchema`, `ModelCatalogueSchema`, `AccountModelChoiceSchema`), so they reach the OpenAPI document like every other route (ADR-0022).
+
+| Route | Answers |
+| --- | --- |
+| `PUT /account/model` | Stores or replaces the Model Choice and the Model Key after checking the key with the Provider; creates the Curation for a confirmed Profile that has none for its Ingestion |
+| `GET /account/model` | The Provider, the Model, and whether a key is stored; never the key or a fragment of it |
+| `DELETE /account/model/key` | Revokes the key; the Model Choice stays and new Curations are blocked with a reason |
+| `GET /profile/curation` | The current Curation: status, the percentage `floor(100 × saved units ÷ units)`, the total and saved counts, the current unit, every unit with its kind, title, and status, the computed facts, the Model in use, and the failure reason with `resume_after`; an `ETag` and `304` on `If-None-Match`; a well-formed "none yet" answer, not a `404`, when the Account has no Curation |
+| `POST /profile/curation/cancel` | Cancels a `queued` or `running` Curation |
+| `POST /profile/curation/retry` | Re-queues a `failed` or `cancelled` Curation from its first unsaved unit |
+| `POST /profile/curation/rerun` | Starts a new Curation alongside the current one when the gate allows it, or refuses with a reason |
+| `GET /profile/curation/statements` | The Statements of the current Curation with their text, labels, Evidence, source description, and review state |
+| `PUT /profile/curation/statements/:id/review` | Sets `accepted` or `rejected`, or clears back to `unreviewed` |
+
+Only `cancel`, `retry`, and `rerun` ever answer `409`, and only while a Curation is already `queued` or `running`. The percentage counts saved units only, so a fresh process answers the same number.
+
+### AI pipeline (TC-06, TC-07)
+
+LangChain orchestrates tool calls. Each tool wraps a NestJS service (the business logic). The pipeline starts with [Profile Curation](#profile-curation-tc-04-tc-05-tc-06), which runs once per confirmed Profile and is the only layer that reads the Profile; every layer after it runs for one Job Description and reads Statements:
+
+```
+Confirmed Profile + Model Key
    │
-   ▼  RAG: retrieve the Statements closest to the Job Description embedding from pgvector
+   ▼  one call per Curation Unit, Evidence resolved, Statements embedded
+Profile Curation ──── Statements in pgvector, scoped by Account
+   │
+   ▼  Job Description pasted and embedded
+   ▼  RAG: the Account's non-rejected Statements closest to the Job Description embedding
 Resume ATS Level ──── score 0–10
    │
    ▼  (only if score < 8)
@@ -370,8 +489,8 @@ Mock Interview
 Preparation summary with success rates
 ```
 
-- Each layer persists its output before the next starts. The pipeline state is what tells the frontend which step is available.
-- Every layer calls RAG first and passes only retrieved context to the LLM, never the full profile.
+- Each layer persists its output before the next starts. The pipeline state is what tells the frontend which step is available, and no Job Description step is available until a Curation has completed.
+- Every layer after Profile Curation calls RAG first and passes only the retrieved Statements to the model, never the Profile and never the extracted text (ADR-0024).
 - The model is reached behind LangChain and is never referenced directly by services. Generation runs on the Account's Model Choice, `claude-sonnet-5` at Anthropic in phase one, using the Candidate's own Model Key; an Account with no Model Key blocks its analysis with a reason instead of falling back to anything (ADR-0023).
 - The adapter is selected by platform configuration, not by the presence of a Model Key: unset outside production selects a deterministic fake that also stands in for the Provider when a key is validated, so CI and the local stack run the whole pipeline with no provider account; unset in production refuses to start, as the email sender does (ADR-0018, ADR-0023).
 - Every model call is held to the rules in [security.md, "AI pipeline"](security.md#ai-pipeline-tc-06-tc-07): where each key lives, how Candidate content is fenced off from the instructions, Account-scoped retrieval, schema-validated output, the embedding budget, and what a log line may carry.
@@ -380,7 +499,8 @@ Preparation summary with success rates
 
 One database serves both relational data and vector search.
 
-- Relational tables for Account, Session, One-Time Code, Uploaded Resume, Ingestion, Segment, the seven Profile parts, Job Descriptions, Learnings, and pipeline runs. Tables arrive with the task that needs them, each through a migration; `accounts`, `sessions`, `verification_tokens`, `ingestions`, and `ingestion_segments` are the first, then `uploaded_resumes`, then the Profile tables `basic_profiles`, `experiences`, `education`, `projects`, `skills`, `languages`, and `certifications`. Every Profile row carries `account_id`, `source_ingestion_id`, and `segment_id`, cascading from all three; the ordered parts keep the Segment's position and the row's position inside it; the Confidence of each field stays on the Segment's recognized output, not on the rows; and the Basic Profile row holds the confirmation time. The job queue lives in Redis (ADR-0020), and the PDF bytes in the object store (ADR-0021), never in PostgreSQL.
+- Relational tables for Account, Session, One-Time Code, Uploaded Resume, Ingestion, Segment, the seven Profile parts, Model Choice, Curation, Curation Unit, Statement, Job Descriptions, Learnings, and pipeline runs. Tables arrive with the task that needs them, each through a migration; `accounts`, `sessions`, `verification_tokens`, `ingestions`, and `ingestion_segments` are the first, then `uploaded_resumes`, then the Profile tables `basic_profiles`, `experiences`, `education`, `projects`, `skills`, `languages`, and `certifications`. Every Profile row carries `account_id`, `source_ingestion_id`, and `segment_id`, cascading from all three; the ordered parts keep the Segment's position and the row's position inside it; the Confidence of each field stays on the Segment's recognized output, not on the rows; and the Basic Profile row holds the confirmation time. The job queue lives in Redis (ADR-0020), and the PDF bytes in the object store (ADR-0021), never in PostgreSQL.
+- The Profile Curation tables: `curations` carries `account_id` and `source_ingestion_id` and cascades from both; `curation_units` has no `account_id` of its own and is scoped through its Curation, as `ingestion_segments` is through its Ingestion; `statements` carries `account_id`, `curation_id`, `unit_id`, and `source_ingestion_id`, with the `vector(1536)` embedding, a vector index, and a partial index over the Statements that are not rejected. `curations_one_active_per_account_idx` is unique on `account_id` while the Curation is `queued` or `running`. `account_model_choices` holds one row per Account with the encrypted Model Key. Every read and write on them is covered by the two-Account helper under [Testing](#testing).
 - The `vector` extension is enabled by the first migration, so every later migration can declare embedding columns.
 - Embeddings run on one platform key at `text-embedding-3-small` into `vector(1536)`. The embedding model and its dimension are properties of the platform, not of an Account: `vector(n)` is fixed per column, so a second dimension is a new ADR and a re-embedding, never a setting (ADR-0023).
 - Embeddings stored in pgvector columns alongside the rows they describe (Statements, Job Descriptions, Learnings).

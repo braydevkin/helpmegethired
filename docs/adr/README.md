@@ -40,4 +40,3 @@ Not yet decided. Each becomes an ADR when resolved.
 - **License** for the repository.
 - **Deployment target** for `main` builds, including the Redis and the object store it provides (ADR-0020, ADR-0021).
 - **Virus scanning** of Uploaded Resumes, once the deployment target is known (#52).
-- **LinkedIn data access** approach and fallback.

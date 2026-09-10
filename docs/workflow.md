@@ -37,24 +37,35 @@ An issue is refined when all of these are true:
 - [ ] Dependencies on other issues are linked.
 - [ ] It fits in a single PR that can be reviewed in one sitting.
 - [ ] Labels: exactly one type (`feature`, `fix`, `architecture`, `docs`, `chore`) and one or more areas (`frontend`, `backend`, `shared`, `infra`, `ai`).
-- [ ] Milestone set to one of: Foundation, Account and Profile, Job Analysis, Learning and Apply, Interview and Summary.
+- [ ] Milestone is set. The milestones that exist today are listed under [Milestones](#milestones).
 
 ## Milestones
 
-A milestone is a slice of the candidate journey that is usable on its own once done. The five milestones exist in the repository; the numbered items below are the capabilities each one groups, in build order.
+A milestone groups the work that makes one part of the product usable on its own. The list is not closed: a milestone is added when the product grows a part that none of these covers. These exist in the repository today:
+
+| Milestone | What it groups |
+| --- | --- |
+| Foundation | Monorepo, shared package, Docker, CI: a contributor can run and test the whole stack with one command |
+| Account and Profile | Sign up and sign in, Resume upload, segment ingestion, and the Profile review page |
+| AI Analysis | Profile Curation: a confirmed Profile turned into traceable Statements that every Job Description analysis reads |
+| Job Analysis | Job Description intake, retrieval, ATS score, Resume Builder |
+| Learning and Apply | Learnings, study plan, apply helper |
+| Interview and Summary | Mock interview, preparation summary with success rates |
+| Security | Cross-cutting: the findings of the security review and the requirements in [security.md](security.md) the features must meet |
+
+The capabilities they group, in build order:
 
 1. **Repository foundation**: Turborepo + pnpm workspace, shared configs, `packages/shared`, Docker Compose with PostgreSQL + pgvector, CI running lint/typecheck/test.
 2. **Account**: sign up / sign in in `apps/api` and `apps/web`.
 3. **Profile ingestion**: PDF upload, segment queue, resumable progress, profile entities.
-4. **LinkedIn reading**: API integration or documented fallback.
-5. **Profile analysis**: RAG over profile, strengths and weaknesses page.
-6. **Job description**: paste, store, embed.
-7. **ATS scoring**: first AI service, score 0–10.
-8. **Resume builder**: triggered when score < 8.
-9. **Learnings and study plan**.
-10. **Apply helper**.
-11. **Mock interview**.
-12. **Preparation summary**.
+4. **Profile Curation**: the confirmed Profile read once, on the Candidate's own Model Key, into Statements with their Evidence, and the analysis page where the Candidate reviews them.
+5. **Job description**: paste, store, embed.
+6. **ATS scoring**: first Job Description layer, score 0–10, with the strengths and weaknesses for that role.
+7. **Resume builder**: triggered when score < 8.
+8. **Learnings and study plan**.
+9. **Apply helper**.
+10. **Mock interview**.
+11. **Preparation summary**.
 
 ## Branching model: Gitflow
 

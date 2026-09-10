@@ -8,15 +8,16 @@ Derived from `arch/hgh.drawio`. When the diagram and this document disagree, thi
 | --- | --- |
 | FR-01 | Account sign up and sign in with an email and a one-time code sent by email; no passwords. Sign up adds the Account information: name, last name, phone with country code, optional address. |
 | FR-02 | Upload a Resume as a PDF of at most 5 MB and 20 pages. The upload is refused with a reason the Candidate can act on when the file is not a PDF, is too large, has too many pages, is password-protected, is damaged, or is a scan without text. |
-| FR-03 | Read a LinkedIn profile from a pasted profile URL. |
-| FR-04 | Build a candidate profile from the resume and LinkedIn data: basic profile, experiences, projects. |
+| FR-03 | Removed: LinkedIn is not read (#104). The Profile is built from the Uploaded Resume alone. |
+| FR-04 | Build a candidate profile from the Uploaded Resume: basic profile, experiences, education, projects, skills, languages, certifications. |
 | FR-05 | Paste a job description. |
-| FR-06 | AI analysis of the job description compared with the profile. |
+| FR-06 | AI analysis of the job description compared with the profile, including the strengths and weaknesses for that role. Requires a completed Curation, and reads the Candidate's Statements, never the Profile (ADR-0024). |
 | FR-07 | AI recommendations for the resume (ATS level and resume rebuild). |
 | FR-08 | AI recommendations for studies (learnings and a structured study plan). |
 | FR-09 | AI mock interview for the target role. |
 | FR-10 | Apply helper: cover letter, updated resume, and study plan for a specific job description. |
 | FR-11 | Preparation summary with success rates across all steps. |
+| FR-12 | Profile Curation: the confirmed Profile is read once, on the Candidate's own Model Key, into Statements that each carry the Evidence behind them, and the Candidate can accept or reject each Statement. |
 
 ## Application flow
 
@@ -25,17 +26,20 @@ The candidate journey is strictly ordered. Each step becomes available only when
 ```
 Sign Up / Sign In
   └─ Upload Resume PDF
-      └─ Paste LinkedIn URL Profile
+      └─ Confirm Profile
           └─ Choose the Model and supply the Model Key
-              └─ AI Profile Analysis
-                  └─ Profile Page with strengths and weaknesses
+              └─ Profile Curation
+                  └─ Profile analysis with the evidence behind it
                       └─ Paste Job Description
-                          └─ AI Analysis comparing with profile
+                          └─ AI Analysis comparing with profile: strengths and weaknesses for that role
                               └─ AI Resume Recommendations
                                   └─ AI Study Recommendations
                                       └─ AI Mock Interview
                                           └─ Preparation summary with all success rates
 ```
+
+- Profile Curation starts once the Profile is confirmed and a Model Key is stored, whichever comes last (ADR-0024).
+- Strengths and weaknesses are not a Profile-level step. A weakness is only a fact when something specific is missing for something specific, so they are produced per Job Description by the layer that holds the target.
 
 ## Business logic (AI services)
 
@@ -56,12 +60,13 @@ These are the LangChain tools the LLM can call. They run in this order for a giv
 | Account | Authentication identity. |
 | Uploaded Resume | The PDF a Candidate uploaded, its status, and the text extracted from it. The PDF itself is deleted once the text is kept. |
 | Basic Profile | Headline, summary, LinkedIn URL, GitHub URL. Name, e-mail, and phone belong to the Account, never to the Profile. |
-| Experiences | Work history. Input to ATS scoring and resume building. |
-| Education | Academic history. |
-| Projects | Personal or professional projects. Input to resume building. |
-| Skills | Technologies and competences, grouped by category. Input to ATS scoring. |
-| Languages | Spoken languages with a level. |
-| Certifications | Credentials with issuer and year. |
+| Experiences | Work history. Input to Profile Curation. |
+| Education | Academic history. Counted into the facts every Curation prompt receives. |
+| Projects | Personal or professional projects. Input to Profile Curation. |
+| Skills | Technologies and competences, grouped by category. Input to Profile Curation. |
+| Languages | Spoken languages with a level. Counted into the facts every Curation prompt receives. |
+| Certifications | Credentials with issuer and year. Counted into the facts every Curation prompt receives. |
+| Statements | Self-contained sentences about the Candidate, each with its Evidence, produced by Profile Curation; embedded for RAG and read by every later AI layer. |
 | Job Descriptions | Stored per user; embedded for RAG. |
 | Learnings | What the user should learn, accumulated across applications. |
 
@@ -72,17 +77,18 @@ These constraints are product decisions and must be honoured by any implementati
 | ID | Constraint |
 | --- | --- |
 | TC-01 | Reading files: the Uploaded Resume is a PDF whose text is extracted once and kept. In this phase the Profile is recognised from that text by rules with a Confidence per field. LLM extraction is a later step that reads the same stored text, never the PDF again. |
-| TC-02 | Reading LinkedIn via API. |
+| TC-02 | Removed: LinkedIn is not read (#104). |
 | TC-03 | Profile building runs **by segment** through a queue: each segment is read, recognised, and saved independently. |
 | TC-04 | Profile building is **resumable**: if the process fails, it resumes where it left off. Percentage and progress are visible to the user. |
 | TC-05 | A user cannot perform multiple uploads or analyse multiple profiles at the same time. |
 | TC-06 | All AI analysis layers run **sequentially**. The next one only runs once the previous one has completed. |
 | TC-07 | Before any AI analysis, RAG is used to optimise token consumption. |
+| TC-08 | Every AI analysis after Profile Curation reads curated **Statements**, never the Profile and never the extracted text (ADR-0024). |
+| TC-09 | The Candidate supplies their own **Model Key** for generation; the platform holds no generation key and no balance. Embeddings run on one platform key, the platform's only AI spend (ADR-0023). |
 
 ## Open questions
 
 Track these as issues once the GitHub Project is set up.
 
-- LinkedIn API access: which API, what data is available, and what the fallback is if access is not granted.
 - What "success rate" means numerically in the preparation summary.
 - Which ATS rule set the score is based on, and whether it is versioned.
