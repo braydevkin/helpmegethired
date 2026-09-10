@@ -31,6 +31,7 @@ Use [template.md](template.md). Number sequentially. Status is one of `Proposed`
 | [0021](0021-s3-compatible-object-storage-with-rustfs.md) | S3-compatible object storage for Uploaded Resumes, with RustFS as the local store | Accepted |
 | [0022](0022-openapi-from-shared-schemas-with-swagger-ui-in-development.md) | OpenAPI generated from the shared Zod schemas, served by Swagger UI in development | Accepted |
 | [0023](0023-candidate-key-for-generation-platform-embeddings.md) | The Candidate's own key for generation on a pinned `claude-sonnet-5`, embeddings on one platform key | Accepted |
+| [0024](0024-profile-curation-before-every-job-description-analysis.md) | Profile Curation turns a confirmed Profile into the Statements every later layer reads | Accepted |
 
 ## Pending decisions
 
