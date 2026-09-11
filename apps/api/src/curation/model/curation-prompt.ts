@@ -12,6 +12,7 @@ export interface CurationPrompt {
   instructions: string;
   facts: CurationMetrics;
   sources: readonly CurationSource[];
+  notes?: readonly string[];
 }
 
 export interface CurationMessages {
@@ -37,6 +38,11 @@ const DATA_RULE =
 const sourceBlockOf = ({ kind, referenceId, title, text }: CurationSource): string =>
   [`<${SOURCE_TAG} kind="${kind}" id="${referenceId}">`, neutraliseTags(title), neutraliseTags(text), `</${SOURCE_TAG}>`].join("\n");
 
+// The synthesis unit reads what the other units wrote. Those Statements came from the Candidate's
+// text through a model, so they stay inside the block and are neutralised like it.
+const notesOf = (notes: readonly string[]): string[] =>
+  notes.length === 0 ? [] : ["Statements already written about these sources:", ...notes.map((note) => `- ${neutraliseTags(note)}`)];
+
 // The facts are the platform's own counts (#108), so they sit outside the Candidate's block where
 // the Candidate's text cannot restate them.
 export function curationMessagesOf(prompt: CurationPrompt): CurationMessages {
@@ -48,6 +54,7 @@ export function curationMessagesOf(prompt: CurationPrompt): CurationMessages {
       "",
       `<${CONTENT_TAG}>`,
       ...prompt.sources.map(sourceBlockOf),
+      ...notesOf(prompt.notes ?? []),
       `</${CONTENT_TAG}>`,
     ].join("\n"),
   };
