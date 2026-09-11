@@ -436,11 +436,13 @@ The [reconciliation job](#reconciliation) settles Curations with the same guaran
 
 | Rule | Condition | Action |
 | --- | --- | --- |
-| Re-enqueue an orphan | `queued` with no live job and no `resume_after` in the future | job added, with the Curation id as job id |
-| Wait out a rate limit | `queued` with `resume_after` in the future | skipped; enqueued on the first run after that time |
-| Reset a stale run | `running` past the stale threshold with no active job | back to `queued` and re-enqueued while `attempts` is below `max_attempts`, otherwise `failed` with a readable reason, which frees the Account |
+| Reset a stale run | `running`, last updated before `STALE_PROCESSING_MINUTES` (default 10), with no job that will still be delivered | back to `queued` and re-enqueued while `attempts` is below `max_attempts`, otherwise `failed` with `attempts_exhausted`, which frees the Account; either way the units it left `running` are `pending` again, in the same transaction |
+| Re-enqueue an orphan | `queued` with no job that will still be delivered and no `resume_after` in the future | job added, with the Curation id as job id |
+| Wait out a rate limit | `queued` with `resume_after` in the future, read from the job's `Clock` | skipped; enqueued on the first run after that time |
 
-A worker killed mid-run would otherwise leave a `running` row for ever, and because one active Curation per Account is a unique index, that row would block every retry, every re-run, and every future Curation of the Account.
+A worker killed mid-run would otherwise leave a `running` row for ever, and because one active Curation per Account is a unique index, that row would block every retry, every re-run, and every future Curation of the Account. The report counts `curationsReset`, `curationsFailed`, and `curationsReEnqueued`, and every action logs `reconciliation action=<reset|fail|re-enqueue> curation=<id>` and nothing else.
+
+A Curation that runs again keeps its id as job id, and the job of its earlier attempt is still retained (a completed one for a day, a failed one until removed), which would turn the add into a no-op. `BullMqCurationQueue.enqueue` therefore removes a completed or failed job under that id before adding; a job that will still be delivered is left alone and the add stays idempotent.
 
 #### Curation routes
 
