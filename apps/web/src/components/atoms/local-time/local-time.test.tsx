@@ -16,6 +16,13 @@ describe("LocalTime", () => {
     expect(container.querySelector("time")).toHaveAttribute("datetime", AT);
   });
 
+  it("writes the day with the time when asked", () => {
+    const { container } = render(<LocalTime dateTime={AT} withDate />);
+    const withDay = new Intl.DateTimeFormat("en", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).format(new Date(AT));
+
+    expect(container.querySelector("time")).toHaveTextContent(withDay);
+  });
+
   it("leaves the time out of the server's HTML", () => {
     const html = renderToString(<LocalTime dateTime={AT} />);
 

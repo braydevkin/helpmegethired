@@ -47,4 +47,22 @@ describe("CurationClient", () => {
 
     await expect(client.read(token, undefined)).rejects.toThrow();
   });
+
+  it.each(["cancel", "retry", "rerun"] as const)("posts %s with the Session and answers the progress", async (action) => {
+    const fetchMock = vi.fn().mockResolvedValue(json(action === "cancel" ? 200 : 202, state));
+    const client = new CurationClient("http://api.test", fetchMock);
+
+    expect(await client[action](token)).toEqual(state);
+    expect(fetchMock).toHaveBeenCalledWith(`http://api.test/profile/curation/${action}`, expect.objectContaining({ method: "POST", cache: "no-store" }));
+    expect(fetchMock.mock.calls[0]?.[1].headers).toEqual({ authorization: `Bearer ${token}` });
+  });
+
+  it("raises the gate's code when a re-run is refused", async () => {
+    const client = new CurationClient(
+      "http://api.test",
+      vi.fn().mockResolvedValue(json(422, { statusCode: 422, message: "unchanged", error: "Unprocessable Entity", code: "curation_unchanged" })),
+    );
+
+    await expect(client.rerun(token)).rejects.toMatchObject({ name: "CurationRefusedError", code: "curation_unchanged", status: 422 });
+  });
 });
