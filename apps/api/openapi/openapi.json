@@ -211,8 +211,16 @@
           "Model Choice"
         ],
         "summary": "Choose the Model and store the Model Key",
-        "description": "Checks the key with the Provider without spending tokens, then stores it encrypted, replacing any earlier choice and key. Only the catalogue pairing is accepted. A refused key replaces nothing, and the key is never answered back.",
+        "description": "Checks the key with the Provider without spending tokens, then stores it encrypted, replacing any earlier choice and key. Only the catalogue pairing is accepted. A refused key replaces nothing, and the key is never answered back. The page sends it with a Model Key ticket instead of the Session, so the key never passes through the web app; the ticket is spent before the key is checked, so a refused key needs a new one.",
         "operationId": "saveModelChoice",
+        "security": [
+          {
+            "session": []
+          },
+          {
+            "modelKeyTicket": []
+          }
+        ],
         "requestBody": {
           "required": true,
           "content": {
@@ -245,11 +253,29 @@
             }
           },
           "401": {
-            "description": "No valid Session bearer token",
+            "description": "Neither a live Session nor a valid Model Key ticket; `model_key_ticket_invalid` whether the ticket is unknown, expired, or used",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ApiError"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "model_key_ticket_invalid"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
                 }
               }
             }
@@ -307,6 +333,38 @@
                       ]
                     }
                   ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/account/model/key-ticket": {
+      "post": {
+        "tags": [
+          "Model Choice"
+        ],
+        "summary": "Issue a Model Key ticket",
+        "description": "A single-use ticket for the Session's Account, valid for 60 seconds. The web app hands it to the page, which presents it as the bearer token of `PUT /account/model` to send the Model Key straight to the API. It is kept only as its SHA-256, and no other route accepts it.",
+        "operationId": "issueModelKeyTicket",
+        "responses": {
+          "201": {
+            "description": "The ticket and when it expires",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ModelKeyTicket"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid Session bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
                 }
               }
             }
@@ -2579,6 +2637,25 @@
         ],
         "additionalProperties": false
       },
+      "ModelKeyTicket": {
+        "type": "object",
+        "properties": {
+          "ticket": {
+            "type": "string",
+            "pattern": "^[\\w-]{43}$"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          }
+        },
+        "required": [
+          "ticket",
+          "expiresAt"
+        ],
+        "additionalProperties": false
+      },
       "CurationProgressState": {
         "type": "object",
         "properties": {
@@ -3191,6 +3268,11 @@
         "type": "http",
         "scheme": "bearer",
         "description": "The Session token the web app keeps in its `session` cookie after sign in"
+      },
+      "modelKeyTicket": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "A single-use Model Key ticket from `POST /account/model/key-ticket`; only `PUT /account/model` accepts it"
       }
     }
   }

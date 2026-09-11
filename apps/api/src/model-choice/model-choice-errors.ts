@@ -22,6 +22,17 @@ export class ModelChoiceNotFoundError extends Error {
   }
 }
 
+// One answer for an unknown, an expired, and a used ticket, so a caller learns nothing about
+// which tickets exist.
+export class ModelKeyTicketInvalidError extends Error {
+  readonly code = "model_key_ticket_invalid" satisfies ModelChoiceErrorCode;
+
+  constructor() {
+    super("The Model Key ticket is unknown, expired, or already used; ask for a new one");
+    this.name = "ModelKeyTicketInvalidError";
+  }
+}
+
 export class ModelKeyNotFoundError extends Error {
   readonly code = "model_key_missing" satisfies ModelChoiceErrorCode;
 

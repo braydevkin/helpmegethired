@@ -32,6 +32,7 @@ describe("the OpenAPI document", () => {
         "POST /auth/sign-out",
         "GET /account/model",
         "PUT /account/model",
+        "POST /account/model/key-ticket",
         "DELETE /account/model/key",
         "POST /resumes",
         "GET /resumes",
@@ -111,13 +112,30 @@ describe("the OpenAPI document", () => {
     expect(JSON.stringify(responseSchemaOf(refused ?? {}))).toContain('"enum":["curation_not_ready","curation_unchanged"]');
   });
 
-  it("requires the Session on every route but health, which declares security optional", () => {
+  it("requires the Session on every route but health, which declares security optional, and the key route, which also takes a Model Key ticket", () => {
+    const securityOf = (method: string, path: string) => {
+      if (path === "/health") {
+        return [{}];
+      }
+
+      return `${method} ${path}` === "put /account/model" ? [{ session: [] }, { modelKeyTicket: [] }] : [{ session: [] }];
+    };
+
     expect(document.security).toEqual([{ session: [] }]);
     expect(document.components.securitySchemes.session).toMatchObject({ type: "http", scheme: "bearer" });
+    expect(document.components.securitySchemes.modelKeyTicket).toMatchObject({ type: "http", scheme: "bearer" });
 
-    for (const { path, operation } of operations) {
-      expect(operation.security ?? document.security).toEqual(path === "/health" ? [{}] : [{ session: [] }]);
+    for (const { method, path, operation } of operations) {
+      expect(operation.security ?? document.security).toEqual(securityOf(method, path));
     }
+  });
+
+  it("describes the Model Key ticket and the code a refused one answers", () => {
+    const issue = document.paths["/account/model/key-ticket"]?.post;
+    const unauthorized = document.paths["/account/model"]?.put?.responses["401"];
+
+    expect(refsIn(responseSchemaOf(issue?.responses["201"] ?? {}))).toEqual(["#/components/schemas/ModelKeyTicket"]);
+    expect(JSON.stringify(responseSchemaOf(unauthorized ?? {}))).toContain('"enum":["model_key_ticket_invalid"]');
   });
 
   it("bounds every list it describes", () => {

@@ -247,6 +247,13 @@ export interface AccountModelChoicesTable {
   updated_at: Generated<Date>;
 }
 
+export interface ModelKeyTicketsTable {
+  token_hash: string;
+  account_id: string;
+  expires_at: Date;
+  created_at: Generated<Date>;
+}
+
 export interface DatabaseSchema {
   accounts: AccountsTable;
   sessions: SessionsTable;
@@ -265,4 +272,5 @@ export interface DatabaseSchema {
   curation_units: CurationUnitsTable;
   statements: StatementsTable;
   account_model_choices: AccountModelChoicesTable;
+  model_key_tickets: ModelKeyTicketsTable;
 }
