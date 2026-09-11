@@ -18,4 +18,15 @@ describe("SiteTemplate", () => {
     expect(screen.getByRole("button", { name: "Sign out" })).toBeInTheDocument();
     expect(screen.getByRole("main")).toHaveTextContent("content");
   });
+
+  it("widens the column for a step that lays out panels of its own", () => {
+    render(
+      <SiteTemplate stepLabel="Step 2 · Profile analysis" candidate={{ initials: "AL", name: "Ada Lovelace", email: "ada@example.com" }} signOut={<button>Sign out</button>} wide>
+        <p>content</p>
+      </SiteTemplate>,
+    );
+
+    expect(screen.getByRole("main")).toHaveClass("wideMain");
+    expect(screen.getByText("content").parentElement).toHaveClass("wideColumn");
+  });
 });

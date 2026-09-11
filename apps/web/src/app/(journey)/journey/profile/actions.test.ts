@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ProfileUnavailableError, profileClient } from "../../../../lib/profile-client";
@@ -10,6 +11,11 @@ vi.mock("../../../../lib/profile-client", async (importOriginal) => ({
 }));
 vi.mock("../../../../lib/session-cookie", () => ({ readSessionToken: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/navigation", () => ({
+  redirect: vi.fn(() => {
+    throw new Error("NEXT_REDIRECT");
+  }),
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -17,11 +23,12 @@ beforeEach(() => {
 });
 
 describe("confirmProfileAction", () => {
-  it("confirms with the Session", async () => {
+  it("confirms with the Session and moves on to the analysis", async () => {
     vi.mocked(profileClient.confirm).mockResolvedValue({} as never);
 
-    expect(await confirmProfileAction()).toEqual({ ok: true });
+    await expect(confirmProfileAction()).rejects.toThrow("NEXT_REDIRECT");
     expect(profileClient.confirm).toHaveBeenCalledWith("session-token");
+    expect(redirect).toHaveBeenCalledWith("/journey/analysis");
   });
 
   it("asks to sign in again without a Session, and never calls the API", async () => {
@@ -29,11 +36,13 @@ describe("confirmProfileAction", () => {
 
     expect(await confirmProfileAction()).toEqual({ ok: false, message: "Your session has expired. Sign in again to confirm your Profile." });
     expect(profileClient.confirm).not.toHaveBeenCalled();
+    expect(redirect).not.toHaveBeenCalled();
   });
 
-  it("says the Profile could not be confirmed when the API refuses", async () => {
+  it("says the Profile could not be confirmed when the API refuses, and stays on the page", async () => {
     vi.mocked(profileClient.confirm).mockRejectedValue(new ProfileUnavailableError(404));
 
     expect(await confirmProfileAction()).toEqual({ ok: false, message: "We couldn't confirm your Profile. Try again in a moment." });
+    expect(redirect).not.toHaveBeenCalled();
   });
 });

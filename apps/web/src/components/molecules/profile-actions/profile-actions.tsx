@@ -10,15 +10,14 @@ export type ConfirmResult = { ok: true } | { ok: false; message: string };
 
 export interface ProfileActionsProps {
   uploadHref: string;
+  analysisHref: string;
   confirmed: boolean;
   confirm: () => Promise<ConfirmResult>;
 }
 
-const CONFIRMED_LABEL = "Profile confirmed · the LinkedIn step is next";
-
 // The two actions the review offers. Once the Profile is confirmed the journey has moved
-// on, so only the way back to a new upload remains.
-export function ProfileActions({ uploadHref, confirmed, confirm }: ProfileActionsProps) {
+// on to the analysis, so the way there takes the confirmation's place.
+export function ProfileActions({ uploadHref, analysisHref, confirmed, confirm }: ProfileActionsProps) {
   const [result, submit, confirming] = useActionState(async (): Promise<ConfirmResult> => confirm(), null);
 
   return (
@@ -27,7 +26,12 @@ export function ProfileActions({ uploadHref, confirmed, confirm }: ProfileAction
         Re-upload PDF
       </Button>
       {confirmed ? (
-        <p className={styles.confirmed}>{CONFIRMED_LABEL}</p>
+        <>
+          <p className={styles.confirmed}>Profile confirmed</p>
+          <Button size="header" href={analysisHref}>
+            Open the analysis
+          </Button>
+        </>
       ) : (
         <form action={submit}>
           <Button size="header" type="submit" disabled={confirming}>

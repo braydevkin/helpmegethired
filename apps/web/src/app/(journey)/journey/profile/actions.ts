@@ -1,11 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import type { ConfirmResult } from "../../../../components/molecules/profile-actions/profile-actions";
 import { profileClient } from "../../../../lib/profile-client";
 import { readSessionToken } from "../../../../lib/session-cookie";
-import { JOURNEY_PATH } from "../../../paths";
+import { ANALYSIS_PATH, JOURNEY_PATH } from "../../../paths";
 
 const SESSION_EXPIRED_MESSAGE = "Your session has expired. Sign in again to confirm your Profile.";
 const NOT_CONFIRMED_MESSAGE = "We couldn't confirm your Profile. Try again in a moment.";
@@ -24,6 +25,5 @@ export async function confirmProfileAction(): Promise<ConfirmResult> {
   }
 
   revalidatePath(JOURNEY_PATH, "layout");
-
-  return { ok: true };
+  redirect(ANALYSIS_PATH);
 }
