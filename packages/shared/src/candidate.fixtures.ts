@@ -84,6 +84,7 @@ export const profile: Profile = {
   certifications: [certification],
   yearsOfExperience: 5,
   reviewFlags: [reviewFlag],
+  corrections: { basicProfile: false, entryIds: [] },
   source: {
     kind: "upload",
     uploadedResumeId: UPLOADED_RESUME_ID,

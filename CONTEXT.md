@@ -50,6 +50,10 @@ _Avoid_: API key, token, credentials, secret
 The structured picture of a Candidate built from their Uploaded Resume. Composed of seven parts: one Basic Profile and the lists of Experiences, Education, Projects, Skills, Languages, and Certifications. Belongs to exactly one Account. Reviewed by the Candidate, who confirms it once every field that needs review has been checked.
 _Avoid_: CV, resume data
 
+**Correction**:
+The Candidate's own answer to what the recognition got wrong, written on the Profile row the Ingestion built: a part corrected, an entry added, or an entry removed. Possible until the Profile is confirmed, and replaced with everything else when a new Ingestion writes the Profile again.
+_Avoid_: Edit, update, manual entry
+
 **Basic Profile**:
 The profile-level facts about a Candidate: headline, summary, LinkedIn URL, GitHub URL. A part of the Profile, not an entity of its own. Holds no name, e-mail, phone, or address; those are Account Information.
 _Avoid_: Personal info, bio, contact

@@ -27,6 +27,7 @@ const profile: Profile = {
     { id: id(), name: "Scrum Developer", issuer: null, year: null },
   ],
   yearsOfExperience: 7,
+  corrections: { basicProfile: false, entryIds: [] },
   reviewFlags: [{ part: "experience", entry: "Freelance Developer", field: "period", reason: "low_confidence" }],
   source: { kind: "upload", uploadedResumeId: id(), fileName: "ana.pdf", ingestionId: id(), completedAt: "2026-09-08T10:00:00.000Z" },
   confirmedAt: null,

@@ -40,6 +40,10 @@ describe("the OpenAPI document", () => {
         "GET /resumes/{id}",
         "GET /profile",
         "POST /profile/confirm",
+        "PUT /profile/parts/basic-profile",
+        "POST /profile/parts/{part}",
+        "PUT /profile/parts/{part}/{id}",
+        "DELETE /profile/parts/{part}/{id}",
         "GET /profile/curation",
         "GET /profile/curation/statements",
         "PUT /profile/curation/statements/{id}/review",
@@ -57,7 +61,7 @@ describe("the OpenAPI document", () => {
       expect(names.map((name) => `#/components/schemas/${name}`)).toContain(reference);
     }
 
-    expect(names).toEqual(expect.arrayContaining(["Account", "ApiError", "ResumeUpload", "ResumeUploadReceipt", "UploadedResume", "Profile", "CurationProgressState", "CurationStatements", "CuratedStatement", "StatementReviewRequest"]));
+    expect(names).toEqual(expect.arrayContaining(["Account", "ApiError", "ResumeUpload", "ResumeUploadReceipt", "UploadedResume", "Profile", "CurationProgressState", "CurationStatements", "CuratedStatement", "StatementReviewRequest", "BasicProfile", "ProfileEntryCorrection"]));
     expect(document.components.schemas.Profile).toMatchObject({ type: "object", required: expect.arrayContaining(["accountId", "reviewFlags", "source"]) });
     expect(document.components.schemas.CurationProgressState).toMatchObject({ type: "object", required: ["progress"] });
   });

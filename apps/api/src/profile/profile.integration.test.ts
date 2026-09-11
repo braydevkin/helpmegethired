@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import type { INestApplicationContext } from "@nestjs/common";
+import { BadRequestException, type INestApplicationContext } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
 import { ProfileSchema, SESSION_LIFETIME_SECONDS, type Id, type Profile } from "@helpmegethired/shared";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -17,6 +17,7 @@ import { DatabaseModule } from "../database/database.module";
 import { createAccountPair, expectScopedToAccount } from "../database/testing/account-pair";
 import { ExtractionHandover } from "../extraction/extraction-handover";
 import { UploadedResumeRunRepository } from "../extraction/uploaded-resume-run.repository";
+import { asJson } from "../ingestion/ingestion.mapper";
 import { IngestionQueue, type IngestionJob } from "../ingestion/ingestion-queue";
 import { IngestionRunRepository } from "../ingestion/ingestion-run.repository";
 import { IngestionRepository } from "../ingestion/ingestion.repository";
@@ -27,6 +28,7 @@ import { QUEUE_PREFIX } from "../queue/queues";
 import { resumeObjectKeyFor } from "../resumes/resume-object-key";
 import { UploadedResumeRepository } from "../resumes/uploaded-resume.repository";
 import { EXTRACTION_MAX_ATTEMPTS } from "../resumes/uploaded-resume.service";
+import { ProfileCorrectionService } from "./profile-correction.service";
 import { ProfileIngestionModule } from "./profile-ingestion.module";
 import { ProfileRepository } from "./profile.repository";
 import { ProfileService } from "./profile.service";
@@ -67,6 +69,7 @@ describe("profile built by Segments", () => {
   let ingestionService: IngestionService;
   let registry: SegmentProcessorRegistry;
   let profiles: ProfileService;
+  let corrections: ProfileCorrectionService;
   let repository: ProfileRepository;
   let queue: RecordingQueue;
 
@@ -92,6 +95,7 @@ describe("profile built by Segments", () => {
     ingestionService = context.get(IngestionService);
     registry = context.get(SegmentProcessorRegistry);
     profiles = context.get(ProfileService);
+    corrections = context.get(ProfileCorrectionService);
     repository = context.get(ProfileRepository);
   });
 
@@ -361,6 +365,149 @@ describe("profile built by Segments", () => {
     });
   });
 
+  describe("corrections", () => {
+    const first = <Entry>(entries: readonly Entry[], what: string): Entry => {
+      const [entry] = entries;
+
+      if (!entry) {
+        throw new Error(`The fixture produced no ${what} to correct`);
+      }
+
+      return entry;
+    };
+
+    // No corpus résumé is recognized badly enough to flag an entry, so the flag is put where a
+    // hesitant recognition would have left it: on the Segment's own output.
+    const flagFirstExperience = async (ingestionId: Id): Promise<void> => {
+      const segment = first(
+        (await ingestionRuns.segmentsOf(ingestionId)).filter((candidate) => candidate.kind === "experience"),
+        "Experience Segment",
+      );
+      const recognized = structuredClone(segment.recognized) as { experiences: { role: { confidence: string } }[] };
+
+      recognized.experiences[0]!.role.confidence = "low";
+
+      await database.updateTable("ingestion_segments").set({ recognized: asJson(recognized) }).where("id", "=", segment.id).execute();
+    };
+
+    it("corrects the Basic Profile, counts it as the Candidate's own, and drops the flags that name no entry", async () => {
+      const accountId = await newAccount();
+      const { profile } = await built(accountId, "grace-two-columns-en");
+
+      expect(profile.reviewFlags.some((flag) => flag.entry === null)).toBe(true);
+
+      const corrected = await corrections.correctBasicProfile(accountId, {
+        headline: "Distributed systems engineer",
+        summary: profile.basicProfile.summary,
+        linkedinUrl: profile.basicProfile.linkedinUrl,
+        githubUrl: profile.basicProfile.githubUrl,
+      });
+
+      expect(corrected.basicProfile.headline).toBe("Distributed systems engineer");
+      expect(corrected.corrections.basicProfile).toBe(true);
+      expect(corrected.reviewFlags.some((flag) => flag.entry === null)).toBe(false);
+    });
+
+    it("stops flagging an Experience the Candidate has corrected, and keeps the flags of the others", async () => {
+      const accountId = await newAccount();
+      const { ingestionId } = await built(accountId, "ada-single-column-en");
+
+      await flagFirstExperience(ingestionId);
+
+      const flagged = await profiles.get(accountId);
+      const entry = first(flagged.experiences, "Experience");
+      const { id, ...correction } = entry;
+
+      expect(flagged.reviewFlags).toContainEqual({ part: "experience", entry: entry.role, field: "role", reason: "low_confidence" });
+
+      const corrected = await corrections.replaceEntry(accountId, "experiences", id, { ...correction, role: "Staff Backend Engineer" });
+
+      expect(corrected.experiences.map((experience) => experience.role)).toContain("Staff Backend Engineer");
+      expect(corrected.reviewFlags.some((flag) => flag.part === "experience")).toBe(false);
+      expect(corrected.corrections.entryIds).toContain(id);
+      expect(corrected.reviewFlags).toEqual(flagged.reviewFlags.filter((flag) => flag.part !== "experience"));
+    });
+
+    it("keeps the place of a corrected entry in its part", async () => {
+      const accountId = await newAccount();
+      const { profile } = await built(accountId, "ada-single-column-en");
+      const order = profile.experiences.map((experience) => experience.id);
+      const { id, ...correction } = first(profile.experiences, "Experience");
+
+      const corrected = await corrections.replaceEntry(accountId, "experiences", id, { ...correction, company: "Northwind Labs" });
+
+      expect(corrected.experiences.map((experience) => experience.id)).toEqual(order);
+    });
+
+    it("adds an entry the résumé never held at the end of its part, as the Candidate's own", async () => {
+      const accountId = await newAccount();
+      const { profile } = await built(accountId, "ada-single-column-en");
+
+      const withEntry = await corrections.addEntry(accountId, "languages", { name: "Portuguese", level: "Native" });
+      const added = withEntry.languages.at(-1);
+
+      expect(withEntry.languages).toHaveLength(profile.languages.length + 1);
+      expect(added).toMatchObject({ name: "Portuguese", level: "Native" });
+      expect(withEntry.corrections.entryIds).toContain(added?.id);
+    });
+
+    it("removes an entry the recognition should not have written", async () => {
+      const accountId = await newAccount();
+      const { profile } = await built(accountId, "ada-single-column-en");
+      const removed = first(profile.skills, "Skill");
+
+      const left = await corrections.removeEntry(accountId, "skills", removed.id);
+
+      expect(left.skills.map((skill) => skill.id)).not.toContain(removed.id);
+      expect(left.skills).toHaveLength(profile.skills.length - 1);
+    });
+
+    it("refuses an entry that breaks its part's schema and writes nothing", async () => {
+      const accountId = await newAccount();
+      const { profile } = await built(accountId, "ada-single-column-en");
+
+      await expect(corrections.addEntry(accountId, "languages", { name: "" })).rejects.toBeInstanceOf(BadRequestException);
+      expect((await profiles.get(accountId)).languages).toHaveLength(profile.languages.length);
+    });
+
+    it("answers another Account's entry as absent and leaves it untouched", async () => {
+      const pair = await createAccountPair(database);
+      const { profile } = await built(pair.owner, "ada-single-column-en");
+      const entry = first(profile.experiences, "Experience");
+
+      await expect(corrections.removeEntry(pair.other, "experiences", entry.id)).rejects.toThrow(/has no Profile built yet/);
+      expect((await profiles.get(pair.owner)).experiences.map((experience) => experience.id)).toContain(entry.id);
+    });
+
+    it("answers an entry of another part as absent", async () => {
+      const accountId = await newAccount();
+      const { profile } = await built(accountId, "ada-single-column-en");
+
+      await expect(corrections.removeEntry(accountId, "projects", first(profile.experiences, "Experience").id)).rejects.toThrow(/No projects entry/);
+    });
+
+    it("takes no correction once the Profile is confirmed", async () => {
+      const accountId = await newAccount();
+      const { profile } = await built(accountId, "ada-single-column-en");
+
+      await profiles.confirm(accountId);
+
+      await expect(corrections.removeEntry(accountId, "skills", first(profile.skills, "Skill").id)).rejects.toThrow(/takes no more corrections/);
+    });
+
+    it("loses the corrections to the next Ingestion, which writes the Profile again", async () => {
+      const accountId = await newAccount();
+
+      await built(accountId, "ada-single-column-en");
+      await corrections.addEntry(accountId, "languages", { name: "Portuguese", level: "Native" });
+
+      const { profile } = await built(accountId, "ada-single-column-en");
+
+      expect(profile.languages.map((language) => language.name)).not.toContain("Portuguese");
+      expect(profile.corrections).toEqual({ basicProfile: false, entryIds: [] });
+    });
+  });
+
   describe("Account scoping", () => {
     it("answers an empty Profile before any Ingestion and never another Account's rows", async () => {
       const pair = await createAccountPair(database);
@@ -382,8 +529,12 @@ describe("profile endpoints", () => {
   let accounts: AccountRepository;
   let sessions: SessionRepository;
 
-  const request = (method: string, path: string, token: string) =>
-    fetch(`${baseUrl}${path}`, { method, headers: { authorization: `Bearer ${token}` } });
+  const request = (method: string, path: string, token: string, body?: unknown) =>
+    fetch(`${baseUrl}${path}`, {
+      method,
+      headers: { authorization: `Bearer ${token}`, ...(body === undefined ? {} : { "content-type": "application/json" }) },
+      ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
 
   const openSession = async (): Promise<{ accountId: string; token: string }> => {
     const account = await accounts.create({ email: `${randomUUID()}@candidate.example` });
@@ -434,7 +585,26 @@ describe("profile endpoints", () => {
     expect(await response.json()).toMatchObject({ statusCode: 404, error: "Not Found" });
   });
 
+  it("answers 404 on a correction while no Profile has been built", async () => {
+    const { token } = await openSession();
+    const body = { headline: "Backend engineer", summary: null, linkedinUrl: null, githubUrl: null };
+
+    const response = await request("PUT", "/profile/parts/basic-profile", token, body);
+
+    expect(response.status).toBe(404);
+    expect(await response.json()).toMatchObject({ statusCode: 404, error: "Not Found" });
+  });
+
+  it("answers 400 on a part the Profile does not have", async () => {
+    const { token } = await openSession();
+
+    const response = await request("POST", "/profile/parts/hobbies", token, { name: "Chess" });
+
+    expect(response.status).toBe(400);
+  });
+
   it("refuses an anonymous request", async () => {
     expect((await fetch(`${baseUrl}/profile`)).status).toBe(401);
+    expect((await fetch(`${baseUrl}/profile/parts/basic-profile`, { method: "PUT" })).status).toBe(401);
   });
 });
