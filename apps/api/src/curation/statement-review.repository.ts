@@ -9,11 +9,10 @@ import {
 } from "@helpmegethired/shared";
 
 import { DATABASE, type Database } from "../database/database";
-import type { StatementRow } from "../database/database.schema";
 import { StatementNotFoundError } from "./statement-errors";
-import { toStatement } from "./statement.repository";
+import { toStatement, type StatementFields } from "./statement.repository";
 
-type CuratedStatementRow = StatementRow & { unit_kind: CurationUnitKind; unit_title: string };
+type CuratedStatementRow = StatementFields & { unit_kind: CurationUnitKind; unit_title: string };
 
 const toCuratedStatement = ({ unit_kind, unit_title, ...row }: CuratedStatementRow): CuratedStatement => ({
   ...toStatement(row),
@@ -73,8 +72,19 @@ export class StatementReviewRepository {
     return this.database
       .selectFrom("statements")
       .innerJoin("curation_units", "curation_units.id", "statements.unit_id")
-      .selectAll("statements")
-      .select(["curation_units.kind as unit_kind", "curation_units.title as unit_title"])
+      .select([
+        "statements.id",
+        "statements.text",
+        "statements.labels",
+        "statements.evidence",
+        "statements.prompt_version",
+        "statements.model_id",
+        "statements.review_state",
+        "statements.reviewed_at",
+        "statements.created_at",
+        "curation_units.kind as unit_kind",
+        "curation_units.title as unit_title",
+      ])
       .where("statements.account_id", "=", accountId);
   }
 }
