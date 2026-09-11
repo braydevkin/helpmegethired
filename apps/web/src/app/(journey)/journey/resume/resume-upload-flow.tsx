@@ -7,16 +7,9 @@ import { Button } from "../../../../components/atoms/button/button";
 import { ScreenHeading } from "../../../../components/molecules/screen-heading/screen-heading";
 import { IngestionProgress } from "../../../../components/organisms/ingestion-progress/ingestion-progress";
 import { UploadDropArea } from "../../../../components/organisms/upload-drop-area/upload-drop-area";
+import { pollDelayMs } from "../../../../lib/poll-delay";
 import { formatSize } from "../../../../lib/resume-upload/format";
-import {
-  failureLeadOf,
-  foundCountOf,
-  percentageOf,
-  pollDelayMs,
-  profileDataRowsOf,
-  stagesOf,
-  type UploadView,
-} from "../../../../lib/resume-upload/progress";
+import { failureLeadOf, foundCountOf, percentageOf, profileDataRowsOf, stagesOf, type UploadView } from "../../../../lib/resume-upload/progress";
 import { RESUME_MAX_SIZE_MB, rejectionOf } from "../../../../lib/resume-upload/rejection";
 import { sha256Of } from "../../../../lib/resume-upload/sha256";
 import { completeResumeAction, createResumeAction, readResumeAction } from "./actions";
