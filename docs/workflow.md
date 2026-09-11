@@ -92,10 +92,10 @@ feature/         ●───●       ●─●  fix/
 Rules:
 
 - `feature/*` and `fix/*` branch from `develop` and target `develop`.
-- `hotfix/*` branches from `main`, targets `main`, and is merged back into `develop` immediately after (open a second PR `main → develop` or cherry-pick; never leave `develop` behind `main`).
+- `hotfix/*` branches from `main`, targets `main`, and is merged back into `develop` immediately after through a second PR `main → develop`, merged with a merge commit like every PR across the `main` boundary; a cherry-pick would leave `main` outside `develop`'s history, and `develop` never stays behind `main`.
 - A **release** is a PR from `develop` to `main`. It must include a release document (see below). On merge, `main` is tagged `vX.Y.Z`.
 - Nobody commits directly to `main` or `develop`. Both require a PR, a green CI, and a review.
-- **Merge method.** A pull request that crosses the `main` boundary, in either direction, is merged with a **merge commit** (`gh pr merge <n> --merge`). Squash and rebase rewrite the branch into a new commit and drop the second parent, so `main` stays outside `develop`'s history; git then falls back to the last commit the two branches actually share and reports every file of the next release as an add/add conflict, over content that is identical on both sides. Everything else, `feature/*` and `fix/*` into `develop`, is squashed as usual.
+- **Merge method.** A pull request that crosses the `main` boundary, in either direction, is merged with a **merge commit** (`gh pr merge <n> --merge`). Squash and rebase rewrite the branch into a new commit and drop the second parent, so `main` stays outside `develop`'s history; git then falls back to the last commit the two branches actually share and reports every file of the next release as an add/add conflict, over content that is identical on both sides. Branch protection on `develop` and `main` must therefore not require linear history: that setting forbids merge commits and leaves only squash and rebase, which is how #98, #100, #130 and #166 lost their second parent. Everything else, `feature/*` and `fix/*` into `develop`, is squashed as usual.
 - Keep branches short-lived. Rebase on the target branch before opening the PR; no merge commits from the target into the branch.
 - Delete the branch after merge.
 
