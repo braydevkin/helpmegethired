@@ -16,6 +16,7 @@ import { CURATION_RUNNER_SETTINGS, type CurationRunnerSettings } from "./curatio
 import { CURATION_PROMPT_VERSION } from "./curation-starter";
 import { citableKey, resolveEvidence, type CitableTexts } from "./evidence-resolution";
 import { CurationModel, type TokenUsage } from "./model/curation-model";
+import { EmbeddingFailedError, EmbeddingModel } from "./model/embedding-model";
 import { CurationCallFailedError, ModelKeyRejectedError, ProviderRateLimitedError } from "./model/curation-model-errors";
 import { runConcurrently } from "./run-concurrently";
 import { cappedInput, sourcesOf } from "./unit-input";
@@ -73,6 +74,7 @@ export class CurationRunner {
   constructor(
     private readonly runs: CurationRunRepository,
     private readonly model: CurationModel,
+    private readonly embeddings: EmbeddingModel,
     private readonly keys: ModelChoiceService,
     private readonly clock: Clock,
     @Inject(CURATION_RUNNER_SETTINGS) private readonly settings: CurationRunnerSettings,
@@ -150,12 +152,37 @@ export class CurationRunner {
         this.logger.log(`curation stopped curation=${run.id}`);
 
         return;
-      default: {
-        const completed = await this.runs.completeAttempt(run.id);
-
-        this.logger.log(`curation ${completed ? "completed" : "stopped"} curation=${run.id}`);
-      }
+      default:
+        return this.complete(run);
     }
+  }
+
+  // Embedding waits until every unit is saved, so no query ever meets half a Candidate (#114). A
+  // failure fails the attempt with nothing indexed, and the queue retries it with its backoff.
+  private async complete(run: CurationRun): Promise<void> {
+    const statements = await this.runs.statementsToEmbed(run.id);
+    let vectors: number[][];
+
+    try {
+      vectors = await this.embeddings.embed(statements.map((statement) => statement.text));
+    } catch (error) {
+      if (!(error instanceof EmbeddingFailedError)) {
+        throw error;
+      }
+
+      const status = await this.runs.failAttempt(run.id);
+
+      this.logger.warn(`curation embedding failed curation=${run.id} attempt=${run.attempts} of=${run.maxAttempts} now=${status ?? "unknown"}`);
+
+      throw new CurationAttemptFailedError(run.id, status);
+    }
+
+    const completed = await this.runs.completeWithEmbeddings(
+      run.id,
+      statements.map((statement, index) => ({ statementId: statement.id, embedding: vectors[index] ?? [] })),
+    );
+
+    this.logger.log(`curation ${completed ? "completed" : "stopped"} curation=${run.id} statements=${statements.length}`);
   }
 
   // A job for a Curation that cannot start: already ended, paused until later, or with every
