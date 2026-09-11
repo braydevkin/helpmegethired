@@ -178,6 +178,7 @@ services:
     environment:
       NODE_ENV: development
       API_URL: http://api:3001
+      API_PUBLIC_URL: http://localhost:${API_PORT:?}
       DATABASE_URL: *database-url
       AUTH_SECRET: ${AUTH_SECRET:?}
       AUTH_RESEND_KEY: ${AUTH_RESEND_KEY:-}
