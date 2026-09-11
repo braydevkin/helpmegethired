@@ -6,12 +6,15 @@ import { lockAccount } from "../database/account-lock";
 import { DATABASE, type Database } from "../database/database";
 import type { CurationSubjects, NewCurationUnit } from "./curation-units";
 import { toCuration } from "./curation.mapper";
+import type { CurationOrigin } from "./rerun-gate";
 
 const RESUME_SOURCE = "upload";
 
 // A Curation of the same Ingestion in any other state is the one the Candidate has, so a second
 // one would only duplicate it; these two free the Ingestion for a new one.
 const REPLACEABLE_STATUSES = ["failed", "cancelled"] as const satisfies readonly CurationStatus[];
+
+const updatedNow = { updated_at: sql<Date>`now()` };
 
 export const PROFILE_ORDER = ["segment_position", "position"] as const;
 
@@ -22,6 +25,18 @@ export const latestProfileIngestionOf = (database: Database, accountId: Id) =>
     .select("id")
     .where("account_id", "=", accountId)
     .where("source", "=", RESUME_SOURCE)
+    .where("status", "=", "completed")
+    .orderBy("completed_at", "desc")
+    .orderBy("id", "desc")
+    .limit(1);
+
+// The Account's current Curation, the one retrieval reads (ADR-0024): the latest completed one. A
+// completing re-run supersedes the one before it, so a second completed one never stays behind.
+export const currentCompletedCurationOf = (database: Database, accountId: Id) =>
+  database
+    .selectFrom("curations")
+    .select("id")
+    .where("account_id", "=", accountId)
     .where("status", "=", "completed")
     .orderBy("completed_at", "desc")
     .orderBy("id", "desc")
@@ -38,6 +53,12 @@ export interface NewCuration {
   promptVersion: string;
   maxAttempts: number;
   units: readonly NewCurationUnit[];
+}
+
+export interface CurationRecord extends CurationOrigin {
+  id: Id;
+  status: CurationStatus;
+  maxAttempts: number;
 }
 
 // Every method takes the Account first, so another Account's rows answer as absent.
@@ -102,6 +123,53 @@ export class CurationRepository {
     return row && toCuration(row);
   }
 
+  // The newest Curation of the Ingestion that is not superseded: an in-flight re-run, or the one a
+  // retry resumes.
+  findLatestOf(accountId: Id, ingestionId: Id, database: Database = this.database): Promise<CurationRecord | undefined> {
+    return this.records(database)
+      .where("account_id", "=", accountId)
+      .where("source_ingestion_id", "=", ingestionId)
+      .where("status", "!=", "superseded")
+      .orderBy("created_at", "desc")
+      .orderBy("id", "desc")
+      .executeTakeFirst();
+  }
+
+  findCurrentCompleted(accountId: Id, database: Database = this.database): Promise<CurationRecord | undefined> {
+    return this.records(database).where("account_id", "=", accountId).where("id", "=", currentCompletedCurationOf(database, accountId)).executeTakeFirst();
+  }
+
+  // A cancel, a retry, or a re-run changes the Account's Curations: their rows are locked before the
+  // Account row, in id order, the order the resume observer and a runner saving a unit take them in.
+  async lockForChange(accountId: Id, transaction: Database): Promise<void> {
+    await transaction.selectFrom("curations").select("id").where("account_id", "=", accountId).where("status", "!=", "superseded").orderBy("id").forUpdate().execute();
+    await lockAccount(accountId, transaction);
+  }
+
+  // The units left running are pending again, so progress never shows a unit no one works on.
+  async cancel(accountId: Id, curationId: Id, transaction: Database): Promise<void> {
+    await transaction
+      .updateTable("curations")
+      .set({ status: "cancelled", resume_after: null, ...updatedNow })
+      .where("account_id", "=", accountId)
+      .where("id", "=", curationId)
+      .where("status", "in", ACTIVE_CURATION_STATUSES)
+      .execute();
+    await this.releaseUnits(curationId, transaction);
+  }
+
+  // Saved units stay saved, so the runner resumes at the first unsaved one.
+  async requeue(accountId: Id, curationId: Id, transaction: Database): Promise<void> {
+    await transaction
+      .updateTable("curations")
+      .set({ status: "queued", attempts: 0, failure_reason: null, resume_after: null, ...updatedNow })
+      .where("account_id", "=", accountId)
+      .where("id", "=", curationId)
+      .where("status", "in", REPLACEABLE_STATUSES)
+      .execute();
+    await this.releaseUnits(curationId, transaction);
+  }
+
   // A new Ingestion replaces the Profile these Curations cite (ADR-0024). Their rows are locked
   // before the Account row because a runner saving a unit holds its Curation's row and then needs
   // the Account row for the Statements' foreign key; the other order would deadlock the two. The
@@ -113,13 +181,14 @@ export class CurationRepository {
       .where("account_id", "=", accountId)
       .where("source_ingestion_id", "!=", keptIngestionId)
       .where("status", "!=", "superseded")
+      .orderBy("id")
       .forUpdate()
       .execute();
     await lockAccount(accountId, transaction);
 
     const superseded = await transaction
       .updateTable("curations")
-      .set({ status: "superseded", updated_at: sql<Date>`now()` })
+      .set({ status: "superseded", ...updatedNow })
       .where("account_id", "=", accountId)
       .where("source_ingestion_id", "!=", keptIngestionId)
       .where("status", "!=", "superseded")
@@ -151,5 +220,20 @@ export class CurationRepository {
       .execute();
 
     return toCuration(row);
+  }
+
+  private records(database: Database) {
+    return database
+      .selectFrom("curations")
+      .select(["id", "status", "source_ingestion_id as sourceIngestionId", "model_id as modelId", "prompt_version as promptVersion", "max_attempts as maxAttempts"]);
+  }
+
+  private async releaseUnits(curationId: Id, transaction: Database): Promise<void> {
+    await transaction
+      .updateTable("curation_units")
+      .set({ status: "pending", failure_reason: null, ...updatedNow })
+      .where("curation_id", "=", curationId)
+      .where("status", "in", ["running", "failed"])
+      .execute();
   }
 }

@@ -168,11 +168,19 @@ export class CurationRunRepository {
 
   // Every vector and `completed` are one transaction, written only while the Curation still runs:
   // a Curation is never half indexed, and the queue never finishes a job whose row says running.
+  // The completed one becomes current, so every other Curation of the Account, the one a re-run
+  // replaces included, is superseded with its Statements in the same transaction.
   completeWithEmbeddings(id: Id, vectors: readonly { statementId: Id; embedding: readonly number[] }[]): Promise<boolean> {
     return this.database.transaction().execute(async (transaction) => {
-      const current = await transaction.selectFrom("curations").select("status").where("id", "=", id).forUpdate().executeTakeFirst();
+      const owner = await transaction.selectFrom("curations").select("account_id").where("id", "=", id).executeTakeFirst();
 
-      if (current?.status !== "running") {
+      if (!owner) {
+        return false;
+      }
+
+      const locked = await this.lockAccountCurations(owner.account_id, transaction);
+
+      if (locked.find((curation) => curation.id === id)?.status !== "running") {
         return false;
       }
 
@@ -190,9 +198,45 @@ export class CurationRunRepository {
         .set({ status: "completed", failure_reason: null, completed_at: sql<Date>`now()`, ...updatedNow })
         .where("id", "=", id)
         .execute();
+      await this.supersedeAllBut(owner.account_id, id, transaction);
 
       return true;
     });
+  }
+
+  // In id order, the order the resume observer and a Candidate's cancel, retry, or re-run take
+  // them in, so none of them can deadlock with a completion.
+  private lockAccountCurations(accountId: Id, transaction: Database): Promise<Pick<CurationRow, "id" | "status">[]> {
+    return transaction
+      .selectFrom("curations")
+      .select(["id", "status"])
+      .where("account_id", "=", accountId)
+      .where("status", "!=", "superseded")
+      .orderBy("id")
+      .forUpdate()
+      .execute();
+  }
+
+  private async supersedeAllBut(accountId: Id, keptId: Id, transaction: Database): Promise<void> {
+    const superseded = await transaction
+      .updateTable("curations")
+      .set({ status: "superseded", ...updatedNow })
+      .where("account_id", "=", accountId)
+      .where("id", "!=", keptId)
+      .where("status", "!=", "superseded")
+      .returning("id")
+      .execute();
+
+    if (superseded.length > 0) {
+      await transaction
+        .deleteFrom("statements")
+        .where(
+          "curation_id",
+          "in",
+          superseded.map((row) => row.id),
+        )
+        .execute();
+    }
   }
 
   unitsOf(curationId: Id): Promise<CurationUnitRow[]> {

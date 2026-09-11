@@ -4,6 +4,7 @@ import { sql } from "kysely";
 
 import { DATABASE, type Database } from "../database/database";
 import type { StatementRow } from "../database/database.schema";
+import { currentCompletedCurationOf } from "./curation.repository";
 import { toVectorLiteral } from "./vector";
 
 // The columns a Statement answer is read from, which leaves out the embedding a list never shows.
@@ -32,20 +33,11 @@ export class StatementRepository {
   constructor(@Inject(DATABASE) private readonly database: Database) {}
 
   async nearest(accountId: Id, query: readonly number[], limit: number): Promise<Statement[]> {
-    const currentCuration = this.database
-      .selectFrom("curations")
-      .select("id")
-      .where("account_id", "=", accountId)
-      .where("status", "=", "completed")
-      .orderBy("completed_at", "desc")
-      .orderBy("id", "desc")
-      .limit(1);
-
     const rows = await this.database
       .selectFrom("statements")
       .selectAll()
       .where("account_id", "=", accountId)
-      .where("curation_id", "=", currentCuration)
+      .where("curation_id", "=", currentCompletedCurationOf(this.database, accountId))
       .where("review_state", "!=", "rejected")
       .where("embedding", "is not", null)
       .orderBy(sql`embedding <=> ${toVectorLiteral(query)}::vector`)

@@ -9,6 +9,7 @@ import {
 } from "@helpmegethired/shared";
 
 import { DATABASE, type Database } from "../database/database";
+import { currentCompletedCurationOf } from "./curation.repository";
 import { StatementNotFoundError } from "./statement-errors";
 import { toStatement, type StatementFields } from "./statement.repository";
 
@@ -18,19 +19,6 @@ const toCuratedStatement = ({ unit_kind, unit_title, ...row }: CuratedStatementR
   ...toStatement(row),
   source: { unitKind: unit_kind, title: unit_title },
 });
-
-// The Curation retrieval reads, the latest completed one, so the Candidate reviews exactly the
-// Statements a Job Description would be matched against. #118 defines the same query once in
-// curation.repository.ts; this copy goes when it merges.
-const currentCompletedCurationOf = (database: Database, accountId: Id) =>
-  database
-    .selectFrom("curations")
-    .select("id")
-    .where("account_id", "=", accountId)
-    .where("status", "=", "completed")
-    .orderBy("completed_at", "desc")
-    .orderBy("id", "desc")
-    .limit(1);
 
 // Every method takes the Account first, so another Account's Statement answers as absent.
 @Injectable()

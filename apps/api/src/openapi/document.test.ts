@@ -42,6 +42,9 @@ describe("the OpenAPI document", () => {
         "GET /profile/curation",
         "GET /profile/curation/statements",
         "PUT /profile/curation/statements/{id}/review",
+        "POST /profile/curation/cancel",
+        "POST /profile/curation/retry",
+        "POST /profile/curation/rerun",
       ].sort(),
     );
   });
@@ -97,6 +100,15 @@ describe("the OpenAPI document", () => {
     const conflict = document.paths["/resumes/{id}/complete"]?.post?.responses["409"];
 
     expect(JSON.stringify(responseSchemaOf(conflict ?? {}))).toContain('"enum":["upload_incomplete","ingestion_active"]');
+  });
+
+  it("answers 409 only on the Curation actions, and names why a re-run is refused", () => {
+    const conflicts = operations.filter(({ operation }) => operation.responses["409"] && operation.tags.includes("Curation")).map(({ path }) => path);
+    const refused = document.paths["/profile/curation/rerun"]?.post?.responses["422"];
+
+    expect(conflicts.sort()).toEqual(["/profile/curation/rerun", "/profile/curation/retry"]);
+    expect(document.paths["/profile/curation/cancel"]?.post?.responses["409"]).toBeUndefined();
+    expect(JSON.stringify(responseSchemaOf(refused ?? {}))).toContain('"enum":["curation_not_ready","curation_unchanged"]');
   });
 
   it("requires the Session on every route but health, which declares security optional", () => {

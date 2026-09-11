@@ -16,6 +16,7 @@ import {
   UploadedResumeListSchema,
   UploadedResumeSchema,
   UploadedResumeStatusSchema,
+  type CurationActionErrorCode,
   type ModelChoiceErrorCode,
   type ResumeUploadErrorCode,
 } from "@helpmegethired/shared";
@@ -82,7 +83,7 @@ const json = (description: string, schema: JsonSchema, headers?: Record<string, 
 });
 
 // An error answer is the shared ApiError, narrowed to the codes that route can carry.
-const error = (description: string, codes: readonly (ResumeUploadErrorCode | ModelChoiceErrorCode)[] = []): JsonSchema =>
+const error = (description: string, codes: readonly (ResumeUploadErrorCode | ModelChoiceErrorCode | CurationActionErrorCode)[] = []): JsonSchema =>
   json(
     description,
     codes.length === 0 ? ref("ApiError") : { allOf: [ref("ApiError"), { type: "object", properties: { code: { type: "string", enum: codes } }, required: ["code"] }] },
@@ -330,6 +331,57 @@ const paths: OpenApiDocument["paths"] = {
         "400": validationFailed,
         "401": unauthorized,
         "404": notFound,
+      },
+    },
+  },
+  "/profile/curation/cancel": {
+    post: {
+      tags: ["Curation"],
+      summary: "Stop the Curation",
+      description:
+        "Moves the queued or running Curation to `cancelled`. The runner stops at its next unit boundary, the Statements already saved are kept for a retry, and nothing is indexed. Answers the progress as it now stands.",
+      operationId: "cancelCuration",
+      responses: {
+        "200": json("The progress, now cancelled", ref("CurationProgressState")),
+        "401": unauthorized,
+        "404": error("`curation_not_found` when no Curation is queued or running", ["curation_not_found"]),
+      },
+    },
+  },
+  "/profile/curation/retry": {
+    post: {
+      tags: ["Curation"],
+      summary: "Try the failed or cancelled Curation again",
+      description:
+        "Takes the newest Curation of the Profile, when it is `failed` or `cancelled`, back to `queued` with its attempts reset and its reason cleared, and adds its job again. Saved units stay saved, so the runner resumes at the first unsaved one and the Candidate pays only for what is left.",
+      operationId: "retryCuration",
+      responses: {
+        "202": json("The progress, queued again", ref("CurationProgressState")),
+        "401": unauthorized,
+        "404": error("`curation_not_found` when the Profile has no Curation", ["curation_not_found"]),
+        "409": error("`curation_active` while a Curation is queued or running", ["curation_active"]),
+        "422": error(
+          "`curation_not_ready` before the Profile is confirmed and a Model Key stored; `curation_not_retryable` when the Curation is not failed or cancelled; `curation_model_changed` when the Model Choice changed since it started, which a re-run answers instead",
+          ["curation_not_ready", "curation_not_retryable", "curation_model_changed"],
+        ),
+      },
+    },
+  },
+  "/profile/curation/rerun": {
+    post: {
+      tags: ["Curation"],
+      summary: "Run the Curation again from zero",
+      description:
+        "Creates a new Curation beside the current completed one, which stays current and retrievable until the new one completes and supersedes it; a re-run that fails or is cancelled leaves it intact. It spends the Candidate's tokens, so it is allowed only when the newest Curation of the Profile failed or was cancelled, or the Profile, the Model, or the prompt version changed since the current one was produced.",
+      operationId: "rerunCuration",
+      responses: {
+        "202": json("The progress of the new Curation", ref("CurationProgressState")),
+        "401": unauthorized,
+        "409": error("`curation_active` while a Curation is queued or running", ["curation_active"]),
+        "422": error("`curation_not_ready` before the Profile is confirmed and a Model Key stored; `curation_unchanged` when running it again would produce the same Statements", [
+          "curation_not_ready",
+          "curation_unchanged",
+        ]),
       },
     },
   },
