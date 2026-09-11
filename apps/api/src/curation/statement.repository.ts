@@ -6,7 +6,7 @@ import { DATABASE, type Database } from "../database/database";
 import type { StatementRow } from "../database/database.schema";
 import { toVectorLiteral } from "./vector";
 
-const toStatement = (row: StatementRow): Statement =>
+export const toStatement = (row: StatementRow): Statement =>
   StatementSchema.parse({
     id: row.id,
     text: row.text,

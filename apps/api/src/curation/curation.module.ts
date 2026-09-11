@@ -10,11 +10,14 @@ import { CurationRunRepository } from "./curation-run.repository";
 import { CurationStarter } from "./curation-starter";
 import { CurationController } from "./curation.controller";
 import { CurationRepository } from "./curation.repository";
+import { StatementReviewController } from "./statement-review.controller";
+import { StatementReviewRepository } from "./statement-review.repository";
+import { StatementReviewService } from "./statement-review.service";
 import { StatementRepository } from "./statement.repository";
 
 @Module({
   imports: [QueueModule],
-  controllers: [CurationController],
+  controllers: [CurationController, StatementReviewController],
   providers: [
     CurationRepository,
     CurationRunRepository,
@@ -24,6 +27,8 @@ import { StatementRepository } from "./statement.repository";
     CurationProgressService,
     { provide: CurationQueue, useClass: BullMqCurationQueue },
     { provide: Clock, useClass: SystemClock },
+    StatementReviewRepository,
+    StatementReviewService,
   ],
   exports: [CurationRepository, CurationRunRepository, CurationStarter, StatementRepository, CurationQueue],
 })
