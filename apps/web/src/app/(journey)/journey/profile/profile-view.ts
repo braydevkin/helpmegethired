@@ -15,6 +15,7 @@ import { skillGroupsOf } from "../../../../lib/profile/skills";
 // name and contact come from the Account beside it.
 export interface ProfileView {
   sourceLabel: string;
+  correctable: boolean;
   headline: string;
   completeness: Completeness;
   certifications: CertificationEntryProps[];
@@ -38,7 +39,7 @@ const joined = (parts: readonly (string | number | null)[]): string | null => pa
 const headlineOf = ({ basicProfile, yearsOfExperience }: Profile): string =>
   [basicProfile.headline, `${counted(yearsOfExperience, "year", "years")} of experience`].filter((part) => part !== null).join(" · ");
 
-const experienceEntriesOf = ({ experiences, reviewFlags }: Profile): ExperienceEntry[] =>
+const experienceEntriesOf = ({ experiences, reviewFlags, corrections }: Profile): ExperienceEntry[] =>
   experiences.map((experience) => ({
     id: experience.id,
     role: experience.role,
@@ -46,6 +47,7 @@ const experienceEntriesOf = ({ experiences, reviewFlags }: Profile): ExperienceE
     period: experience.period && periodLabelOf(experience.period),
     description: experience.description,
     note: reviewNoteOf(reviewFlags, "experience", experience.role),
+    corrected: corrections.entryIds.includes(experience.id),
     skills: experience.skills,
   }));
 
@@ -82,6 +84,7 @@ const skillGroupPropsOf = ({ skills }: Profile): SkillGroupProps[] =>
 
 export const profileViewOf = (profile: Profile): ProfileView => ({
   sourceLabel: `Extracted from ${profile.source?.fileName ?? UNNAMED_SOURCE}`,
+  correctable: profile.source !== null && profile.confirmedAt === null,
   headline: headlineOf(profile),
   completeness: completenessOf(profile),
   certifications: certificationsOf(profile.certifications),

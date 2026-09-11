@@ -11,6 +11,7 @@ const entries = [
     period: "2022 — present",
     description: "Owns the payments platform.",
     note: null,
+    corrected: false,
     skills: ["Node.js", "NestJS"],
   },
   {
@@ -19,6 +20,7 @@ const entries = [
     company: "Self-employed",
     period: "2017 — 2018",
     description: "Small business websites and integrations.",
+    corrected: false,
     note: "Dates need confirming — the PDF lists only years.",
     skills: [],
   },
