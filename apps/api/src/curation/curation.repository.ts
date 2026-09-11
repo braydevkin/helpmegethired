@@ -13,8 +13,6 @@ const RESUME_SOURCE = "upload";
 // one would only duplicate it; these two free the Ingestion for a new one.
 const REPLACEABLE_STATUSES = ["failed", "cancelled"] as const satisfies readonly CurationStatus[];
 
-const SUPERSEDABLE_STATUSES = ["queued", "running", "completed"] as const satisfies readonly CurationStatus[];
-
 const PROFILE_ORDER = ["segment_position", "position"] as const;
 
 export interface CurationReadiness {
@@ -112,7 +110,7 @@ export class CurationRepository {
       .select("id")
       .where("account_id", "=", accountId)
       .where("source_ingestion_id", "!=", keptIngestionId)
-      .where("status", "in", SUPERSEDABLE_STATUSES)
+      .where("status", "!=", "superseded")
       .forUpdate()
       .execute();
     await lockAccount(accountId, transaction);
@@ -122,7 +120,7 @@ export class CurationRepository {
       .set({ status: "superseded", updated_at: sql<Date>`now()` })
       .where("account_id", "=", accountId)
       .where("source_ingestion_id", "!=", keptIngestionId)
-      .where("status", "in", SUPERSEDABLE_STATUSES)
+      .where("status", "!=", "superseded")
       .returning("id")
       .execute();
 

@@ -198,6 +198,15 @@ describe("a new Ingestion supersedes the current Curation", () => {
     expect(await statements.nearest(accountId, anyQuery, 10)).toEqual([]);
   });
 
+  it.each(["failed", "cancelled"] as const)("supersedes a %s Curation too, so nothing built on the replaced Profile can be retried", async (status) => {
+    const { accountId, curationId } = await curated();
+    await database.updateTable("curations").set({ status }).where("id", "=", curationId).execute();
+
+    await built(accountId, "kenji-single-column-en");
+
+    expect((await curationOf(curationId)).status).toBe("superseded");
+  });
+
   it("keeps the Curation and its Statements when the transaction replacing the Profile rolls back", async () => {
     const { accountId, curationId } = await curated();
     await runner.run(curationId);
