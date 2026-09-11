@@ -88,6 +88,8 @@ To run the apps natively against your own tooling instead, see the local setup i
 | [Wiki: Design: Account](https://github.com/braydevkin/helpmegethired/wiki/Design-Account) | The sign in and sign up design: screens, copy, tokens, components by stage, and open points |
 | [Wiki: Design: Resume Upload](https://github.com/braydevkin/helpmegethired/wiki/Design-Resume-Upload) | The upload step design: states, copy, the pipeline the Candidate sees, tokens, components by stage, and open points |
 | [Wiki: Design: Profile](https://github.com/braydevkin/helpmegethired/wiki/Design-Profile) | The Profile review page design: cards, copy, tokens, components by stage, and open points |
+| [Wiki: Design: Choose your AI](https://github.com/braydevkin/helpmegethired/wiki/Design-Choose-your-AI) | The provider and key step design: the pinned model, the key field, the summary, the phase one scope, and what is deliberately absent |
+| [Wiki: Design: AI Analysis](https://github.com/braydevkin/helpmegethired/wiki/Design-AI-Analysis) | The analysis page design: the gate, running, failed, and completed states, the progress component, Statement cards with Evidence, and the curation lane |
 | [Wiki: Guide: Walk the upload API](https://github.com/braydevkin/helpmegethired/wiki/Guide-Walk-the-upload-API) | Take a PDF to a confirmed Profile by hand in Swagger UI, one screenshot per step; the Playwright API scenario is its automated twin |
 | [apps/api/openapi/openapi.json](apps/api/openapi/openapi.json) | The OpenAPI document generated from the shared schemas; Swagger UI serves it at `/docs` in development |
 | [docs/releases/](docs/releases/README.md) | Release notes, one document per production release |
