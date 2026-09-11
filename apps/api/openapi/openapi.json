@@ -2902,6 +2902,34 @@
                         "type": "null"
                       }
                     ]
+                  },
+                  "rerun": {
+                    "type": "object",
+                    "properties": {
+                      "allowed": {
+                        "type": "boolean"
+                      },
+                      "refusal": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "enum": [
+                              "curation_active",
+                              "curation_not_ready",
+                              "curation_unchanged"
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "allowed",
+                      "refusal"
+                    ],
+                    "additionalProperties": false
                   }
                 },
                 "required": [
@@ -2912,7 +2940,8 @@
                   "metrics",
                   "modelId",
                   "failureReason",
-                  "resumeAfter"
+                  "resumeAfter",
+                  "rerun"
                 ],
                 "additionalProperties": false
               },

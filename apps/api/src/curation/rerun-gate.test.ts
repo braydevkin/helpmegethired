@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isRerunAllowed, type CurationOrigin } from "./rerun-gate";
+import { isRerunAllowed, rerunRefusalOf, type CurationOrigin, type RerunFacts } from "./rerun-gate";
 
 const origin: CurationOrigin = { sourceIngestionId: "11111111-1111-4111-8111-111111111111", modelId: "claude-sonnet-5", promptVersion: "curation/1" };
 
@@ -24,5 +24,34 @@ describe("isRerunAllowed", () => {
     ["another prompt version", { promptVersion: "curation/2" }],
   ])("allows one for %s", (_change, changed) => {
     expect(isRerunAllowed({ status: "completed" }, origin, { ...origin, ...changed })).toBe(true);
+  });
+});
+
+describe("rerunRefusalOf", () => {
+  const ready: RerunFacts = {
+    active: false,
+    readiness: { ingestionId: origin.sourceIngestionId, modelId: "claude-sonnet-5" },
+    latest: { status: "completed" },
+    current: origin,
+  };
+
+  it("answers curation_unchanged for an unchanged completed Curation", () => {
+    expect(rerunRefusalOf(ready, origin.promptVersion)).toBe("curation_unchanged");
+  });
+
+  it("answers curation_active while a Curation is queued or running, before any other rule", () => {
+    expect(rerunRefusalOf({ ...ready, active: true }, "curation/2")).toBe("curation_active");
+    expect(rerunRefusalOf({ ...ready, active: true, readiness: undefined }, origin.promptVersion)).toBe("curation_active");
+  });
+
+  it("answers curation_not_ready when the Profile is not confirmed or no Model Key is stored", () => {
+    expect(rerunRefusalOf({ ...ready, readiness: undefined }, "curation/2")).toBe("curation_not_ready");
+  });
+
+  it("answers no refusal once the prompt version or the Model changed, or nothing completed", () => {
+    expect(rerunRefusalOf(ready, "curation/2")).toBeNull();
+    expect(rerunRefusalOf({ ...ready, current: { ...origin, modelId: "claude-sonnet-4" } }, origin.promptVersion)).toBeNull();
+    expect(rerunRefusalOf({ ...ready, latest: { status: "failed" } }, origin.promptVersion)).toBeNull();
+    expect(rerunRefusalOf({ ...ready, latest: undefined, current: undefined }, origin.promptVersion)).toBeNull();
   });
 });

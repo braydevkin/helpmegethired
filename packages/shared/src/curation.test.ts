@@ -124,10 +124,15 @@ describe("CurationProgressSchema", () => {
     modelId: "claude-sonnet-5",
     failureReason: null,
     resumeAfter: null,
+    rerun: { allowed: true, refusal: null },
   };
 
   it("accepts the counts, the units with their states, the metrics and the model", () => {
     expect(CurationProgressSchema.safeParse(progress).success).toBe(true);
+  });
+
+  it("accepts a re-run refused with the code the endpoint would answer", () => {
+    expect(CurationProgressSchema.safeParse({ ...progress, rerun: { allowed: false, refusal: "curation_unchanged" } }).success).toBe(true);
   });
 
   it.each([
@@ -136,6 +141,10 @@ describe("CurationProgressSchema", () => {
     ["a percentage above 100", { ...progress, percentage: 101 }],
     ["a fractional percentage", { ...progress, percentage: 50.5 }],
     ["missing metrics", { ...progress, metrics: undefined }],
+    ["a refusal on a re-run that is allowed", { ...progress, rerun: { allowed: true, refusal: "curation_unchanged" } }],
+    ["a refused re-run without its refusal", { ...progress, rerun: { allowed: false, refusal: null } }],
+    ["a refusal a re-run never answers", { ...progress, rerun: { allowed: false, refusal: "curation_not_retryable" } }],
+    ["a missing re-run gate", { ...progress, rerun: undefined }],
   ])("rejects %s", (_label, input) => {
     expect(CurationProgressSchema.safeParse(input).success).toBe(false);
   });

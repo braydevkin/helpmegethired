@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { CurationProgressSchema, type CurationMetrics, type CurationUnitStatus, type CurationUnitSummary } from "@helpmegethired/shared";
 import { describe, expect, it } from "vitest";
 
-import { curationProgressOf, etagOf, percentageOf, type ProgressedCuration } from "./curation-progress";
+import { curationProgressOf, etagOf, percentageOf, rerunOf, type ProgressedCuration } from "./curation-progress";
 
 const metrics: CurationMetrics = {
   careerDuration: { years: 4, months: 2 },
@@ -18,6 +18,8 @@ const curation: ProgressedCuration = {
   failureReason: null,
   resumeAfter: null,
 };
+
+const allowed = rerunOf(null);
 
 const unitOf = (status: CurationUnitStatus, position = 0): CurationUnitSummary => ({
   id: randomUUID(),
@@ -46,9 +48,9 @@ describe("percentageOf", () => {
 });
 
 describe("curationProgressOf", () => {
-  it("answers the counts, every unit, the metrics and the Model the Curation was pinned to", () => {
+  it("answers the counts, every unit, the metrics, the Model the Curation was pinned to, and the re-run gate", () => {
     const units = unitsWith("saved", "running", "pending");
-    const progress = curationProgressOf(curation, units, metrics);
+    const progress = curationProgressOf(curation, units, metrics, allowed);
 
     expect(CurationProgressSchema.parse(progress)).toEqual({
       curationId: curation.id,
@@ -59,16 +61,24 @@ describe("curationProgressOf", () => {
       modelId: "claude-sonnet-5",
       failureReason: null,
       resumeAfter: null,
+      rerun: { allowed: true, refusal: null },
     });
   });
 
   it("carries the failure reason and when a rate-limited Curation resumes", () => {
     const resumeAfter = new Date("2026-09-11T10:00:00.000Z");
-    const paused = curationProgressOf({ ...curation, status: "queued", resumeAfter }, unitsWith("saved"), metrics);
-    const failed = curationProgressOf({ ...curation, status: "failed", failureReason: "attempts_exhausted" }, unitsWith("failed"), metrics);
+    const paused = curationProgressOf({ ...curation, status: "queued", resumeAfter }, unitsWith("saved"), metrics, allowed);
+    const failed = curationProgressOf({ ...curation, status: "failed", failureReason: "attempts_exhausted" }, unitsWith("failed"), metrics, allowed);
 
     expect(paused.resumeAfter).toBe("2026-09-11T10:00:00.000Z");
     expect(failed.failureReason).toBe("attempts_exhausted");
+  });
+});
+
+describe("rerunOf", () => {
+  it("allows a re-run exactly when there is no refusal", () => {
+    expect(rerunOf(null)).toEqual({ allowed: true, refusal: null });
+    expect(rerunOf("curation_unchanged")).toEqual({ allowed: false, refusal: "curation_unchanged" });
   });
 });
 
@@ -76,11 +86,20 @@ describe("etagOf", () => {
   it("is the same for the same answer and changes when a unit is saved", () => {
     const running = unitOf("running", 0);
     const pending = unitOf("pending", 1);
-    const before = { progress: curationProgressOf(curation, [running, pending], metrics) };
-    const after = { progress: curationProgressOf(curation, [{ ...running, status: "saved" }, pending], metrics) };
+    const before = { progress: curationProgressOf(curation, [running, pending], metrics, allowed) };
+    const after = { progress: curationProgressOf(curation, [{ ...running, status: "saved" }, pending], metrics, allowed) };
 
     expect(etagOf(before)).toBe(etagOf(structuredClone(before)));
     expect(etagOf(after)).not.toBe(etagOf(before));
     expect(etagOf({ progress: null })).toMatch(/^"[0-9a-f]{40}"$/);
+  });
+
+  it("changes when a re-run becomes available, although the Curation itself did not change", () => {
+    const completed: ProgressedCuration = { ...curation, status: "completed" };
+    const units = unitsWith("saved");
+    const refused = { progress: curationProgressOf(completed, units, metrics, rerunOf("curation_unchanged")) };
+    const available = { progress: curationProgressOf(completed, units, metrics, allowed) };
+
+    expect(etagOf(available)).not.toBe(etagOf(refused));
   });
 });

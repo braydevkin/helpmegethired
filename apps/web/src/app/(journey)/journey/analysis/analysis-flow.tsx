@@ -82,7 +82,7 @@ function CurationView({ progress, statements, actions, run, links }: CurationVie
           onReview={statements.review}
         />
       )}
-      {shown.completed && <CompletedClosing actions={actions} />}
+      {shown.completed && <CompletedClosing progress={progress} actions={actions} />}
     </div>
   );
 }

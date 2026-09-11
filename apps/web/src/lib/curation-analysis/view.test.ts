@@ -9,6 +9,7 @@ import {
   jobMatchingLockOf,
   pageHeadingOf,
   refusalMessageOf,
+  rerunReasonOf,
   runDetailsOf,
   statementCardOf,
   statementSourceOf,
@@ -144,6 +145,14 @@ describe("refusalMessageOf", () => {
   it("explains a refusal by its code, and falls back to the step's own message", () => {
     expect(refusalMessageOf("curation_unchanged", "fallback")).toBe("Nothing has changed since this analysis ran: the same profile and the same AI would write the same statements.");
     expect(refusalMessageOf(undefined, "fallback")).toBe("fallback");
+  });
+});
+
+describe("rerunReasonOf", () => {
+  it("says why a re-run is refused before any click, and nothing when it is allowed", () => {
+    expect(rerunReasonOf({ refusal: "curation_unchanged" })).toBe("Nothing has changed since this analysis ran: the same profile and the same AI would write the same statements.");
+    expect(rerunReasonOf({ refusal: "curation_not_ready" })).toBe("Confirm your profile and choose your AI before starting the analysis.");
+    expect(rerunReasonOf({ refusal: null })).toBeUndefined();
   });
 });
 

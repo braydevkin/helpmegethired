@@ -3,13 +3,15 @@ import type { CurationProgressState, Id } from "@helpmegethired/shared";
 
 import { Clock } from "../common/clock";
 import { curationMetricsOf } from "./curation-metrics";
-import { curationProgressOf } from "./curation-progress";
+import { curationProgressOf, rerunOf } from "./curation-progress";
 import { CurationProgressRepository } from "./curation-progress.repository";
+import { RerunGate } from "./rerun-gate";
 
 @Injectable()
 export class CurationProgressService {
   constructor(
     private readonly repository: CurationProgressRepository,
+    private readonly rerunGate: RerunGate,
     private readonly clock: Clock,
   ) {}
 
@@ -20,6 +22,8 @@ export class CurationProgressService {
       return { progress: null };
     }
 
-    return { progress: curationProgressOf(current.curation, current.units, curationMetricsOf(current.profile, this.clock.now())) };
+    const rerun = rerunOf(await this.rerunGate.refusalFor(accountId));
+
+    return { progress: curationProgressOf(current.curation, current.units, curationMetricsOf(current.profile, this.clock.now()), rerun) };
   }
 }
