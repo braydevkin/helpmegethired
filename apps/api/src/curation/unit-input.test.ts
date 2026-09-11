@@ -49,6 +49,14 @@ describe("cappedInput", () => {
     expect(sources).toEqual([{ ...first, text: "Line one.\nLine two." }]);
   });
 
+  it("cuts a single line longer than the cap at its last word, rather than dropping it", () => {
+    const paragraph = source("Role", "Runs the deployment platform for forty product teams across three regions");
+    const { sources, truncated } = cappedInput([paragraph], 4 + 30);
+
+    expect(truncated).toBe(true);
+    expect(sources[0]?.text).toBe("Runs the deployment platform");
+  });
+
   it("counts titles against the cap", () => {
     const { sources, truncated } = cappedInput([source("A title longer than the cap", "text")], 10);
 

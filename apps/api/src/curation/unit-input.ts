@@ -48,7 +48,20 @@ export function sourcesOf(unit: { kind: CurationUnitKind; subjectId: Id | null }
 }
 
 // The cap counts every character of the Candidate's own text a prompt carries, titles included,
-// and cuts a source at its last line boundary before the cap, so no source ends mid-line.
+// and cuts a source at its last line boundary before the cap, so no source ends mid-line; a single
+// line longer than the cap is cut at its last word boundary instead of being dropped.
+const boundaryOf = (cut: string): number => {
+  const lineEnd = cut.lastIndexOf("\n");
+
+  if (lineEnd >= 0) {
+    return lineEnd;
+  }
+
+  const wordEnd = cut.search(/\s\S*$/u);
+
+  return wordEnd >= 0 ? wordEnd : cut.length;
+};
+
 export function cappedInput(sources: readonly CurationSource[], cap: number = CURATION_UNIT_INPUT_MAX_CHARACTERS): UnitInput {
   const kept: CurationSource[] = [];
   let remaining = cap;
@@ -68,7 +81,7 @@ export function cappedInput(sources: readonly CurationSource[], cap: number = CU
 
     const cut = source.text.slice(0, remaining);
 
-    kept.push({ ...source, text: cut.slice(0, Math.max(cut.lastIndexOf("\n"), 0)) });
+    kept.push({ ...source, text: cut.slice(0, boundaryOf(cut)) });
 
     return { sources: kept, truncated: true };
   }

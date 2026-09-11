@@ -78,9 +78,7 @@ export class CurationRunner {
     @Inject(CURATION_RUNNER_SETTINGS) private readonly settings: CurationRunnerSettings,
   ) {}
 
-  // Every unit not yet saved, three at a time, then the synthesis unit alone once every other one
-  // is saved, since it reads what they produced. A retry calls the same method and pays only for
-  // what is left.
+  // A retry calls the same method and pays only for what is left.
   async run(curationId: Id): Promise<void> {
     const run = await this.runs.beginAttempt(curationId);
 
@@ -88,15 +86,29 @@ export class CurationRunner {
       return this.settleUnstartable(curationId);
     }
 
+    const context = await this.contextOf(run);
+
+    if (context) {
+      await this.settle(run, verdictOf(await this.runPending(context)));
+    }
+  }
+
+  private async contextOf(run: CurationRun): Promise<RunContext | undefined> {
     const key = await this.usableKeyOf(run);
 
     if (!key) {
-      return;
+      return undefined;
     }
 
     const profile = await this.runs.profileOf(run);
-    const context: RunContext = { run, key, profile, facts: curationMetricsOf(profile, this.clock.now()), texts: citableTextsOf(profile) };
-    const pending = (await this.runs.unitsOf(run.id)).filter((unit) => unit.status !== "saved");
+
+    return { run, key, profile, facts: curationMetricsOf(profile, this.clock.now()), texts: citableTextsOf(profile) };
+  }
+
+  // Every unit not yet saved, three at a time, then the synthesis unit alone once every other one
+  // is saved, since it reads what they produced.
+  private async runPending(context: RunContext): Promise<UnitOutcome[]> {
+    const pending = (await this.runs.unitsOf(context.run.id)).filter((unit) => unit.status !== "saved");
     const synthesis = pending.find((unit) => unit.kind === "synthesis");
     const outcomes = await runConcurrently(
       pending.filter((unit) => unit !== synthesis),
@@ -106,10 +118,10 @@ export class CurationRunner {
     );
 
     if (synthesis && verdictOf(outcomes).kind === "continue") {
-      outcomes.push(await this.runUnit(synthesis, { ...context, notes: await this.runs.savedStatementsOf(run.id) }));
+      outcomes.push(await this.runUnit(synthesis, { ...context, notes: await this.runs.savedStatementsOf(context.run.id) }));
     }
 
-    await this.settle(run, verdictOf(outcomes));
+    return outcomes;
   }
 
   private async settle(run: CurationRun, verdict: Verdict): Promise<void> {
