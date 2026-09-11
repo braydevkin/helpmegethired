@@ -63,6 +63,13 @@ describe("CORS", () => {
     expect(answer.headers.get("access-control-allow-credentials")).toBeNull();
   });
 
+  it("accepts the key route with a trailing slash, as the router does", async () => {
+    const answer = await preflight("/account/model/?from=journey", "PUT");
+
+    expect(answer.status).toBe(204);
+    expect(answer.headers.get("access-control-allow-origin")).toBe(WEB_ORIGIN);
+  });
+
   it("answers the key route itself with the web origin", async () => {
     const answer = await fetch(`${baseUrl}/account/model`, { method: "PUT", headers: { origin: WEB_ORIGIN } });
 

@@ -13,7 +13,8 @@ const browserRouteOptions = (webOrigin: string): CorsOptions => ({
   maxAge: 600,
 });
 
-const pathOf = (url: string | undefined): string => (url ?? "").split("?")[0] ?? "";
+// Express routes `/account/model/` to the same handler, so the preflight has to accept it too.
+const pathOf = (url: string | undefined): string => ((url ?? "").split("?")[0] ?? "").replace(/\/$/, "");
 
 export const corsOptionsFor =
   (webOrigin: string): CorsOptionsDelegate<Request> =>
