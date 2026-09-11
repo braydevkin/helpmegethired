@@ -2,7 +2,6 @@ import { MODEL_KEY_MIN_LENGTH, type ModelChoiceErrorCode } from "@helpmegethired
 
 import { ModelChoiceRefusedError } from "./model-choice-refused-error";
 
-export const SESSION_EXPIRED_MESSAGE = "Your session has expired. Sign in again to continue.";
 export const TICKET_FAILED_MESSAGE = "We couldn't start saving your key. Try again in a moment.";
 export const REVOKE_FAILED_MESSAGE = "We couldn't revoke your key. Try again in a moment.";
 export const SAVE_FAILED_MESSAGE = "We couldn't save your key. Check your connection and try again.";
