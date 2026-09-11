@@ -1,6 +1,7 @@
-import { ApiErrorSchema, CurationActionErrorCodeSchema, CurationProgressStateSchema, type CurationActionErrorCode, type CurationProgressState } from "@helpmegethired/shared";
+import { CurationActionErrorCodeSchema, CurationProgressStateSchema, type CurationActionErrorCode, type CurationProgressState } from "@helpmegethired/shared";
 
 import { apiUrl } from "../config/api-url";
+import { apiErrorCodeOf, jsonBodyOf } from "./api-response";
 
 export class CurationRefusedError extends Error {
   constructor(
@@ -13,13 +14,6 @@ export class CurationRefusedError extends Error {
 }
 
 export type CurationRead = { changed: false } | { changed: true; state: CurationProgressState; etag: string | undefined };
-
-const codeOf = (body: unknown): CurationActionErrorCode | undefined => {
-  const parsed = ApiErrorSchema.safeParse(body);
-  const code = CurationActionErrorCodeSchema.safeParse(parsed.success ? parsed.data.code : undefined);
-
-  return code.success ? code.data : undefined;
-};
 
 export class CurationClient {
   constructor(
@@ -42,15 +36,8 @@ export class CurationClient {
     return { changed: true, state: CurationProgressStateSchema.parse(await this.bodyOf(response)), etag: response.headers.get("etag") ?? undefined };
   }
 
-  // A body that is not JSON, as a proxy's error page, still ends in the client's own error.
-  private async bodyOf(response: Response): Promise<unknown> {
-    const body: unknown = await response.json().catch(() => undefined);
-
-    if (!response.ok) {
-      throw new CurationRefusedError(codeOf(body), response.status);
-    }
-
-    return body;
+  private bodyOf(response: Response): Promise<unknown> {
+    return jsonBodyOf(response, (body) => new CurationRefusedError(apiErrorCodeOf(body, CurationActionErrorCodeSchema), response.status));
   }
 }
 

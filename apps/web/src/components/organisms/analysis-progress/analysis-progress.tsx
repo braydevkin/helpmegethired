@@ -2,6 +2,7 @@ import type { CurationProgress } from "@helpmegethired/shared";
 import { useId } from "react";
 
 import { Chip } from "../../atoms/chip/chip";
+import { LocalTime } from "../../atoms/local-time/local-time";
 import { ProgressBar } from "../../atoms/progress-bar/progress-bar";
 import { CurationUnitRow } from "../../molecules/curation-unit-row/curation-unit-row";
 import { classNames } from "../../../lib/class-names";
@@ -12,8 +13,6 @@ export interface AnalysisProgressProps {
   progress: CurationProgress;
   windowSize?: number;
 }
-
-const RESUME_TIME = new Intl.DateTimeFormat("en", { hour: "2-digit", minute: "2-digit", hourCycle: "h23" });
 
 // Everything here is read from the payload: the percentage is the API's share of saved units
 // and nothing advances between two answers.
@@ -50,11 +49,7 @@ export function AnalysisProgress({ progress, windowSize }: AnalysisProgressProps
       </div>
       {phase === "paused" && progress.resumeAfter && (
         <p role="status" className={styles.notice}>
-          Paused by your AI provider. Resumes at{" "}
-          <time dateTime={progress.resumeAfter} suppressHydrationWarning>
-            {RESUME_TIME.format(new Date(progress.resumeAfter))}
-          </time>
-          .
+          Paused by your AI provider. Resumes at <LocalTime dateTime={progress.resumeAfter} />.
         </p>
       )}
       {rows.length > 0 && (
