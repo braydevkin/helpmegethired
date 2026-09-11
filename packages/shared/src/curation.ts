@@ -96,3 +96,11 @@ export const CurationProgressSchema = z
   );
 
 export type CurationProgress = z.infer<typeof CurationProgressSchema>;
+
+// An Account with no Curation for its latest Profile answers `progress: null`, not a 404: the
+// analysis page renders its gate in that state.
+export const CurationProgressStateSchema = z.object({
+  progress: CurationProgressSchema.nullable(),
+});
+
+export type CurationProgressState = z.infer<typeof CurationProgressStateSchema>;

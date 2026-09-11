@@ -11,7 +11,19 @@ const RESUME_SOURCE = "upload";
 // one would only duplicate it; these two free the Ingestion for a new one.
 const REPLACEABLE_STATUSES = ["failed", "cancelled"] as const satisfies readonly CurationStatus[];
 
-const PROFILE_ORDER = ["segment_position", "position"] as const;
+export const PROFILE_ORDER = ["segment_position", "position"] as const;
+
+// The Ingestion whose rows are the Profile on screen; an older one's rows are already replaced.
+export const latestProfileIngestionOf = (database: Database, accountId: Id) =>
+  database
+    .selectFrom("ingestions")
+    .select("id")
+    .where("account_id", "=", accountId)
+    .where("source", "=", RESUME_SOURCE)
+    .where("status", "=", "completed")
+    .orderBy("completed_at", "desc")
+    .orderBy("id", "desc")
+    .limit(1);
 
 export interface CurationReadiness {
   ingestionId: Id;
@@ -34,22 +46,12 @@ export class CurationRepository {
   // Both halves of the trigger (ADR-0024): the Profile the Account last built is confirmed, and a
   // Model Key is stored. An earlier confirmed Profile does not count once a newer one exists.
   async readinessOf(accountId: Id, database: Database = this.database): Promise<CurationReadiness | undefined> {
-    const latestProfile = database
-      .selectFrom("ingestions")
-      .select("id")
-      .where("account_id", "=", accountId)
-      .where("source", "=", RESUME_SOURCE)
-      .where("status", "=", "completed")
-      .orderBy("completed_at", "desc")
-      .orderBy("id", "desc")
-      .limit(1);
-
     return database
       .selectFrom("basic_profiles")
       .innerJoin("account_model_choices", "account_model_choices.account_id", "basic_profiles.account_id")
       .select(["basic_profiles.source_ingestion_id as ingestionId", "account_model_choices.model_id as modelId"])
       .where("basic_profiles.account_id", "=", accountId)
-      .where("basic_profiles.source_ingestion_id", "=", latestProfile)
+      .where("basic_profiles.source_ingestion_id", "=", latestProfileIngestionOf(database, accountId))
       .where("basic_profiles.confirmed_at", "is not", null)
       .where("account_model_choices.sealed_key", "is not", null)
       .executeTakeFirst();

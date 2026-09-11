@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 
 import { INGESTION_ID, curationMetrics as metrics, experience } from "./candidate.fixtures.js";
-import { ACTIVE_CURATION_STATUSES, CurationProgressSchema, CurationSchema, CurationStatusSchema, CurationUnitSchema } from "./curation.js";
+import {
+  ACTIVE_CURATION_STATUSES,
+  CurationProgressSchema,
+  CurationProgressStateSchema,
+  CurationSchema,
+  CurationStatusSchema,
+  CurationUnitSchema,
+} from "./curation.js";
 
 const CURATION_ID = "4b3c2d1e-5f6a-4b7c-8d9e-0f1a2b3c4d5e";
 const EXPERIENCE_UNIT_ID = "5c4d3e2f-6a7b-4c8d-9e0f-1a2b3c4d5e6f";
@@ -131,5 +138,11 @@ describe("CurationProgressSchema", () => {
     ["missing metrics", { ...progress, metrics: undefined }],
   ])("rejects %s", (_label, input) => {
     expect(CurationProgressSchema.safeParse(input).success).toBe(false);
+  });
+
+  it("answers an Account with no Curation as progress null, and never an absent field", () => {
+    expect(CurationProgressStateSchema.safeParse({ progress: null }).success).toBe(true);
+    expect(CurationProgressStateSchema.safeParse({ progress }).success).toBe(true);
+    expect(CurationProgressStateSchema.safeParse({}).success).toBe(false);
   });
 });
