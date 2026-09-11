@@ -35,10 +35,12 @@ export class CurationProgressRepository {
       return undefined;
     }
 
+    const [units, profile] = await Promise.all([this.unitsOf(row.id), this.countedProfileOf(accountId, row.source_ingestion_id)]);
+
     return {
       curation: { id: row.id, status: row.status, modelId: row.model_id, failureReason: row.failure_reason, resumeAfter: row.resume_after },
-      units: await this.unitsOf(row.id),
-      profile: await this.countedProfileOf(accountId, row.source_ingestion_id),
+      units,
+      profile,
     };
   }
 
@@ -52,25 +54,31 @@ export class CurationProgressRepository {
   }
 
   private async countedProfileOf(accountId: Id, ingestionId: Id): Promise<CountedProfile> {
-    const experiences = await this.database
-      .selectFrom("experiences")
-      .select(["company", "period_start", "period_end"])
-      .where("account_id", "=", accountId)
-      .where("source_ingestion_id", "=", ingestionId)
-      .orderBy(PROFILE_ORDER)
-      .execute();
     const idsOf = (table: "projects" | "certifications" | "languages" | "education") =>
       this.database.selectFrom(table).select("id").where("account_id", "=", accountId).where("source_ingestion_id", "=", ingestionId).execute();
+    const [experiences, projects, certifications, languages, education] = await Promise.all([
+      this.database
+        .selectFrom("experiences")
+        .select(["company", "period_start", "period_end"])
+        .where("account_id", "=", accountId)
+        .where("source_ingestion_id", "=", ingestionId)
+        .orderBy(PROFILE_ORDER)
+        .execute(),
+      idsOf("projects"),
+      idsOf("certifications"),
+      idsOf("languages"),
+      idsOf("education"),
+    ]);
 
     return {
       experiences: experiences.map(({ company, period_start, period_end }) => ({
         company,
         period: period_start === null ? null : { start: period_start, end: period_end },
       })),
-      projects: await idsOf("projects"),
-      certifications: await idsOf("certifications"),
-      languages: await idsOf("languages"),
-      education: await idsOf("education"),
+      projects,
+      certifications,
+      languages,
+      education,
     };
   }
 }
