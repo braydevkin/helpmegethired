@@ -6,6 +6,7 @@ export * from "./basic-profile.js";
 export * from "./experience.js";
 export * from "./project.js";
 export * from "./profile-parts.js";
+export * from "./profile-correction.js";
 export * from "./profile.js";
 export * from "./profile-draft.js";
 export * from "./resume.js";

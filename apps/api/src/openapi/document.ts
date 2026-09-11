@@ -1,5 +1,6 @@
 import {
   AccountInformationSchema,
+  BasicProfileSchema,
   AccountModelChoiceSchema,
   AccountSchema,
   ApiErrorSchema,
@@ -10,6 +11,8 @@ import {
   ModelChoiceRequestSchema,
   ModelChoiceStateSchema,
   ModelKeyTicketSchema,
+  PROFILE_ENTRY_CORRECTION_SCHEMAS,
+  ProfileListPartSchema,
   ProfileSchema,
   ResumeUploadReceiptSchema,
   ResumeUploadSchema,
@@ -67,6 +70,8 @@ const COMPONENTS: Record<string, { schema: ZodType; io: "input" | "output" }> = 
   UploadedResume: { schema: UploadedResumeSchema, io: "output" },
   UploadedResumeList: { schema: UploadedResumeListSchema, io: "output" },
   Profile: { schema: ProfileSchema, io: "output" },
+  BasicProfile: { schema: BasicProfileSchema, io: "input" },
+  ProfileEntryCorrection: { schema: z.union(Object.values(PROFILE_ENTRY_CORRECTION_SCHEMAS)), io: "input" },
   ModelChoiceState: { schema: ModelChoiceStateSchema, io: "output" },
   ModelChoiceRequest: { schema: ModelChoiceRequestSchema, io: "input" },
   AccountModelChoice: { schema: AccountModelChoiceSchema, io: "output" },
@@ -107,6 +112,22 @@ const idParameterOf = (description: string): JsonSchema => ({
 });
 
 const idParameter = idParameterOf("The Uploaded Resume id");
+const entryIdParameter = idParameterOf("The Profile entry id");
+
+const partParameter: JsonSchema = {
+  name: "part",
+  in: "path",
+  required: true,
+  description: "The Profile part the entry belongs to",
+  schema: jsonSchemaOf(ProfileListPartSchema, "output"),
+};
+
+const correctionResponses = {
+  "400": validationFailed,
+  "401": unauthorized,
+  "404": error("The Account has no Profile, or no such entry in that part"),
+  "409": error("The Profile is confirmed and takes no more corrections"),
+};
 const statementIdParameter = idParameterOf("The Statement id");
 
 const ifNoneMatchParameter: JsonSchema = {
@@ -304,6 +325,48 @@ const paths: OpenApiDocument["paths"] = {
         "401": unauthorized,
         "404": error("No Profile has been built for the Account yet"),
       },
+    },
+  },
+  "/profile/parts/basic-profile": {
+    put: {
+      tags: ["Profile"],
+      summary: "Correct the Basic Profile",
+      description:
+        "Replaces the headline, summary, and the LinkedIn and GitHub URLs with what the Candidate says is true. Name, e-mail, phone and address are Account Information and are not part of this. Only until the Profile is confirmed.",
+      operationId: "correctBasicProfile",
+      requestBody: body("BasicProfile"),
+      responses: { "200": json("The Profile as it now reads", ref("Profile")), ...correctionResponses },
+    },
+  },
+  "/profile/parts/{part}": {
+    post: {
+      tags: ["Profile"],
+      summary: "Add an entry the recognition missed",
+      description:
+        "Adds one entry to the end of the part. The entry belongs to no Segment, because nothing was recognized for it, and counts as corrected from the start. The body is the part's entry without its id.",
+      operationId: "addProfileEntry",
+      parameters: [partParameter],
+      requestBody: body("ProfileEntryCorrection"),
+      responses: { "200": json("The Profile as it now reads", ref("Profile")), ...correctionResponses },
+    },
+  },
+  "/profile/parts/{part}/{id}": {
+    put: {
+      tags: ["Profile"],
+      summary: "Correct one entry",
+      description: "Replaces the entry with what the Candidate says is true, keeping its place in the part and the Ingestion it came from.",
+      operationId: "correctProfileEntry",
+      parameters: [partParameter, entryIdParameter],
+      requestBody: body("ProfileEntryCorrection"),
+      responses: { "200": json("The Profile as it now reads", ref("Profile")), ...correctionResponses },
+    },
+    delete: {
+      tags: ["Profile"],
+      summary: "Remove an entry the recognition should not have written",
+      description: "Removes the entry from the Profile. A new Ingestion writes the part again from the résumé.",
+      operationId: "removeProfileEntry",
+      parameters: [partParameter, entryIdParameter],
+      responses: { "200": json("The Profile as it now reads", ref("Profile")), ...correctionResponses },
     },
   },
   "/profile/curation": {

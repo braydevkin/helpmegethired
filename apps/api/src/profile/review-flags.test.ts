@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { Segment } from "../ingestion/segment";
-import { reviewFlagsOf } from "./review-flags";
+import { flaggedEntryKey, flagsStillOpen, reviewFlagsOf } from "./review-flags";
 
 const segment = (kind: string, recognized: unknown, status: Segment["status"] = "saved"): Segment => ({
   id: "1e4b2a6c-9d3f-4e8a-b7c5-2f6a8d1c3e5b",
@@ -62,5 +62,34 @@ describe("reviewFlagsOf", () => {
     ]);
 
     expect(flags).toEqual([]);
+  });
+});
+
+describe("flagsStillOpen", () => {
+  const untouched = (...entries: [part: "experience" | "skill", entry: string][]) =>
+    new Set(entries.map(([part, entry]) => flaggedEntryKey(part, entry)));
+
+  const experienceFlag = { part: "experience", entry: "Engineer", field: "period", reason: "low_confidence" } as const;
+  const skillFlag = { part: "skill", entry: "Kotlin", field: "name", reason: "low_confidence" } as const;
+  const headerFlag = { part: "basicProfile", entry: null, field: "email", reason: "account_mismatch" } as const;
+
+  const nothingCorrected = { basicProfile: false, entryIds: [] };
+
+  it("keeps every flag while the Candidate has corrected nothing", () => {
+    const flags = [experienceFlag, skillFlag, headerFlag];
+
+    expect(flagsStillOpen(flags, untouched(["experience", "Engineer"], ["skill", "Kotlin"]), nothingCorrected)).toEqual(flags);
+  });
+
+  it("drops the flag of a corrected entry and keeps the others", () => {
+    expect(flagsStillOpen([experienceFlag, skillFlag], untouched(["skill", "Kotlin"]), nothingCorrected)).toEqual([skillFlag]);
+  });
+
+  it("drops the flags that name no entry once the Basic Profile is corrected", () => {
+    expect(flagsStillOpen([headerFlag, skillFlag], untouched(["skill", "Kotlin"]), { basicProfile: true, entryIds: [] })).toEqual([skillFlag]);
+  });
+
+  it("drops the flag of an entry that was renamed by the correction", () => {
+    expect(flagsStillOpen([experienceFlag], untouched(["experience", "Senior Engineer"]), nothingCorrected)).toEqual([]);
   });
 });
