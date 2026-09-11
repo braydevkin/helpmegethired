@@ -9,6 +9,7 @@ import {
   HealthStatusSchema,
   ModelChoiceRequestSchema,
   ModelChoiceStateSchema,
+  ModelKeyTicketSchema,
   ProfileSchema,
   ResumeUploadReceiptSchema,
   ResumeUploadSchema,
@@ -46,6 +47,7 @@ interface Operation {
 }
 
 const SESSION = "session";
+const MODEL_KEY_TICKET = "modelKeyTicket";
 const JSON_TYPE = "application/json";
 
 // Every schema is the shared Zod one turned into JSON Schema: request bodies as the input
@@ -68,6 +70,7 @@ const COMPONENTS: Record<string, { schema: ZodType; io: "input" | "output" }> = 
   ModelChoiceState: { schema: ModelChoiceStateSchema, io: "output" },
   ModelChoiceRequest: { schema: ModelChoiceRequestSchema, io: "input" },
   AccountModelChoice: { schema: AccountModelChoiceSchema, io: "output" },
+  ModelKeyTicket: { schema: ModelKeyTicketSchema, io: "output" },
   CurationProgressState: { schema: CurationProgressStateSchema, io: "output" },
   CurationStatements: { schema: CurationStatementsSchema, io: "output" },
   CuratedStatement: { schema: CuratedStatementSchema, io: "output" },
@@ -166,19 +169,32 @@ const paths: OpenApiDocument["paths"] = {
       tags: ["Model Choice"],
       summary: "Choose the Model and store the Model Key",
       description:
-        "Checks the key with the Provider without spending tokens, then stores it encrypted, replacing any earlier choice and key. Only the catalogue pairing is accepted. A refused key replaces nothing, and the key is never answered back.",
+        "Checks the key with the Provider without spending tokens, then stores it encrypted, replacing any earlier choice and key. Only the catalogue pairing is accepted. A refused key replaces nothing, and the key is never answered back. The page sends it with a Model Key ticket instead of the Session, so the key never passes through the web app; the ticket is spent before the key is checked, so a refused key needs a new one.",
       operationId: "saveModelChoice",
+      security: [{ [SESSION]: [] }, { [MODEL_KEY_TICKET]: [] }],
       requestBody: body("ModelChoiceRequest"),
       responses: {
         "200": json("The stored choice", ref("AccountModelChoice")),
         "400": error("The body did not pass the shared schema; `unsupported_model_choice` when the Provider or the Model is not in the catalogue"),
-        "401": unauthorized,
+        "401": error("Neither a live Session nor a valid Model Key ticket; `model_key_ticket_invalid` whether the ticket is unknown, expired, or used", [
+          "model_key_ticket_invalid",
+        ]),
         "422": error("`model_key_invalid` when the Provider does not accept the key; `model_key_not_permitted` when it does but not for the chosen Model", [
           "model_key_invalid",
           "model_key_not_permitted",
         ]),
         "503": error("`provider_unavailable` when the Provider could not be reached to check the key", ["provider_unavailable"]),
       },
+    },
+  },
+  "/account/model/key-ticket": {
+    post: {
+      tags: ["Model Choice"],
+      summary: "Issue a Model Key ticket",
+      description:
+        "A single-use ticket for the Session's Account, valid for 60 seconds. The web app hands it to the page, which presents it as the bearer token of `PUT /account/model` to send the Model Key straight to the API. It is kept only as its SHA-256, and no other route accepts it.",
+      operationId: "issueModelKeyTicket",
+      responses: { "201": json("The ticket and when it expires", ref("ModelKeyTicket")), "401": unauthorized },
     },
   },
   "/account/model/key": {
@@ -413,6 +429,11 @@ export const openApiDocument = (): OpenApiDocument => ({
         type: "http",
         scheme: "bearer",
         description: "The Session token the web app keeps in its `session` cookie after sign in",
+      },
+      [MODEL_KEY_TICKET]: {
+        type: "http",
+        scheme: "bearer",
+        description: "A single-use Model Key ticket from `POST /account/model/key-ticket`; only `PUT /account/model` accepts it",
       },
     },
   },

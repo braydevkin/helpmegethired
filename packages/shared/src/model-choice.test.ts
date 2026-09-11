@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { MODEL_KEY_MAX_LENGTH, ModelChoiceRequestSchema, ModelChoiceStateSchema } from "./model-choice.js";
+import { MODEL_KEY_MAX_LENGTH, ModelChoiceErrorCodeSchema, ModelChoiceRequestSchema, ModelChoiceStateSchema, ModelKeyTicketSchema } from "./model-choice.js";
 
 const request = { provider: "anthropic", modelId: "claude-sonnet-5", key: "sk-ant-api03-example-key-for-the-schema" };
 
@@ -42,5 +42,25 @@ describe("ModelChoiceStateSchema", () => {
     expect(ModelChoiceStateSchema.safeParse({ choice: { provider: "anthropic", modelId: "claude-sonnet-5", keyStored: true, key: request.key } }).success).toBe(
       false,
     );
+  });
+});
+
+describe("ModelKeyTicketSchema", () => {
+  const issued = { ticket: "q3lX-_0aZ9".padEnd(43, "k"), expiresAt: "2026-09-11T12:01:00.000Z" };
+
+  it("accepts a ticket and when it expires", () => {
+    expect(ModelKeyTicketSchema.parse(issued)).toEqual(issued);
+  });
+
+  it.each([
+    ["a shorter ticket", { ...issued, ticket: issued.ticket.slice(1) }],
+    ["a character outside base64url", { ...issued, ticket: `${issued.ticket.slice(1)}+` }],
+    ["no expiry", { ticket: issued.ticket }],
+  ])("refuses %s", (_label, input) => {
+    expect(ModelKeyTicketSchema.safeParse(input).success).toBe(false);
+  });
+
+  it("has one code for a ticket that is unknown, expired, or used", () => {
+    expect(ModelChoiceErrorCodeSchema.options).toContain("model_key_ticket_invalid");
   });
 });
