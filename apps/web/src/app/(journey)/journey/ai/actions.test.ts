@@ -1,9 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { modelChoiceClient } from "../../../../lib/model-choice-client";
-import { REVOKE_FAILED_MESSAGE, SESSION_EXPIRED_MESSAGE, TICKET_FAILED_MESSAGE } from "../../../../lib/model-choice-messages";
+import { REVOKE_FAILED_MESSAGE, TICKET_FAILED_MESSAGE } from "../../../../lib/model-choice-messages";
 import { ModelChoiceRefusedError } from "../../../../lib/model-choice-refused-error";
 import { readSessionToken } from "../../../../lib/session-cookie";
+import { SESSION_EXPIRED_MESSAGE } from "../../../../lib/with-session";
 import { requestModelKeyTicketAction, revokeModelKeyAction } from "./actions";
 
 vi.mock("../../../../lib/model-choice-client", () => ({ modelChoiceClient: { read: vi.fn(), issueKeyTicket: vi.fn(), revokeKey: vi.fn() } }));

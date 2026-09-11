@@ -128,21 +128,30 @@ export function pausedNoticeOf({ pauseReason }: Pick<CurationProgress, "pauseRea
     : { lead: "Paused by your AI provider. Resumes at", withDate: false };
 }
 
-export function headingOf(progress: CurationProgress): { title: string; lead: string } {
-  switch (phaseOf(progress)) {
-    case "active":
-      return { title: "Understanding what you have done", lead: "We read one role or project at a time and write down what it proves about you." };
-    case "paused":
-      return PAUSED_HEADINGS[progress.pauseReason ?? "provider_rate_limit"];
-    case "completed":
-      return { title: "All passes saved and indexed", lead: "Ready for job matching." };
-    case "failed":
-      return { title: "The analysis stopped partway", lead: RUN_FAILURE_LEADS[progress.failureReason ?? "attempts_exhausted"] };
-    case "cancelled":
-      return { title: "You stopped the analysis", lead: "Everything saved before you stopped it is kept." };
-    case "superseded":
-      return { title: "A newer résumé replaced this analysis", lead: "Confirm the new profile and its analysis starts on its own." };
+interface Heading {
+  title: string;
+  lead: string;
+}
+
+const FIXED_HEADINGS: Record<Exclude<ProgressPhase, "paused" | "failed">, Heading> = {
+  active: { title: "Understanding what you have done", lead: "We read one role or project at a time and write down what it proves about you." },
+  completed: { title: "All passes saved and indexed", lead: "Ready for job matching." },
+  cancelled: { title: "You stopped the analysis", lead: "Everything saved before you stopped it is kept." },
+  superseded: { title: "A newer résumé replaced this analysis", lead: "Confirm the new profile and its analysis starts on its own." },
+};
+
+export function headingOf(progress: CurationProgress): Heading {
+  const phase = phaseOf(progress);
+
+  if (phase === "paused") {
+    return PAUSED_HEADINGS[progress.pauseReason ?? "provider_rate_limit"];
   }
+
+  if (phase === "failed") {
+    return { title: "The analysis stopped partway", lead: RUN_FAILURE_LEADS[progress.failureReason ?? "attempts_exhausted"] };
+  }
+
+  return FIXED_HEADINGS[phase];
 }
 
 const WAITING_FOOTNOTE = "Safe to close this tab — progress counts passes actually saved, so it reads the same when you come back.";

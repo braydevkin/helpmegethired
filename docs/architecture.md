@@ -70,6 +70,7 @@ Workspace conventions:
 - Every workspace package is named `@helpmegethired/<directory>`. Apps are `@helpmegethired/web` and `@helpmegethired/api`; the list of app directories lives in `packages/eslint-config` and is the only place to update when an app is added.
 - Node and pnpm are pinned: `.nvmrc` selects the Node major, `packageManager` in the root `package.json` selects the exact pnpm version, and pnpm refuses to install with an engine outside `engines`.
 - Versions of tooling shared by several packages (TypeScript, ESLint, Vitest) are declared once in the `catalog` of `pnpm-workspace.yaml` and referenced as `catalog:` from each package.
+- A transitive dependency with a published vulnerability that its parent pins exactly is lifted to the patched release in the `overrides` of `pnpm-workspace.yaml`, and the override is removed once the parent ships the fix. `multer` is overridden to `2.3.0` because `@nestjs/platform-express@12.0.1` pins `2.2.0` (#174).
 - Apps and packages extend a configuration from `packages/tsconfig`: `library.json` for packages, `nextjs.json` for the frontend, `nestjs.json` for the backend. All of them build on `base.json`, which turns on strict mode.
 
 ## Frontend (apps/web)
