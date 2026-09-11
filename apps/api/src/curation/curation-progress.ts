@@ -3,6 +3,7 @@ import { createHash } from "node:crypto";
 import type {
   CurationFailureReason,
   CurationMetrics,
+  CurationPauseReason,
   CurationProgress,
   CurationProgressState,
   CurationRerun,
@@ -18,6 +19,7 @@ export interface ProgressedCuration {
   modelId: string;
   failureReason: CurationFailureReason | null;
   resumeAfter: Date | null;
+  pauseReason: CurationPauseReason | null;
 }
 
 // Only saved units count, so the number is read from the rows alone and a fresh process, a
@@ -48,6 +50,7 @@ export function curationProgressOf(curation: ProgressedCuration, units: readonly
     modelId: curation.modelId,
     failureReason: curation.failureReason,
     resumeAfter: curation.resumeAfter?.toISOString() ?? null,
+    pauseReason: curation.pauseReason,
     rerun,
   };
 }

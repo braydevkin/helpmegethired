@@ -32,6 +32,7 @@ export function progressOf(list: readonly CurationUnitSummary[], overrides: Part
     modelId: "claude-sonnet-5",
     failureReason: null,
     resumeAfter: null,
+    pauseReason: null,
     rerun: { allowed: true, refusal: null },
     ...overrides,
   });

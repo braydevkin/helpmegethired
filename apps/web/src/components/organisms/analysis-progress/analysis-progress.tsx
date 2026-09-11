@@ -6,7 +6,7 @@ import { LocalTime } from "../../atoms/local-time/local-time";
 import { ProgressBar } from "../../atoms/progress-bar/progress-bar";
 import { CurationUnitRow } from "../../molecules/curation-unit-row/curation-unit-row";
 import { classNames } from "../../../lib/class-names";
-import { focusIndexOf, footnoteOf, headingOf, metricChipsOf, passLabelOf, phaseOf, unitRowOf, unitWindowOf } from "../../../lib/curation-progress/view";
+import { focusIndexOf, footnoteOf, headingOf, metricChipsOf, passLabelOf, pausedNoticeOf, phaseOf, unitRowOf, unitWindowOf } from "../../../lib/curation-progress/view";
 import styles from "./analysis-progress.module.css";
 
 export interface AnalysisProgressProps {
@@ -34,14 +34,20 @@ export function AnalysisProgress({ progress, windowSize, variant = "card" }: Ana
       <ProgressHead titleId={titleId} progress={progress} inPage={inPage} />
       <ProgressBar percentage={progress.percentage} label="Analysis progress" className={styles.bar} />
       <ProgressMeta progress={progress} inPage={inPage} />
-      {phase === "paused" && progress.resumeAfter && (
-        <p role="status" className={styles.notice}>
-          Paused by your AI provider. Resumes at <LocalTime dateTime={progress.resumeAfter} />.
-        </p>
-      )}
+      {phase === "paused" && progress.resumeAfter && <PausedNotice progress={progress} resumeAfter={progress.resumeAfter} />}
       {!inPage && <ProgressBreakdown progress={progress} windowSize={windowSize} />}
       {footnote && <p className={styles.footnote}>{footnote}</p>}
     </section>
+  );
+}
+
+function PausedNotice({ progress, resumeAfter }: { progress: CurationProgress; resumeAfter: string }) {
+  const { lead, withDate } = pausedNoticeOf(progress);
+
+  return (
+    <p role="status" className={styles.notice}>
+      {lead} <LocalTime dateTime={resumeAfter} withDate={withDate} />.
+    </p>
   );
 }
 

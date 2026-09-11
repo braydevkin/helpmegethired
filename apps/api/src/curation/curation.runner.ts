@@ -14,6 +14,8 @@ import { instructionsFor } from "./curation-prompts";
 import { CurationRunRepository, type CuratedProfile, type CurationRun, type NewStatement } from "./curation-run.repository";
 import { CURATION_RUNNER_SETTINGS, type CurationRunnerSettings } from "./curation-runner-settings";
 import { CURATION_PROMPT_VERSION } from "./curation-starter";
+import { embeddingPeriodOf, embeddingTokensOf, nextEmbeddingPeriodOf } from "./embedding-allowance";
+import { EmbeddingAllowanceRepository } from "./embedding-allowance.repository";
 import { citableKey, resolveEvidence, type CitableTexts } from "./evidence-resolution";
 import { CurationModel, type TokenUsage } from "./model/curation-model";
 import { EmbeddingFailedError, EmbeddingModel } from "./model/embedding-model";
@@ -75,6 +77,7 @@ export class CurationRunner {
     private readonly runs: CurationRunRepository,
     private readonly model: CurationModel,
     private readonly embeddings: EmbeddingModel,
+    private readonly allowance: EmbeddingAllowanceRepository,
     private readonly keys: ModelChoiceService,
     private readonly clock: Clock,
     @Inject(CURATION_RUNNER_SETTINGS) private readonly settings: CurationRunnerSettings,
@@ -131,7 +134,7 @@ export class CurationRunner {
       case "paused": {
         const resumeAfter = new Date(this.clock.now().getTime() + (verdict.retryAfterSeconds ?? DEFAULT_PAUSE_SECONDS) * 1000);
 
-        await this.runs.pause(run.id, resumeAfter);
+        await this.runs.pause(run.id, resumeAfter, "provider_rate_limit");
         this.logger.log(`curation paused curation=${run.id} resume_after=${resumeAfter.toISOString()}`);
 
         return;
@@ -164,6 +167,11 @@ export class CurationRunner {
   // retries it with its backoff. A Curation that wrote no Statement completes without a call.
   private async complete(run: CurationRun): Promise<void> {
     const statements = await this.runs.statementsToEmbed(run.id);
+
+    if (!(await this.reservedFor(run, statements))) {
+      return;
+    }
+
     let vectors: number[][];
 
     try {
@@ -194,6 +202,28 @@ export class CurationRunner {
     );
 
     this.logger.log(`curation ${completed ? "completed" : "stopped"} curation=${run.id} statements=${statements.length}`);
+  }
+
+  // Reserved before the call and kept whatever it answers, since a failed call may still be billed
+  // (#133). A Curation over the Account's ceiling waits for the next period with its attempt kept.
+  private async reservedFor(run: CurationRun, statements: readonly { text: string }[]): Promise<boolean> {
+    if (statements.length === 0) {
+      return true;
+    }
+
+    const now = this.clock.now();
+    const tokens = embeddingTokensOf(statements.map((statement) => statement.text));
+
+    if (await this.allowance.reserve(run.accountId, tokens, embeddingPeriodOf(now))) {
+      return true;
+    }
+
+    const resumeAfter = nextEmbeddingPeriodOf(now);
+
+    await this.runs.pause(run.id, resumeAfter, "embedding_ceiling");
+    this.logger.warn(`curation paused curation=${run.id} reason=embedding_ceiling resume_after=${resumeAfter.toISOString()}`);
+
+    return false;
   }
 
   // A Curation that left `running` during the attempt was cancelled or superseded, so an attempt

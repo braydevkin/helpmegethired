@@ -1,6 +1,7 @@
 import type { ColumnType, Generated, Insertable, Selectable } from "kysely";
 import type {
   CurationFailureReason,
+  CurationPauseReason,
   CurationStatus,
   CurationUnitFailureReason,
   CurationUnitKind,
@@ -189,6 +190,7 @@ export interface CurationsTable {
   model_id: string;
   failure_reason: CurationFailureReason | null;
   resume_after: Date | null;
+  pause_reason: CurationPauseReason | null;
   created_at: Generated<Date>;
   updated_at: Generated<Date>;
   started_at: Date | null;
@@ -254,6 +256,21 @@ export interface ModelKeyTicketsTable {
   created_at: Generated<Date>;
 }
 
+// `period_start` is the UTC day, always written and compared as its `YYYY-MM-DD` date.
+export interface EmbeddingUsageTable {
+  account_id: string;
+  period_start: string;
+  tokens: number;
+  updated_at: Generated<Date>;
+}
+
+export interface EmbeddingCeilingOverridesTable {
+  account_id: string;
+  tokens_per_day: number;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+}
+
 export interface DatabaseSchema {
   accounts: AccountsTable;
   sessions: SessionsTable;
@@ -273,4 +290,6 @@ export interface DatabaseSchema {
   statements: StatementsTable;
   account_model_choices: AccountModelChoicesTable;
   model_key_tickets: ModelKeyTicketsTable;
+  embedding_usage: EmbeddingUsageTable;
+  embedding_ceiling_overrides: EmbeddingCeilingOverridesTable;
 }

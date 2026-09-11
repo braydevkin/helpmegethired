@@ -5,13 +5,19 @@ import { ModelChoiceModule } from "../model-choice/model-choice.module";
 import { CURATION_RUNNER_SETTINGS, DEFAULT_CURATION_RUNNER_SETTINGS } from "./curation-runner-settings";
 import { CurationModule } from "./curation.module";
 import { CurationRunner } from "./curation.runner";
+import { EmbeddingAllowanceRepository } from "./embedding-allowance.repository";
 import { CurationModelsModule } from "./model/curation-models.module";
 
 // The worker's half of Profile Curation: it reads the Candidate's Model Key and reaches the model,
 // so the API process never loads it.
 @Module({
   imports: [CurationModule, CurationModelsModule, ModelChoiceModule],
-  providers: [CurationRunner, { provide: Clock, useClass: SystemClock }, { provide: CURATION_RUNNER_SETTINGS, useValue: DEFAULT_CURATION_RUNNER_SETTINGS }],
+  providers: [
+    CurationRunner,
+    EmbeddingAllowanceRepository,
+    { provide: Clock, useClass: SystemClock },
+    { provide: CURATION_RUNNER_SETTINGS, useValue: DEFAULT_CURATION_RUNNER_SETTINGS },
+  ],
   exports: [CurationModule, CurationRunner],
 })
 export class CurationRunnerModule {}

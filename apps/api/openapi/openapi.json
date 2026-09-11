@@ -2903,6 +2903,20 @@
                       }
                     ]
                   },
+                  "pauseReason": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          "provider_rate_limit",
+                          "embedding_ceiling"
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
                   "rerun": {
                     "type": "object",
                     "properties": {
@@ -2941,6 +2955,7 @@
                   "modelId",
                   "failureReason",
                   "resumeAfter",
+                  "pauseReason",
                   "rerun"
                 ],
                 "additionalProperties": false

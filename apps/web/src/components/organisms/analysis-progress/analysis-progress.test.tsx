@@ -63,7 +63,9 @@ describe("AnalysisProgress", () => {
   });
 
   it("says when a paused Curation resumes, as a status a screen reader announces", () => {
-    render(<AnalysisProgress progress={progressOf(unitsOf(9, 3, 0), { status: "queued", resumeAfter: "2026-09-11T14:32:00.000Z" })} />);
+    render(
+      <AnalysisProgress progress={progressOf(unitsOf(9, 3, 0), { status: "queued", resumeAfter: "2026-09-11T14:32:00.000Z", pauseReason: "provider_rate_limit" })} />,
+    );
 
     expect(screen.getByRole("region", { name: "Paused for a moment" })).toHaveAttribute("data-phase", "paused");
 
@@ -72,6 +74,20 @@ describe("AnalysisProgress", () => {
     expect(notice).toHaveTextContent(/^Paused by your AI provider\. Resumes at \d{2}:\d{2}\.$/);
     expect(within(notice).getByText(/\d{2}:\d{2}/).tagName).toBe("TIME");
     expect(within(notice).getByText(/\d{2}:\d{2}/)).toHaveAttribute("datetime", "2026-09-11T14:32:00.000Z");
+  });
+
+  it("says a Curation paused at the daily allowance finishes on its own, with the day and time it resumes and no figure", () => {
+    render(
+      <AnalysisProgress progress={progressOf(unitsOf(9, 9, 0), { status: "queued", resumeAfter: "2026-09-12T00:00:00.000Z", pauseReason: "embedding_ceiling" })} />,
+    );
+
+    expect(screen.getByRole("region", { name: "Paused until the allowance resets" })).toHaveAttribute("data-phase", "paused");
+
+    const notice = screen.getByRole("status");
+
+    expect(notice).toHaveTextContent(/^Your account reached its daily analysis allowance\. Resumes on \w{3} \d{1,2}, \d{2}:\d{2}\.$/);
+    expect(notice).not.toHaveTextContent(/AI provider|token|cost|price/i);
+    expect(within(notice).getByText(/\d{2}:\d{2}/)).toHaveAttribute("datetime", "2026-09-12T00:00:00.000Z");
   });
 
   it("marks a failed pass apart and writes out what happened to it", () => {

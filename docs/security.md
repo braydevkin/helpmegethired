@@ -121,7 +121,21 @@ Every text a model reads is attacker-controlled: the stored Resume text, the Pro
 ### Spend
 
 - Generation is billed to the Candidate's own Provider account, and the platform enforces no budget on it. What bounds a Curation is `max_attempts` (3) and the per-unit input cap (ADR-0023).
-- Embedding is the platform's only spend. Each Account has an embedding budget over a period, with a stored counter checked before every embedding call, never after. An Account that reaches it has its Curation paused with a reason the Candidate can read and a `resume_after`, not failed. #133 fixes the number and the period, measured against the corpus, and lands before the platform embedding key is set in any public environment.
+- Embedding is the platform's only spend, bounded per Account and UTC day (#133). Before every embedding call the runner estimates the tokens of the Statements it is about to embed (characters ÷ 4) and reserves them in `embedding_usage` under the Account lock, so two reservations for one Account run one after the other. A reservation that would pass the ceiling is refused before any call is made, and the Curation is paused, never failed: `queued`, `pause_reason` `embedding_ceiling`, `resume_after` at the next UTC midnight, the attempt kept. A reservation is kept whatever the call answers, since a failed call may still be billed, and the retry reserves again.
+- The ceiling is 192,000 estimated tokens per Account per UTC day: 8 units (the largest Curation over the 30 résumés of the parser corpus; the median is 4) × 2,000 tokens (the 8,000-character per-unit input cap at four characters a token, an upper bound for the Statements that restate a unit's input) × 3 attempts (`max_attempts`, each of which may embed again) × 4 Curations (a first one and the re-runs #118 allows after a change). An ordinary Curation reserves far less than its bound, since Statements are shorter than their input, and one Account can reserve at most 30 days of that in a month. The constants live in `apps/api/src/curation/embedding-allowance.ts`.
+- The ceiling is raised for one Account without a deploy by a row in `embedding_ceiling_overrides`, and the day's counter is read from `embedding_usage`:
+
+  ```sql
+  insert into embedding_ceiling_overrides (account_id, tokens_per_day)
+  values ('<account id>', 400000)
+  on conflict (account_id) do update set tokens_per_day = excluded.tokens_per_day, updated_at = now();
+
+  select tokens from embedding_usage
+  where account_id = '<account id>' and period_start = (now() at time zone 'utc')::date;
+  ```
+
+  A Curation whose own Statements estimate above its Account's whole ceiling pauses every day until the ceiling is raised this way, and each pause logs `curation paused curation=<id> reason=embedding_ceiling`.
+- Nothing about the ceiling, the counter, or a token count reaches the Candidate: the analysis page says only that the daily allowance is used and when the analysis resumes (ADR-0023).
 - A Provider rate limit or an exhausted quota pauses the run with `resume_after` and does not consume an attempt. Nothing retries against a Provider in a loop (#115).
 
 ### Logging

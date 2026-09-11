@@ -98,6 +98,11 @@ export const CurationRerunSchema = z
   .refine(({ allowed, refusal }) => allowed === (refusal === null), { message: "A re-run carries a refusal exactly when it is not allowed", path: ["refusal"] });
 export type CurationRerun = z.infer<typeof CurationRerunSchema>;
 
+// Why a queued Curation waits for its resume_after: the Candidate's Provider asked to slow down,
+// or the Account used the platform's embedding allowance for the day (#133).
+export const CurationPauseReasonSchema = z.enum(["provider_rate_limit", "embedding_ceiling"]);
+export type CurationPauseReason = z.infer<typeof CurationPauseReasonSchema>;
+
 // Three units run at once, so the units being read are the listed ones whose status is
 // `running`, not one current unit.
 export const CurationProgressSchema = z
@@ -114,6 +119,7 @@ export const CurationProgressSchema = z
     modelId: TextSchema,
     failureReason: CurationFailureReasonSchema.nullable(),
     resumeAfter: TimestampSchema.nullable(),
+    pauseReason: CurationPauseReasonSchema.nullable(),
     rerun: CurationRerunSchema,
   })
   .refine(
