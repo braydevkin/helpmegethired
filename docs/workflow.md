@@ -111,6 +111,8 @@ Semantic versioning on `main` tags:
 - **MINOR**: new capability (a release from `develop` that adds features).
 - **PATCH**: fixes only, including hotfixes.
 
+Before 1.0.0, a breaking change bumps MINOR, as v0.2.0 and v0.3.0 did. 1.0.0 marks the first release to a public environment, and from then on a breaking change bumps MAJOR.
+
 ## Pull requests
 
 All PR descriptions are written in **English** and use the templates in `.github/`. GitHub applies the default template automatically; the release and hotfix templates are selected with a query parameter when opening the PR.
