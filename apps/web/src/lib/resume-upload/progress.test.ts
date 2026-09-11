@@ -1,7 +1,7 @@
 import type { UploadedResume } from "@helpmegethired/shared";
 import { describe, expect, it } from "vitest";
 
-import { failureLeadOf, foundCountOf, percentageOf, pollDelayMs, profileDataRowsOf, stagesOf, type UploadView } from "./progress";
+import { failureLeadOf, foundCountOf, percentageOf, profileDataRowsOf, stagesOf, type UploadView } from "./progress";
 
 const resume = (overrides: Partial<UploadedResume>): UploadedResume => ({
   id: "c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f",
@@ -106,11 +106,5 @@ describe("failureLeadOf", () => {
     expect(failureLeadOf("scanned_pdf")).toContain("scan or an image");
     expect(failureLeadOf("too_many_pages")).toContain("more than 20 pages");
     expect(failureLeadOf(null)).toContain("after several tries");
-  });
-});
-
-describe("pollDelayMs", () => {
-  it("doubles from one second and caps at ten", () => {
-    expect([0, 1, 2, 3, 4, 9].map(pollDelayMs)).toEqual([1000, 2000, 4000, 8000, 10000, 10000]);
   });
 });
