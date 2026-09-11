@@ -121,7 +121,9 @@ describe("embedding and completing a Curation", () => {
     vi.restoreAllMocks();
   });
 
-  async function queuedCuration(accountId?: Id): Promise<{ accountId: Id; curationId: Id }> {
+  const DESCRIPTIONS = ["Runs the deployment platform for forty teams.", "Cut the median pipeline from 22 to 9 minutes."];
+
+  async function queuedCuration(accountId?: Id, descriptions: readonly string[] = DESCRIPTIONS): Promise<{ accountId: Id; curationId: Id }> {
     const owner =
       accountId ?? (await database.insertInto("accounts").values({ email: `${randomUUID()}@candidate.example` }).returning("id").executeTakeFirstOrThrow()).id;
     const { id: ingestionId } = await database
@@ -137,7 +139,7 @@ describe("embedding and completing a Curation", () => {
 
     await database.insertInto("basic_profiles").values({ account_id: owner, source_ingestion_id: ingestionId, segment_id: segmentId }).execute();
 
-    for (const [position, description] of ["Runs the deployment platform for forty teams.", "Cut the median pipeline from 22 to 9 minutes."].entries()) {
+    for (const [position, description] of descriptions.entries()) {
       await database
         .insertInto("experiences")
         .values({ account_id: owner, source_ingestion_id: ingestionId, segment_id: segmentId, segment_position: 0, position, role: "Platform Engineer", company: `Company ${position}`, description, skills: "[]" })
@@ -207,6 +209,26 @@ describe("embedding and completing a Curation", () => {
     expect(model.calls).toEqual([]);
     expect(await curationOf(curationId)).toMatchObject({ status: "completed", attempts: 2 });
     expect((await vectorsOf(curationId)).every((count) => count === 1536)).toBe(true);
+  });
+
+  it("completes a Curation that wrote no Statement without calling the embedding model", async () => {
+    const { curationId } = await queuedCuration(undefined, ["", ""]);
+
+    await runner.run(curationId);
+
+    expect(await vectorsOf(curationId)).toEqual([]);
+    expect(embeddings.batches).toEqual([]);
+    expect((await curationOf(curationId)).status).toBe("completed");
+  });
+
+  it("treats an answer missing a vector as an embedding failure, indexing nothing", async () => {
+    const { curationId } = await queuedCuration();
+    vi.spyOn(embeddings, "embed").mockResolvedValueOnce([]);
+
+    await expect(runner.run(curationId)).rejects.toBeInstanceOf(CurationAttemptFailedError);
+
+    expect(await curationOf(curationId)).toMatchObject({ status: "queued", attempts: 1 });
+    expect((await vectorsOf(curationId)).every((count) => count === null)).toBe(true);
   });
 
   it("indexes nothing for a Curation cancelled while its Statements were being embedded", async () => {

@@ -158,13 +158,18 @@ export class CurationRunner {
   }
 
   // Embedding waits until every unit is saved, so no query ever meets half a Candidate (#114). A
-  // failure fails the attempt with nothing indexed, and the queue retries it with its backoff.
+  // failure, or an answer missing a vector, fails the attempt with nothing indexed, and the queue
+  // retries it with its backoff. A Curation that wrote no Statement completes without a call.
   private async complete(run: CurationRun): Promise<void> {
     const statements = await this.runs.statementsToEmbed(run.id);
     let vectors: number[][];
 
     try {
-      vectors = await this.embeddings.embed(statements.map((statement) => statement.text));
+      vectors = statements.length === 0 ? [] : await this.embeddings.embed(statements.map((statement) => statement.text));
+
+      if (vectors.length !== statements.length) {
+        throw new EmbeddingFailedError();
+      }
     } catch (error) {
       if (!(error instanceof EmbeddingFailedError)) {
         throw error;
@@ -179,7 +184,7 @@ export class CurationRunner {
 
     const completed = await this.runs.completeWithEmbeddings(
       run.id,
-      statements.map((statement, index) => ({ statementId: statement.id, embedding: vectors[index] ?? [] })),
+      statements.map((statement, index) => ({ statementId: statement.id, embedding: vectors[index] as number[] })),
     );
 
     this.logger.log(`curation ${completed ? "completed" : "stopped"} curation=${run.id} statements=${statements.length}`);
