@@ -3,8 +3,8 @@ import type { Profile } from "@helpmegethired/shared";
 import { ProfileActions } from "../../../../components/molecules/profile-actions/profile-actions";
 import { ProfileHeading } from "../../../../components/molecules/profile-heading/profile-heading";
 import { ReviewNotice } from "../../../../components/molecules/review-notice/review-notice";
+import { BasicProfileCard } from "../../../../components/organisms/basic-profile-card/basic-profile-card";
 import { EducationList } from "../../../../components/organisms/education-list/education-list";
-import { ExperienceTimeline } from "../../../../components/organisms/experience-timeline/experience-timeline";
 import { ProfileSidebar } from "../../../../components/organisms/profile-sidebar/profile-sidebar";
 import { ProfileStats } from "../../../../components/organisms/profile-stats/profile-stats";
 import { ProjectsGrid } from "../../../../components/organisms/projects-grid/projects-grid";
@@ -13,7 +13,8 @@ import { contactRowsOf } from "../../../../lib/profile/contact";
 import { ANALYSIS_PATH, RESUME_STEP_PATH } from "../../../paths";
 import type { Candidate } from "../candidate";
 import { JourneyFrame } from "../journey-frame";
-import { confirmProfileAction } from "./actions";
+import { confirmProfileAction, correctBasicProfileAction, removeExperienceAction, saveExperienceAction } from "./actions";
+import { ExperienceCorrections } from "./experience-corrections";
 import { profileViewOf } from "./profile-view";
 
 export interface ProfileStepProps {
@@ -49,7 +50,22 @@ export function ProfileStep({ candidate, profile }: ProfileStepProps) {
     >
       <ProfileStats stats={view.stats} />
       {view.notice && <ReviewNotice {...view.notice} />}
-      {view.experiences.length > 0 && <ExperienceTimeline entries={view.experiences} meta={view.experienceMeta} />}
+      <BasicProfileCard
+        basicProfile={profile.basicProfile}
+        corrected={profile.corrections.basicProfile}
+        editable={view.correctable}
+        save={correctBasicProfileAction}
+      />
+      {(view.experiences.length > 0 || view.correctable) && (
+        <ExperienceCorrections
+          entries={view.experiences}
+          experiences={profile.experiences}
+          meta={view.experienceMeta}
+          editable={view.correctable}
+          save={saveExperienceAction}
+          remove={removeExperienceAction}
+        />
+      )}
       {view.education.length > 0 && <EducationList entries={view.education} />}
       {view.projects.length > 0 && <ProjectsGrid entries={view.projects} />}
       {view.skillGroups.length > 0 && <SkillsGroups groups={view.skillGroups} meta={view.skillsMeta} />}

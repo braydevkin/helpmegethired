@@ -1,0 +1,46 @@
+.read {
+  display: grid;
+  gap: var(--space-field-gap);
+  margin-bottom: var(--space-button-gap);
+}
+
+.row {
+  display: grid;
+  gap: 4px;
+}
+
+.label {
+  font-size: var(--text-entry-meta);
+  font-weight: 700;
+  letter-spacing: var(--tracking-section-heading);
+  text-transform: uppercase;
+  color: var(--color-text-label);
+}
+
+.value {
+  font-size: var(--text-entry-title);
+  line-height: var(--leading-hint);
+  color: var(--color-ink);
+}
+
+.missing {
+  font-size: var(--text-entry-title);
+  line-height: var(--leading-hint);
+  color: var(--color-text-secondary);
+}
+
+.form {
+  display: grid;
+  gap: var(--space-field-gap);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.action {
+  width: auto;
+  padding: 0 16px;
+}
