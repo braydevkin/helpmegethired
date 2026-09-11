@@ -2,6 +2,8 @@ import { Inject, Injectable, Logger } from "@nestjs/common";
 import type { Id } from "@helpmegethired/shared";
 
 import { Clock } from "../common/clock";
+import { CurationQueue } from "../curation/curation-queue";
+import { CurationRunRepository } from "../curation/curation-run.repository";
 import { UploadedResumeRunRepository, type ExtractionRecord } from "../extraction/uploaded-resume-run.repository";
 import { IngestionQueue } from "../ingestion/ingestion-queue";
 import { IngestionRunRepository } from "../ingestion/ingestion-run.repository";
@@ -18,6 +20,9 @@ export interface ReconciliationReport {
   failed: number;
   ingestionsReEnqueued: number;
   ingestionsFailed: number;
+  curationsReEnqueued: number;
+  curationsReset: number;
+  curationsFailed: number;
   objectsDeleted: number;
 }
 
@@ -35,13 +40,16 @@ const emptyReport = (): ReconciliationReport => ({
   failed: 0,
   ingestionsReEnqueued: 0,
   ingestionsFailed: 0,
+  curationsReEnqueued: 0,
+  curationsReset: 0,
+  curationsFailed: 0,
   objectsDeleted: 0,
 });
 
-// Makes the upload state machine converge without a transactional enqueue: it promotes
-// uploads that finished silently, expires abandoned ones, re-enqueues rows without a job,
-// resets or fails stale runs, and sweeps the bucket. Every action is one log line naming
-// ids only, never Candidate data.
+// Makes the upload, Ingestion, and Curation state machines converge without a transactional
+// enqueue: it promotes uploads that finished silently, expires abandoned ones, re-enqueues rows
+// without a job, resets or fails stale runs, and sweeps the bucket. Every action is one log line
+// naming ids only, never Candidate data.
 @Injectable()
 export class ReconciliationJob {
   private readonly logger = new Logger(ReconciliationJob.name);
@@ -54,6 +62,8 @@ export class ReconciliationJob {
     private readonly storage: ObjectStorage,
     private readonly extractionQueue: ResumeExtractionQueue,
     private readonly ingestionQueue: IngestionQueue,
+    private readonly curations: CurationRunRepository,
+    private readonly curationQueue: CurationQueue,
   ) {}
 
   async run(): Promise<ReconciliationReport> {
@@ -64,6 +74,8 @@ export class ReconciliationJob {
     await this.reEnqueueOrphans(report);
     await this.settleStaleExtractions(now, report);
     await this.settleStaleIngestions(now, report);
+    await this.settleStaleCurations(now, report);
+    await this.reEnqueueDueCurations(now, report);
     await this.sweepBucket(now, report);
 
     this.logger.log(`reconciliation run ${describe(report)}`);
@@ -151,6 +163,45 @@ export class ReconciliationJob {
 
           this.act("fail", "ingestion", ingestion.id);
           report.ingestionsFailed += 1;
+        }
+      });
+    }
+  }
+
+  // A running Curation whose worker died holds the Account's only active slot, so without this
+  // step it would block every retry, re-run, and future Curation of the Account.
+  private async settleStaleCurations(now: number, report: ReconciliationReport): Promise<void> {
+    const cutoff = new Date(now - this.settings.staleProcessingMs);
+
+    for (const curation of await this.curations.findRunningUpdatedBefore(cutoff)) {
+      await this.guarded("curation", curation.id, async () => {
+        if (await this.curationQueue.hasPendingJob(curation.id)) {
+          return;
+        }
+
+        const settled = await this.curations.settleStale(curation.id, cutoff);
+
+        if (settled?.status === "queued") {
+          await this.curationQueue.enqueue({ curationId: settled.id, maxAttempts: settled.max_attempts });
+          this.act("reset", "curation", curation.id);
+          report.curationsReset += 1;
+        } else if (settled?.status === "failed") {
+          this.act("fail", "curation", curation.id);
+          report.curationsFailed += 1;
+        }
+      });
+    }
+  }
+
+  // A Curation paused by a Provider rate limit waits for its resume_after instead of being
+  // re-enqueued every run, which would keep hitting a Provider that asked us to stop.
+  private async reEnqueueDueCurations(now: number, report: ReconciliationReport): Promise<void> {
+    for (const curation of await this.curations.findQueuedDueBy(new Date(now))) {
+      await this.guarded("curation", curation.id, async () => {
+        if (!(await this.curationQueue.hasPendingJob(curation.id))) {
+          await this.curationQueue.enqueue({ curationId: curation.id, maxAttempts: curation.max_attempts });
+          this.act("re-enqueue", "curation", curation.id);
+          report.curationsReEnqueued += 1;
         }
       });
     }

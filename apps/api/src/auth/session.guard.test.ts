@@ -1,4 +1,4 @@
-import { UnauthorizedException, type ExecutionContext } from "@nestjs/common";
+import { UnauthorizedException, type CanActivate, type ExecutionContext } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import type { Account } from "@helpmegethired/shared";
 import { describe, expect, it } from "vitest";
@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 import type { AuthService } from "./auth.service";
 import type { AuthenticatedRequest } from "./authenticated-request";
 import { Public } from "./public.decorator";
+import { AcceptsRouteCredential } from "./route-credential.decorator";
 import { SessionGuard, bearerTokenOf } from "./session.guard";
 
 const account: Account = {
@@ -83,5 +84,32 @@ describe("SessionGuard", () => {
     expect(await guard.canActivate(context)).toBe(true);
     expect(request.account).toEqual(account);
     expect(request.sessionToken).toBe(liveToken);
+  });
+});
+
+class AlwaysAllow implements CanActivate {
+  canActivate() {
+    return true;
+  }
+}
+
+class RouteCredentialController {
+  @AcceptsRouteCredential(AlwaysAllow)
+  handler() {}
+}
+
+describe("SessionGuard on a route that takes its own credential", () => {
+  it("hands a request with no live Session to the route's guard, resolving no Account", async () => {
+    const { context, request } = contextFor(RouteCredentialController, "Bearer a-ticket");
+
+    expect(await guard.canActivate(context)).toBe(true);
+    expect(request.account).toBeUndefined();
+  });
+
+  it("still resolves a live Session", async () => {
+    const { context, request } = contextFor(RouteCredentialController, `Bearer ${liveToken}`);
+
+    expect(await guard.canActivate(context)).toBe(true);
+    expect(request.account).toEqual(account);
   });
 });

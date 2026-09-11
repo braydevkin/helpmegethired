@@ -1,10 +1,19 @@
 import type { ColumnType, Generated, Insertable, Selectable } from "kysely";
 import type {
+  CurationFailureReason,
+  CurationPauseReason,
+  CurationStatus,
+  CurationUnitFailureReason,
+  CurationUnitKind,
+  CurationUnitStatus,
   IngestionSource,
   IngestionStatus,
+  ModelId,
+  Provider,
   ResumeUploadErrorCode,
   SegmentStatus,
   SkillCategory,
+  StatementReviewState,
   UploadedResumeStatus,
 } from "@helpmegethired/shared";
 
@@ -59,6 +68,7 @@ export type IngestionRow = Selectable<IngestionsTable>;
 export type NewIngestionRow = Insertable<IngestionsTable>;
 
 type JsonColumn = ColumnType<unknown, string, string>;
+type DefaultedJsonColumn = ColumnType<unknown, string | undefined, string>;
 
 export interface IngestionSegmentsTable {
   id: Generated<string>;
@@ -169,6 +179,98 @@ export type SkillRow = Selectable<SkillsTable>;
 export type LanguageRow = Selectable<LanguagesTable>;
 export type CertificationRow = Selectable<CertificationsTable>;
 
+export interface CurationsTable {
+  id: Generated<string>;
+  account_id: string;
+  source_ingestion_id: string;
+  status: Generated<CurationStatus>;
+  attempts: Generated<number>;
+  max_attempts: number;
+  prompt_version: string;
+  model_id: string;
+  failure_reason: CurationFailureReason | null;
+  resume_after: Date | null;
+  pause_reason: CurationPauseReason | null;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+  started_at: Date | null;
+  completed_at: Date | null;
+}
+
+export type CurationRow = Selectable<CurationsTable>;
+export type NewCurationRow = Insertable<CurationsTable>;
+
+export interface CurationUnitsTable {
+  id: Generated<string>;
+  curation_id: string;
+  kind: CurationUnitKind;
+  position: number;
+  status: Generated<CurationUnitStatus>;
+  attempts: Generated<number>;
+  failure_reason: CurationUnitFailureReason | null;
+  truncated: Generated<boolean>;
+  subject_id: string | null;
+  title: string;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+}
+
+export type CurationUnitRow = Selectable<CurationUnitsTable>;
+export type NewCurationUnitRow = Insertable<CurationUnitsTable>;
+
+// pgvector reads and writes a vector as its text form, `[0.1,0.2,...]`.
+export interface StatementsTable {
+  id: Generated<string>;
+  curation_id: string;
+  unit_id: string;
+  account_id: string;
+  source_ingestion_id: string;
+  text: string;
+  labels: DefaultedJsonColumn;
+  evidence: JsonColumn;
+  prompt_version: string;
+  model_id: string;
+  review_state: Generated<StatementReviewState>;
+  reviewed_at: Date | null;
+  embedding: string | null;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+}
+
+export type StatementRow = Selectable<StatementsTable>;
+export type NewStatementRow = Insertable<StatementsTable>;
+
+export interface AccountModelChoicesTable {
+  account_id: string;
+  provider: Provider;
+  model_id: ModelId;
+  sealed_key: Buffer | null;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+}
+
+export interface ModelKeyTicketsTable {
+  token_hash: string;
+  account_id: string;
+  expires_at: Date;
+  created_at: Generated<Date>;
+}
+
+// `period_start` is the UTC day, always written and compared as its `YYYY-MM-DD` date.
+export interface EmbeddingUsageTable {
+  account_id: string;
+  period_start: string;
+  tokens: number;
+  updated_at: Generated<Date>;
+}
+
+export interface EmbeddingCeilingOverridesTable {
+  account_id: string;
+  tokens_per_day: number;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+}
+
 export interface DatabaseSchema {
   accounts: AccountsTable;
   sessions: SessionsTable;
@@ -183,4 +285,11 @@ export interface DatabaseSchema {
   skills: SkillsTable;
   languages: LanguagesTable;
   certifications: CertificationsTable;
+  curations: CurationsTable;
+  curation_units: CurationUnitsTable;
+  statements: StatementsTable;
+  account_model_choices: AccountModelChoicesTable;
+  model_key_tickets: ModelKeyTicketsTable;
+  embedding_usage: EmbeddingUsageTable;
+  embedding_ceiling_overrides: EmbeddingCeilingOverridesTable;
 }

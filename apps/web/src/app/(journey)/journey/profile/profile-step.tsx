@@ -10,7 +10,7 @@ import { ProfileStats } from "../../../../components/organisms/profile-stats/pro
 import { ProjectsGrid } from "../../../../components/organisms/projects-grid/projects-grid";
 import { SkillsGroups } from "../../../../components/organisms/skills-groups/skills-groups";
 import { contactRowsOf } from "../../../../lib/profile/contact";
-import { RESUME_STEP_PATH } from "../../../paths";
+import { ANALYSIS_PATH, RESUME_STEP_PATH } from "../../../paths";
 import type { Candidate } from "../candidate";
 import { JourneyFrame } from "../journey-frame";
 import { confirmProfileAction } from "./actions";
@@ -35,7 +35,7 @@ export function ProfileStep({ candidate, profile }: ProfileStepProps) {
           eyebrow="Your profile"
           name={candidate.name}
           headline={view.headline}
-          actions={<ProfileActions uploadHref={RESUME_STEP_PATH} confirmed={profile.confirmedAt !== null} confirm={confirmProfileAction} />}
+          actions={<ProfileActions uploadHref={RESUME_STEP_PATH} analysisHref={ANALYSIS_PATH} confirmed={profile.confirmedAt !== null} confirm={confirmProfileAction} />}
         />
       }
       sidebar={

@@ -1,5 +1,5 @@
 import {
-  ApiErrorSchema,
+  ResumeUploadErrorCodeSchema,
   ResumeUploadReceiptSchema,
   UploadedResumeListSchema,
   UploadedResumeSchema,
@@ -10,6 +10,7 @@ import {
 } from "@helpmegethired/shared";
 
 import { apiUrl } from "../config/api-url";
+import { apiErrorCodeOf, jsonBodyOf } from "./api-response";
 
 // A refusal the API explains with one of the shared codes, such as another Ingestion in flight.
 export class ResumeRefusedError extends Error {
@@ -23,13 +24,6 @@ export class ResumeRefusedError extends Error {
 }
 
 export type ResumeRead = { changed: false } | { changed: true; resume: UploadedResume; etag: string | undefined };
-
-const codeOf = (body: unknown): ResumeUploadErrorCode | undefined => {
-  const parsed = ApiErrorSchema.safeParse(body);
-  const code = parsed.success ? parsed.data.code : undefined;
-
-  return code as ResumeUploadErrorCode | undefined;
-};
 
 export class ResumeClient {
   constructor(
@@ -79,15 +73,8 @@ export class ResumeClient {
     });
   }
 
-  // A body that is not JSON, as a proxy's error page, still ends in the client's own error.
-  private async bodyOf(response: Response): Promise<unknown> {
-    const body: unknown = await response.json().catch(() => undefined);
-
-    if (!response.ok) {
-      throw new ResumeRefusedError(codeOf(body), response.status);
-    }
-
-    return body;
+  private bodyOf(response: Response): Promise<unknown> {
+    return jsonBodyOf(response, (body) => new ResumeRefusedError(apiErrorCodeOf(body, ResumeUploadErrorCodeSchema), response.status));
   }
 }
 

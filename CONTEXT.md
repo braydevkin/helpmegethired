@@ -26,10 +26,28 @@ _Avoid_: OTP, token, magic link, password
 A signed-in period of an Account. Opened by verifying a One-Time Code as an opaque token, presented on every request, closed by sign out or by expiry 12 hours after it opened.
 _Avoid_: Login session, auth token, JWT
 
+### The model
+
+**Provider**:
+The company or endpoint that runs the Model a Candidate's analysis is sent to. Phase one recognises one, Anthropic. Part of a Model Choice, never named on its own.
+_Avoid_: Vendor, AI company, LLM provider
+
+**Model**:
+The pinned model an Account's analysis runs on, named by the exact identifier the Provider serves and recorded on every Statement together with the prompt version, so what a Statement says is always readable back to what produced it.
+_Avoid_: LLM, AI, engine, version
+
+**Model Choice**:
+The Provider and the Model an Account uses for its analysis. Exactly one per Account, chosen by the Candidate before the first analysis and changeable afterwards, which makes a re-run available rather than invalidating anything. It does not cover how the Profile is indexed for retrieval: that belongs to the platform, not to an Account.
+_Avoid_: AI settings, setup, configuration, provider choice
+
+**Model Key**:
+The Candidate's own credential at the Provider of their Model Choice. Stored encrypted, scoped to one Account, never shown again after it is saved and never returned by any endpoint. The Candidate is billed by the Provider directly. Revoking it leaves the Model Choice standing and stops any further analysis until another is supplied.
+_Avoid_: API key, token, credentials, secret
+
 ### Profile
 
 **Profile**:
-The structured picture of a Candidate built from their Resume and LinkedIn data. Composed of seven parts: one Basic Profile and the lists of Experiences, Education, Projects, Skills, Languages, and Certifications. Belongs to exactly one Account. Reviewed by the Candidate, who confirms it once every field that needs review has been checked.
+The structured picture of a Candidate built from their Uploaded Resume. Composed of seven parts: one Basic Profile and the lists of Experiences, Education, Projects, Skills, Languages, and Certifications. Belongs to exactly one Account. Reviewed by the Candidate, who confirms it once every field that needs review has been checked.
 _Avoid_: CV, resume data
 
 **Basic Profile**:
@@ -71,7 +89,7 @@ _Avoid_: Score, accuracy, certainty, probability
 ### Profile building
 
 **Ingestion**:
-One run of profile building for an Account from one source (an Uploaded Resume or a LinkedIn profile). Made of ordered Segments, processed through a queue, resumable after a failure, and at most one active per Account. When it completes, it replaces what the previous Ingestion from the same source wrote and never touches what another source wrote; until then the previous Profile stays as it was.
+One run of profile building for an Account from one source, which is always an Uploaded Resume. Made of ordered Segments, processed through a queue, resumable after a failure, and at most one active per Account. When it completes, it replaces what the previous Ingestion from the same source wrote and never touches what another source wrote; until then the previous Profile stays as it was.
 _Avoid_: Import, upload job, parsing
 
 **Segment**:
@@ -85,6 +103,28 @@ _Avoid_: Phase, stage
 **Progress**:
 The share of an Ingestion that is done, as a whole percentage derived from the persisted Steps of its Segments.
 _Avoid_: Status bar, completion
+
+### Profile curation
+
+**Curation**:
+One run of profile curation for a confirmed Profile. At most one active per Account; replaced only when it completes, exactly as an Ingestion replaces a Profile.
+_Avoid_: Analysis, enrichment, chunking
+
+**Curation Unit**:
+The unit of work inside a Curation: one Experience, one Project, the cross-cutting competences unit, or the synthesis unit. Mirrors a Segment inside an Ingestion.
+_Avoid_: Chunk, task, pass (in code)
+
+**Statement**:
+A self-contained sentence about the Candidate produced by a Curation Unit, which reads correctly with nothing around it. What is embedded and retrieved.
+_Avoid_: Chunk, insight, finding, fact
+
+**Evidence**:
+The pointer a Statement carries back to the Experience, Project, or span of extracted text it was drawn from. A Statement whose Evidence does not resolve is never saved.
+_Avoid_: Citation, source, reference
+
+**Statement review**:
+The Candidate's judgement on one Statement: accepted, rejected, or not yet reviewed. A rejected Statement is never retrieved for a Job Description.
+_Avoid_: Feedback, rating, vote
 
 ### Documents
 

@@ -1,0 +1,91 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: var(--card-padding);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-tip-card);
+  background: var(--color-surface);
+}
+
+.labels {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.text {
+  font-size: var(--text-lead);
+  line-height: var(--leading-lead);
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.evidence {
+  margin: 0;
+  padding: 12px 16px;
+  border-left: 3px solid var(--color-brand);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-tint);
+}
+
+.evidenceLabel {
+  font-size: var(--text-badge);
+  font-weight: 700;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-brand);
+}
+
+.quote {
+  margin: 6px 0 0;
+  font-size: var(--text-entry-detail);
+  line-height: var(--leading-entry-detail);
+  color: var(--color-text-label);
+}
+
+.source {
+  margin-top: 6px;
+  font-size: var(--text-hint);
+  line-height: var(--leading-hint);
+  color: var(--color-text-secondary);
+}
+
+.excluded {
+  font-size: var(--text-entry-detail);
+  font-weight: 700;
+  color: var(--color-error-text);
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.actions button[aria-pressed="true"] {
+  border-color: var(--color-brand);
+  background: var(--color-brand-tint);
+  color: var(--color-brand-deep);
+}
+
+.actions button[aria-disabled="true"] {
+  cursor: progress;
+}
+
+.rejected {
+  background: var(--color-page);
+}
+
+.rejected .text {
+  color: var(--color-text-secondary);
+}
+
+.rejected .actions button[aria-pressed="true"] {
+  border-color: var(--color-error);
+  background: var(--color-error-bg);
+  color: var(--color-error-text);
+}

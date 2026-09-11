@@ -18,6 +18,7 @@ import { AppModule } from "../app.module";
 import { AccountRepository } from "../auth/account.repository";
 import { SessionRepository } from "../auth/session.repository";
 import { hashSessionToken } from "../auth/session-token";
+import { DATABASE, type Database } from "../database/database";
 import { IngestionService } from "../ingestion/ingestion.service";
 import { PROFILE_INGESTION_QUEUE, QUEUE_PREFIX, RESUME_EXTRACTION_QUEUE } from "../queue/queues";
 import { EXTRACTION_JOB_NAME } from "./bullmq-resume-extraction.queue";
@@ -235,6 +236,24 @@ describe("resume endpoints", () => {
 
       expect(response.status).toBe(409);
       expect(ApiErrorSchema.parse(await response.json()).code).toBe("ingestion_active");
+    });
+
+    it("accepts an upload while a Curation of the Account is running", async () => {
+      const { accountId, token } = await openSession();
+      const database = app.get<Database>(DATABASE);
+      const { id: ingestionId } = await database
+        .insertInto("ingestions")
+        .values({ account_id: accountId, source: "upload", status: "completed", max_attempts: 3, completed_at: new Date() })
+        .returning("id")
+        .executeTakeFirstOrThrow();
+      await database
+        .insertInto("curations")
+        .values({ account_id: accountId, source_ingestion_id: ingestionId, status: "running", max_attempts: 3, prompt_version: "curation/1", model_id: "claude-sonnet-5" })
+        .execute();
+
+      const receipt = await uploaded(token, pdfBytes(randomUUID()));
+
+      expect(UploadedResumeSchema.parse(await (await request("GET", `/resumes/${receipt.resume.id}`, token)).json()).status).toBe("uploaded");
     });
 
     it("answers 404 for a record of another Account", async () => {

@@ -72,3 +72,95 @@ The MIME type is decided by the magic bytes in the worker, never by the file ext
 
 - **Virus scanning** of the uploaded file: decided once the deployment target is known, because the scanner is an infrastructure component. Tracked in the pending decisions of the ADR index.
 - **Encryption at rest** of the bucket: a property of the deployment target, not of the code. The design pages make no claim about it.
+
+## AI pipeline (TC-06, TC-07)
+
+Agreed in #53 before the first model call, for every task that reaches a model: Profile Curation (#110, #111, #113, #114, #119) and every Job Description layer after it, starting with the ATS scoring task. Who holds which key is ADR-0023; the pipeline is "AI pipeline" in [architecture.md](architecture.md#ai-pipeline-tc-06-tc-07).
+
+Every text a model reads is attacker-controlled: the stored Resume text, the Profile the Candidate edited, a pasted Job Description. The rules assume that text will try to instruct the model, and they hold when the model obeys it: what protects the platform is what the code does before and after the call, never what the prompt asks for.
+
+### Keys
+
+| Key | Belongs to | Lives in | Never |
+| --- | --- | --- | --- |
+| Platform embedding key | The platform | `EMBEDDING_API_KEY` in the API and worker environment, validated at startup; a production configuration without it refuses to start | In the web app, a response, or a log line |
+| Model Key | The Candidate | `account_model_choices`, encrypted at rest (#110) | Returned by any endpoint, in a log line, an error message, an exception payload, or the OpenAPI document, or handled by the web app's server side |
+| Model Key ticket | The Account that asked for it | `model_key_tickets`, only as its SHA-256, for 60 seconds or until it is presented once | In a log line, an error payload, or a URL; accepted by any route but `PUT /account/model` |
+| Model Key encryption key | The platform | `MODEL_KEY_ENCRYPTION_KEY`, 32 random bytes in base64, in the API and worker environment, validated at startup; a production configuration without it, or with the development key the code falls back to elsewhere, refuses to start | In the database, next to what it encrypts |
+
+- The Model Key is sealed with AES-256-GCM under a fresh IV per write, with the Account id as additional authenticated data, so a tampered ciphertext or one copied onto another Account's row never opens.
+- The Provider check is selected by `MODEL_ADAPTER`, never by the presence of a key: `anthropic` retrieves the pinned model with the key, spending no tokens; blank selects the development stand-in, and only outside production. The Provider's answer is read as a status only, so its body never reaches a log line or a response.
+- The Model Key travels from the browser to the API and never enters the web app process: it is not submitted through a Next.js server action or route handler, and `apps/web/src/proxy.ts` forwards no bodies (ADR-0023).
+- The browser holds no Session token, so it sends the key with a Model Key ticket (#156). The web app's server side asks `POST /account/model/key-ticket` for one with the Session and hands it to the page, which sends `PUT /account/model` straight to the API with `Authorization: Bearer <ticket>`. A ticket is 32 random bytes, stored only as its SHA-256, bound to the Account that asked for it, valid for 60 seconds, and single use: presenting it deletes its row before the body is read or the key is checked with the Provider, so a refused key needs a fresh ticket. Only `PUT /account/model` accepts one; every other route treats it as an unknown Session token. An unknown, expired, or used ticket answers `401 model_key_ticket_invalid`, the same for all three, and neither the ticket nor the key reaches a log line or an error payload.
+- CORS answers `PUT /account/model` only, for `WEB_ORIGIN`, with the `Authorization` and `Content-Type` headers and no cookies. Every other route answers no CORS headers, because the web app calls them from its server side.
+- A key is checked against the Provider when it is saved, so an invalid one is refused where the Candidate can fix it. Reading the Model Choice answers whether a key is stored, never the key or a fragment that could be decrypted.
+- Revoking a key deletes its ciphertext. The Model Choice stays, and new analyses are blocked with a reason.
+- An Account with no Model Key is blocked, never served by the deterministic fake: the fake is selected by platform configuration, and only outside production (ADR-0023).
+
+### Prompts
+
+- System instructions and Candidate content are separate parts of the prompt. Candidate content is wrapped in explicit delimiters, and the instructions say that everything inside them is data to analyse, never an instruction to follow.
+- A delimiter that appears inside the content is neutralised before wrapping, so the content cannot close its own block and continue as instructions.
+- The deterministic facts computed by the platform (#108) sit outside the Candidate block and are labelled as computed, so the text cannot restate them.
+- A prompt carries the content of one Account only.
+- Each Curation Unit's input is capped at 8,000 characters, truncated at a line boundary, and the unit records that it was truncated (#113).
+- No tool that can perform a side effect is exposed to the model. Retrieval is done by the code before the call, never by the model choosing to call something.
+
+### Retrieval
+
+- Every retrieval query filters by `account_id` in SQL, before similarity ordering, under the same structural rule as every Candidate-owned table ([architecture.md](architecture.md#backend-appsapi), #49). No query retrieves across Accounts, and the two-Account helper proves it for every retrieval path.
+- Profile Curation is the one layer that reads the Profile, one Curation Unit at a time, because it is what produces the Statements; it retrieves nothing (ADR-0024). Every layer after it retrieves only Statements: never the Profile rows, never the extracted text. A rejected Statement and the Statements of a superseded Curation are never retrieved (#119).
+
+### Output
+
+- Every model response is parsed by a Zod schema from `packages/shared`. A response that does not validate is a failed call: it is never repaired, never partially saved, and never shown.
+- The ATS score is an integer from 0 to 10, and nothing else validates.
+- A Statement's Evidence must resolve against the Account's own Profile before the Statement is saved. One that does not is discarded, and the discard is logged by unit id (#113).
+- Model output, and every attacker-controlled text it was drawn from (the Resume text, the Profile, a Job Description), reach the web app as data and are rendered as text. None of them reaches `dangerouslySetInnerHTML` or a Markdown renderer that passes HTML through.
+
+### Spend
+
+- Generation is billed to the Candidate's own Provider account, and the platform enforces no budget on it. What bounds a Curation is `max_attempts` (3) and the per-unit input cap (ADR-0023).
+- Embedding is the platform's only spend, bounded per Account and UTC day (#133). Before every embedding call the runner estimates the tokens of the Statements it is about to embed (characters ÷ 4) and reserves them in `embedding_usage` under the Account lock, so two reservations for one Account run one after the other. A reservation that would pass the ceiling is refused before any call is made, and the Curation is paused, never failed: `queued`, `pause_reason` `embedding_ceiling`, `resume_after` at the next UTC midnight, the attempt kept. A reservation is kept whatever the call answers, since a failed call may still be billed, and the retry reserves again.
+- The ceiling is 192,000 estimated tokens per Account per UTC day: 8 units (the largest Curation over the 30 résumés of the parser corpus; the median is 4) × 2,000 tokens (the 8,000-character per-unit input cap at four characters a token, an upper bound for the Statements that restate a unit's input) × 3 attempts (`max_attempts`, each of which may embed again) × 4 Curations (a first one and the re-runs #118 allows after a change). An ordinary Curation reserves far less than its bound, since Statements are shorter than their input, and one Account can reserve at most 30 days of that in a month. The constants live in `apps/api/src/curation/embedding-allowance.ts`.
+- The ceiling is raised for one Account without a deploy by a row in `embedding_ceiling_overrides`, and the day's counter is read from `embedding_usage`:
+
+  ```sql
+  insert into embedding_ceiling_overrides (account_id, tokens_per_day)
+  values ('<account id>', 400000)
+  on conflict (account_id) do update set tokens_per_day = excluded.tokens_per_day, updated_at = now();
+
+  select tokens from embedding_usage
+  where account_id = '<account id>' and period_start = (now() at time zone 'utc')::date;
+  ```
+
+  A Curation whose own Statements estimate above its Account's whole ceiling pauses every day until the ceiling is raised this way, and each pause logs `curation paused curation=<id> reason=embedding_ceiling`.
+- Nothing about the ceiling, the counter, or a token count reaches the Candidate: the analysis page says only that the daily allowance is used and when the analysis resumes (ADR-0023).
+- A Provider rate limit or an exhausted quota pauses the run with `resume_after` and does not consume an attempt. Nothing retries against a Provider in a loop (#115).
+
+### Logging
+
+Each model call writes one structured line (#50): the Account id, the id of the run and of the unit, the Model, the prompt version, input and output token counts, latency, and the outcome (`ok`, `invalid_output`, `evidence_unresolved`, `timeout`, `rate_limited`, `failed`). The reason recorded on a unit row is that outcome, never the Provider's message.
+
+A log line, a unit row, and an error payload never carry the prompt, the completion, Candidate content, a Statement or its Evidence, the Model Key, or a Provider error body, which can echo the input it refused. Token counts are recorded for this log and never shown to a Candidate (ADR-0023).
+
+### Injection fixtures
+
+`apps/api/test/fixtures/injection` holds a Resume text and a Job Description that try to steer the model, with a README naming each attempt and the expected outcome. They contain no real person's data. Each layer's tests run them through its guards against the deterministic fake: delimiter neutralisation, schema validation, Evidence resolution, and the canary check below. The ATS scoring task runs them too, asserting that the score still validates. With a real Model Key the same fixtures form an evaluation run, never a CI step, because CI holds no Provider key.
+
+The canary: the system instructions of a test prompt carry a random marker, and a completion that contains it, or any line of the instructions, fails the test. A leak of the prompt is caught by what the output contains, not by trusting the model to refuse.
+
+### Criteria each task copies
+
+- [ ] Candidate content reaches the model only inside the delimiters, and a delimiter inside the content is neutralised
+- [ ] No tool with a side effect is exposed to the model
+- [ ] Every retrieval query filters by `account_id`, proven by the two-Account helper
+- [ ] Every response is parsed by a shared Zod schema, and one that does not validate is a failed call
+- [ ] No key reaches the web app, a response body, a log line, or an error payload
+- [ ] A log line carries ids, the Model, the prompt version, token counts, latency, and the outcome, and a test asserts it carries no content
+- [ ] The injection fixtures run through the layer, the output validates, and the canary never appears
+
+### Still open for the AI pipeline
+
+- **The embedding ceiling's number and period**: #133.
+- **Provider retention**: a Profile sent for generation is governed by the Candidate's own agreement with their Provider, not by one the platform holds (ADR-0023). The provider page states it (#120); the platform makes no claim of its own.

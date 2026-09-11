@@ -16,9 +16,9 @@ AI is a tool here, not a replacement for thinking. Every AI-assisted step in the
 
 A candidate walks through a single, sequential journey:
 
-1. **Sign up** and build a profile from an uploaded resume PDF and a LinkedIn profile URL.
-2. **AI profile analysis** produces a profile page with strengths and weaknesses.
-3. **Paste a job description**, which is analysed against the profile.
+1. **Sign up**, build a profile from an uploaded resume PDF, and confirm it.
+2. **Profile curation** reads the confirmed profile once, on the candidate's own model key, into statements that each show the evidence behind them.
+3. **Paste a job description**, which is analysed against those statements, including the strengths and weaknesses for that role.
 4. **ATS scoring** rates the resume from 0 to 10 for that specific job description.
 5. **Resume recommendations** rebuild the resume when the ATS score is below 8, based on the candidate's experiences, projects, and profile.
 6. **Study recommendations** derive what to learn from previous applications and turn it into a structured study plan.
@@ -26,7 +26,7 @@ A candidate walks through a single, sequential journey:
 8. **AI mock interview** for the target role.
 9. **Preparation summary** with success rates across every step.
 
-The full product definition lives in [docs/product/vision.md](docs/product/vision.md) and [docs/product/requirements.md](docs/product/requirements.md). The original idea diagram is in [arch/helpmegethired-architecture.drawio](arch/helpmegethired-architecture.drawio).
+The full product definition lives in [docs/product/vision.md](docs/product/vision.md) and [docs/product/requirements.md](docs/product/requirements.md). The original idea diagram is in [arch/hgh.drawio](arch/hgh.drawio).
 
 ## Tech stack
 
@@ -88,6 +88,8 @@ To run the apps natively against your own tooling instead, see the local setup i
 | [Wiki: Design: Account](https://github.com/braydevkin/helpmegethired/wiki/Design-Account) | The sign in and sign up design: screens, copy, tokens, components by stage, and open points |
 | [Wiki: Design: Resume Upload](https://github.com/braydevkin/helpmegethired/wiki/Design-Resume-Upload) | The upload step design: states, copy, the pipeline the Candidate sees, tokens, components by stage, and open points |
 | [Wiki: Design: Profile](https://github.com/braydevkin/helpmegethired/wiki/Design-Profile) | The Profile review page design: cards, copy, tokens, components by stage, and open points |
+| [Wiki: Design: Choose your AI](https://github.com/braydevkin/helpmegethired/wiki/Design-Choose-your-AI) | The provider and key step design: the pinned model, the key field, the summary, the phase one scope, and what is deliberately absent |
+| [Wiki: Design: AI Analysis](https://github.com/braydevkin/helpmegethired/wiki/Design-AI-Analysis) | The analysis page design: the gate, running, failed, and completed states, the progress component, Statement cards with Evidence, and the curation lane |
 | [Wiki: Guide: Walk the upload API](https://github.com/braydevkin/helpmegethired/wiki/Guide-Walk-the-upload-API) | Take a PDF to a confirmed Profile by hand in Swagger UI, one screenshot per step; the Playwright API scenario is its automated twin |
 | [apps/api/openapi/openapi.json](apps/api/openapi/openapi.json) | The OpenAPI document generated from the shared schemas; Swagger UI serves it at `/docs` in development |
 | [docs/releases/](docs/releases/README.md) | Release notes, one document per production release |

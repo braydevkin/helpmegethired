@@ -89,8 +89,8 @@ export class ProfileRepository {
     };
   }
 
-  async confirm(accountId: Id, ingestionId: Id): Promise<StoredBasicProfile | undefined> {
-    const row = await this.database
+  async confirm(accountId: Id, ingestionId: Id, database: Database = this.database): Promise<StoredBasicProfile | undefined> {
+    const row = await database
       .updateTable("basic_profiles")
       .set({ confirmed_at: sql<Date>`coalesce(confirmed_at, now())` })
       .where("account_id", "=", accountId)
