@@ -870,6 +870,273 @@
           }
         }
       }
+    },
+    "/profile/curation/cancel": {
+      "post": {
+        "tags": [
+          "Curation"
+        ],
+        "summary": "Stop the Curation",
+        "description": "Moves the queued or running Curation to `cancelled`. The runner stops at its next unit boundary, the Statements already saved are kept for a retry, and nothing is indexed. Answers the progress as it now stands.",
+        "operationId": "cancelCuration",
+        "responses": {
+          "200": {
+            "description": "The progress, now cancelled",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurationProgressState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid Session bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`curation_not_found` when no Curation is queued or running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "curation_not_found"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/curation/retry": {
+      "post": {
+        "tags": [
+          "Curation"
+        ],
+        "summary": "Try the failed or cancelled Curation again",
+        "description": "Takes the newest Curation of the Profile, when it is `failed` or `cancelled`, back to `queued` with its attempts reset and its reason cleared, and adds its job again. Saved units stay saved, so the runner resumes at the first unsaved one and the Candidate pays only for what is left.",
+        "operationId": "retryCuration",
+        "responses": {
+          "202": {
+            "description": "The progress, queued again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurationProgressState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid Session bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`curation_not_found` when the Profile has no Curation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "curation_not_found"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`curation_active` while a Curation is queued or running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "curation_active"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`curation_not_ready` before the Profile is confirmed and a Model Key stored; `curation_not_retryable` when the Curation is not failed or cancelled; `curation_model_changed` when the Model Choice changed since it started, which a re-run answers instead",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "curation_not_ready",
+                            "curation_not_retryable",
+                            "curation_model_changed"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/curation/rerun": {
+      "post": {
+        "tags": [
+          "Curation"
+        ],
+        "summary": "Run the Curation again from zero",
+        "description": "Creates a new Curation beside the current completed one, which stays current and retrievable until the new one completes and supersedes it; a re-run that fails or is cancelled leaves it intact. It spends the Candidate's tokens, so it is allowed only when the newest Curation of the Profile failed or was cancelled, or the Profile, the Model, or the prompt version changed since the current one was produced.",
+        "operationId": "rerunCuration",
+        "responses": {
+          "202": {
+            "description": "The progress of the new Curation",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurationProgressState"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid Session bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`curation_active` while a Curation is queued or running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "curation_active"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "`curation_not_ready` before the Profile is confirmed and a Model Key stored; `curation_unchanged` when running it again would produce the same Statements",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "curation_not_ready",
+                            "curation_unchanged"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

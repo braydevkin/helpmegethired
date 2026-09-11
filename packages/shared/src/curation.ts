@@ -19,6 +19,18 @@ export type CurationFailureReason = z.infer<typeof CurationFailureReasonSchema>;
 export const CurationUnitFailureReasonSchema = z.enum(["timeout", "invalid_output", "truncated_response", "provider_error"]);
 export type CurationUnitFailureReason = z.infer<typeof CurationUnitFailureReasonSchema>;
 
+// Why a cancel, a retry, or a re-run was refused. Only `curation_active` answers 409, and only
+// while a Curation is already queued or running.
+export const CurationActionErrorCodeSchema = z.enum([
+  "curation_active",
+  "curation_not_found",
+  "curation_not_ready",
+  "curation_not_retryable",
+  "curation_model_changed",
+  "curation_unchanged",
+]);
+export type CurationActionErrorCode = z.infer<typeof CurationActionErrorCodeSchema>;
+
 export const CurationSchema = z.object({
   id: IdSchema,
   status: CurationStatusSchema,

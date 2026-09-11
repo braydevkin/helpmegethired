@@ -3,6 +3,7 @@ import { Module } from "@nestjs/common";
 import { Clock, SystemClock } from "../common/clock";
 import { QueueModule } from "../queue/queue.module";
 import { BullMqCurationQueue } from "./bullmq-curation.queue";
+import { CurationActions } from "./curation-actions";
 import { CurationProgressRepository } from "./curation-progress.repository";
 import { CurationProgressService } from "./curation-progress.service";
 import { CurationQueue } from "./curation-queue";
@@ -25,6 +26,7 @@ import { StatementRepository } from "./statement.repository";
     StatementRepository,
     CurationProgressRepository,
     CurationProgressService,
+    CurationActions,
     { provide: CurationQueue, useClass: BullMqCurationQueue },
     { provide: Clock, useClass: SystemClock },
     StatementReviewRepository,

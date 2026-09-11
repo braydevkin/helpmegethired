@@ -7,13 +7,15 @@ import { TransactionRunner } from "../database/transaction-runner";
 import { CURATION_MAX_ATTEMPTS } from "./curation-job-options";
 import { CurationQueue } from "./curation-queue";
 import { unitsOf } from "./curation-units";
-import { CurationRepository } from "./curation.repository";
+import { CurationRepository, type CurationReadiness } from "./curation.repository";
 
 // Every Statement records the prompt version it was written under, so a change to any unit's
 // prompt bumps this: it is how an already-curated Candidate is told apart (ADR-0024).
 export const CURATION_PROMPT_VERSION = "curation/1";
 
 export type TriggeringWrite<Result> = (transaction: Database) => Promise<Result>;
+
+export type EnqueuedCuration = Pick<Curation, "id" | "maxAttempts">;
 
 @Injectable()
 export class CurationStarter {
@@ -45,6 +47,29 @@ export class CurationStarter {
     return result;
   }
 
+  async createFrom(accountId: Id, readiness: CurationReadiness, transaction: Database): Promise<Curation> {
+    const units = unitsOf(await this.curations.subjectsOf(accountId, readiness.ingestionId, transaction));
+    const curation = await this.curations.create(
+      accountId,
+      { sourceIngestionId: readiness.ingestionId, modelId: readiness.modelId, promptVersion: CURATION_PROMPT_VERSION, maxAttempts: CURATION_MAX_ATTEMPTS, units },
+      transaction,
+    );
+
+    this.logger.log(`Curation ${curation.id} created for Account ${accountId} with ${units.length} units`);
+
+    return curation;
+  }
+
+  // The row is committed before the job is added, so a queue outage leaves a queued Curation
+  // without a job for reconciliation (#115) instead of failing the request.
+  async enqueue(curation: EnqueuedCuration): Promise<void> {
+    try {
+      await this.queue.enqueue({ curationId: curation.id, maxAttempts: curation.maxAttempts });
+    } catch (error) {
+      this.logger.error(`Curation ${curation.id} is queued but its job could not be added`, error);
+    }
+  }
+
   // An active Curation of an earlier Ingestion keeps the Account until a new Ingestion supersedes
   // it (#116); until then nothing new is created beside it.
   private async createIfReady(accountId: Id, transaction: Database): Promise<Curation | undefined> {
@@ -61,25 +86,6 @@ export class CurationStarter {
       return undefined;
     }
 
-    const units = unitsOf(await this.curations.subjectsOf(accountId, readiness.ingestionId, transaction));
-    const curation = await this.curations.create(
-      accountId,
-      { sourceIngestionId: readiness.ingestionId, modelId: readiness.modelId, promptVersion: CURATION_PROMPT_VERSION, maxAttempts: CURATION_MAX_ATTEMPTS, units },
-      transaction,
-    );
-
-    this.logger.log(`Curation ${curation.id} created for Account ${accountId} with ${units.length} units`);
-
-    return curation;
-  }
-
-  // The row is committed before the job is added, so a queue outage leaves a queued Curation
-  // without a job for reconciliation (#115) instead of failing the request.
-  private async enqueue(curation: Curation): Promise<void> {
-    try {
-      await this.queue.enqueue({ curationId: curation.id, maxAttempts: curation.maxAttempts });
-    } catch (error) {
-      this.logger.error(`Curation ${curation.id} is queued but its job could not be added`, error);
-    }
+    return this.createFrom(accountId, readiness, transaction);
   }
 }

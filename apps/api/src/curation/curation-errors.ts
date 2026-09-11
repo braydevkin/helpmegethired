@@ -1,4 +1,14 @@
-import type { CurationStatus, Id } from "@helpmegethired/shared";
+import type { CurationActionErrorCode, CurationStatus, Id } from "@helpmegethired/shared";
+
+export class CurationActionRefusedError extends Error {
+  constructor(
+    readonly code: CurationActionErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "CurationActionRefusedError";
+  }
+}
 
 export class CurationNotFoundError extends Error {
   constructor(curationId: Id) {
