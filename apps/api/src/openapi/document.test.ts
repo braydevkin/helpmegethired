@@ -23,7 +23,7 @@ const refsIn = (value: unknown): string[] => {
 const responseSchemaOf = (response: JsonSchema): unknown => (response.content as Record<string, { schema: unknown }> | undefined)?.["application/json"]?.schema;
 
 describe("the OpenAPI document", () => {
-  it("describes every resume, Profile, Account, Model Choice, and health route", () => {
+  it("describes every resume, Profile, Curation, Account, Model Choice, and health route", () => {
     expect(operations.map(({ method, path }) => `${method.toUpperCase()} ${path}`).sort()).toEqual(
       [
         "GET /health",
@@ -39,6 +39,7 @@ describe("the OpenAPI document", () => {
         "GET /resumes/{id}",
         "GET /profile",
         "POST /profile/confirm",
+        "GET /profile/curation",
       ].sort(),
     );
   });
@@ -50,8 +51,18 @@ describe("the OpenAPI document", () => {
       expect(names.map((name) => `#/components/schemas/${name}`)).toContain(reference);
     }
 
-    expect(names).toEqual(expect.arrayContaining(["Account", "ApiError", "ResumeUpload", "ResumeUploadReceipt", "UploadedResume", "Profile"]));
+    expect(names).toEqual(expect.arrayContaining(["Account", "ApiError", "ResumeUpload", "ResumeUploadReceipt", "UploadedResume", "Profile", "CurationProgressState"]));
     expect(document.components.schemas.Profile).toMatchObject({ type: "object", required: expect.arrayContaining(["accountId", "reviewFlags", "source"]) });
+    expect(document.components.schemas.CurationProgressState).toMatchObject({ type: "object", required: ["progress"] });
+  });
+
+  it("describes the Curation progress poll with its ETag and 304", () => {
+    const poll = document.paths["/profile/curation"]?.get;
+
+    expect(poll?.parameters).toContainEqual(expect.objectContaining({ name: "If-None-Match", in: "header" }));
+    expect(poll?.responses["200"]).toMatchObject({ headers: { ETag: expect.any(Object) } });
+    expect(Object.keys(poll?.responses ?? {})).toEqual(expect.arrayContaining(["200", "304", "401"]));
+    expect(refsIn(responseSchemaOf(poll?.responses["200"] ?? {}))).toEqual(["#/components/schemas/CurationProgressState"]);
   });
 
   it("gives every operation an id, a summary, and at least one answer, and every error answer the shared ApiError", () => {

@@ -3,6 +3,7 @@ import {
   AccountModelChoiceSchema,
   AccountSchema,
   ApiErrorSchema,
+  CurationProgressStateSchema,
   HealthStatusSchema,
   ModelChoiceRequestSchema,
   ModelChoiceStateSchema,
@@ -63,6 +64,7 @@ const COMPONENTS: Record<string, { schema: ZodType; io: "input" | "output" }> = 
   ModelChoiceState: { schema: ModelChoiceStateSchema, io: "output" },
   ModelChoiceRequest: { schema: ModelChoiceRequestSchema, io: "input" },
   AccountModelChoice: { schema: AccountModelChoiceSchema, io: "output" },
+  CurationProgressState: { schema: CurationProgressStateSchema, io: "output" },
 };
 
 const ref = (name: string): JsonSchema => ({ $ref: `#/components/schemas/${name}` });
@@ -93,6 +95,16 @@ const idParameter: JsonSchema = {
   description: "The Uploaded Resume id",
   schema: jsonSchemaOf(z.uuid(), "output"),
 };
+
+const ifNoneMatchParameter: JsonSchema = {
+  name: "If-None-Match",
+  in: "header",
+  required: false,
+  description: "The `ETag` of the last answer",
+  schema: { type: "string" },
+};
+
+const notModified: JsonSchema = { description: "Nothing changed since the `If-None-Match` value" };
 
 const paths: OpenApiDocument["paths"] = {
   "/health": {
@@ -234,21 +246,12 @@ const paths: OpenApiDocument["paths"] = {
       description:
         "The record with its status, its error code when failed, and the Ingestion Progress while the Profile is being built. The `ETag` changes with them; send it back as `If-None-Match` to poll cheaply.",
       operationId: "getResume",
-      parameters: [
-        idParameter,
-        {
-          name: "If-None-Match",
-          in: "header",
-          required: false,
-          description: "The `ETag` of the last answer",
-          schema: { type: "string" },
-        },
-      ],
+      parameters: [idParameter, ifNoneMatchParameter],
       responses: {
         "200": json("The record", ref("UploadedResume"), {
           ETag: { description: "Changes with the status, the error code, and the Progress", schema: { type: "string" } },
         }),
-        "304": { description: "Nothing changed since the `If-None-Match` value" },
+        "304": notModified,
         "401": unauthorized,
         "404": notFound,
       },
@@ -277,6 +280,23 @@ const paths: OpenApiDocument["paths"] = {
       },
     },
   },
+  "/profile/curation": {
+    get: {
+      tags: ["Curation"],
+      summary: "The progress of the current Curation",
+      description:
+        "The newest Curation of the Profile on screen: its status, the percentage of units saved, every unit with its kind, title, and status, the metrics counted from the Profile, the Model it runs on, and the failure reason with `resumeAfter` when it waits out a rate limit. The percentage counts saved units only, so every process answers the same number. An Account with no Curation for its latest Profile answers `progress: null`. Statements are not part of this answer. The `ETag` changes with any of it; send it back as `If-None-Match` to poll cheaply.",
+      operationId: "getCurationProgress",
+      parameters: [ifNoneMatchParameter],
+      responses: {
+        "200": json("The progress, or none yet", ref("CurationProgressState"), {
+          ETag: { description: "Changes with anything in the answer", schema: { type: "string" } },
+        }),
+        "304": notModified,
+        "401": unauthorized,
+      },
+    },
+  },
 };
 
 export const openApiDocument = (): OpenApiDocument => ({
@@ -294,6 +314,7 @@ export const openApiDocument = (): OpenApiDocument => ({
     { name: "Model Choice", description: "The Provider and Model an Account analyses with, and its Model Key" },
     { name: "Resumes", description: "Uploaded Resumes: the presigned upload, its completion, and the record's status" },
     { name: "Profile", description: "The Profile the Ingestion built and its confirmation" },
+    { name: "Curation", description: "Profile Curation: the Statements built from the confirmed Profile, and their progress" },
   ],
   security: [{ [SESSION]: [] }],
   paths,
