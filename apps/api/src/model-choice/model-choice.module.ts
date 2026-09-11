@@ -3,6 +3,7 @@ import { ConfigService } from "@nestjs/config";
 
 import type { EnvironmentConfig } from "../config/environment.module";
 import { modelKeyEncryptionKeyOf } from "../config/model-key-encryption-key";
+import { CurationModule } from "../curation/curation.module";
 import { ModelChoiceController } from "./model-choice.controller";
 import { ModelChoiceRepository } from "./model-choice.repository";
 import { ModelChoiceService } from "./model-choice.service";
@@ -11,6 +12,7 @@ import { ModelKeyValidator } from "./model-key-validator";
 import { selectModelKeyValidator } from "./select-model-key-validator";
 
 @Module({
+  imports: [CurationModule],
   controllers: [ModelChoiceController],
   providers: [
     ModelChoiceRepository,

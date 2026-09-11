@@ -34,9 +34,9 @@ export class ModelChoiceRepository {
     return row && toStored(row);
   }
 
-  async save(accountId: Id, choice: NewModelChoice): Promise<StoredModelChoice> {
+  async save(accountId: Id, choice: NewModelChoice, database: Database = this.database): Promise<StoredModelChoice> {
     const values = { provider: choice.provider, model_id: choice.modelId, sealed_key: choice.sealedKey };
-    const row = await this.database
+    const row = await database
       .insertInto("account_model_choices")
       .values({ account_id: accountId, ...values })
       .onConflict((conflict) => conflict.column("account_id").doUpdateSet({ ...values, updated_at: sql`now()` }))
