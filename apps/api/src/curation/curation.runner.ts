@@ -144,14 +144,16 @@ export class CurationRunner {
       case "failed": {
         const status = await this.runs.failAttempt(run.id);
 
-        this.logger.warn(`curation attempt failed curation=${run.id} attempt=${run.attempts} of=${run.maxAttempts} now=${status ?? "unknown"}`);
+        if (!status) {
+          return this.stopped(run);
+        }
+
+        this.logger.warn(`curation attempt failed curation=${run.id} attempt=${run.attempts} of=${run.maxAttempts} now=${status}`);
 
         throw new CurationAttemptFailedError(run.id, status);
       }
       case "stopped":
-        this.logger.log(`curation stopped curation=${run.id}`);
-
-        return;
+        return this.stopped(run);
       default:
         return this.complete(run);
     }
@@ -177,7 +179,11 @@ export class CurationRunner {
 
       const status = await this.runs.failAttempt(run.id);
 
-      this.logger.warn(`curation embedding failed curation=${run.id} attempt=${run.attempts} of=${run.maxAttempts} now=${status ?? "unknown"}`);
+      if (!status) {
+        return this.stopped(run);
+      }
+
+      this.logger.warn(`curation embedding failed curation=${run.id} attempt=${run.attempts} of=${run.maxAttempts} now=${status}`);
 
       throw new CurationAttemptFailedError(run.id, status);
     }
@@ -188,6 +194,12 @@ export class CurationRunner {
     );
 
     this.logger.log(`curation ${completed ? "completed" : "stopped"} curation=${run.id} statements=${statements.length}`);
+  }
+
+  // A Curation that left `running` during the attempt was cancelled or superseded, so an attempt
+  // that fails after that has nothing to retry and ends like any other stop.
+  private stopped(run: CurationRun): void {
+    this.logger.log(`curation stopped curation=${run.id}`);
   }
 
   // A job for a Curation that cannot start: already ended, paused until later, or with every
