@@ -20,6 +20,14 @@ const updatedNow = { updated_at: sql<Date>`now()` };
 const ACTIVE = ["queued", "running"] as const satisfies readonly CurationStatus[];
 const PROFILE_ORDER = ["segment_position", "position"] as const;
 
+const queuedAgainOrFailed = {
+  status: sql<CurationStatus>`case when attempts < max_attempts then 'queued' else 'failed' end`,
+  failure_reason: sql<CurationFailureReason | null>`case when attempts < max_attempts then null else 'attempts_exhausted' end`,
+  ...updatedNow,
+};
+
+export type SettledCuration = Pick<CurationRow, "id" | "status" | "max_attempts">;
+
 export interface CurationRun {
   id: Id;
   accountId: Id;
@@ -89,17 +97,49 @@ export class CurationRunRepository {
   async failAttempt(id: Id): Promise<CurationStatus | undefined> {
     const row = await this.database
       .updateTable("curations")
-      .set({
-        status: sql<CurationStatus>`case when attempts < max_attempts then 'queued' else 'failed' end`,
-        failure_reason: sql<CurationFailureReason | null>`case when attempts < max_attempts then null else 'attempts_exhausted' end`,
-        ...updatedNow,
-      })
+      .set(queuedAgainOrFailed)
       .where("id", "=", id)
       .where("status", "=", "running")
       .returning("status")
       .executeTakeFirst();
 
     return row?.status;
+  }
+
+  findQueuedDueBy(now: Date): Promise<CurationRow[]> {
+    return this.database
+      .selectFrom("curations")
+      .selectAll()
+      .where("status", "=", "queued")
+      .where((eb) => eb.or([eb("resume_after", "is", null), eb("resume_after", "<=", now)]))
+      .orderBy("updated_at")
+      .execute();
+  }
+
+  findRunningUpdatedBefore(cutoff: Date): Promise<CurationRow[]> {
+    return this.database.selectFrom("curations").selectAll().where("status", "=", "running").where("updated_at", "<", cutoff).orderBy("updated_at").execute();
+  }
+
+  // A run whose worker died: queued again while an attempt is left, otherwise failed, which frees
+  // the Account. The units it left running are pending again, so progress never shows a unit no
+  // one is working on. Conditional on the row still being stale, so two runs cannot both act.
+  settleStale(id: Id, cutoff: Date): Promise<SettledCuration | undefined> {
+    return this.database.transaction().execute(async (transaction) => {
+      const settled = await transaction
+        .updateTable("curations")
+        .set(queuedAgainOrFailed)
+        .where("id", "=", id)
+        .where("status", "=", "running")
+        .where("updated_at", "<", cutoff)
+        .returning(["id", "status", "max_attempts"])
+        .executeTakeFirst();
+
+      if (settled) {
+        await transaction.updateTable("curation_units").set({ status: "pending", ...updatedNow }).where("curation_id", "=", id).where("status", "=", "running").execute();
+      }
+
+      return settled;
+    });
   }
 
   async failWith(id: Id, reason: CurationFailureReason): Promise<void> {

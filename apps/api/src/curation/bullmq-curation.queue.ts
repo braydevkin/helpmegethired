@@ -4,7 +4,7 @@ import type { ConnectionOptions, Queue } from "bullmq";
 
 import { addBounded } from "../queue/bounded-add";
 import { BullMqConsumer } from "../queue/bullmq-consumer";
-import { hasPendingJob } from "../queue/job-presence";
+import { hasPendingJob, removeFinishedJob } from "../queue/job-presence";
 import { CONSUMER_CONNECTION, PROFILE_CURATION_QUEUE } from "../queue/queues";
 import { WORKER_SETTINGS, type WorkerSettings } from "../queue/worker-settings";
 import { CURATION_JOB_NAME, CURATION_MAX_ATTEMPTS, jobOptionsFor } from "./curation-job-options";
@@ -23,7 +23,10 @@ export class BullMqCurationQueue extends CurationQueue implements OnModuleDestro
     this.consumer = new BullMqConsumer(queue, connection, settings, CURATION_MAX_ATTEMPTS, new Logger(BullMqCurationQueue.name));
   }
 
+  // A Curation paused by a rate limit or reset after a dead worker runs again under the id of a job
+  // that already completed or failed.
   async enqueue(job: CurationJob): Promise<void> {
+    await removeFinishedJob(this.queue, job.curationId);
     await addBounded(this.queue, CURATION_JOB_NAME, job, jobOptionsFor(job), `Curation ${job.curationId}`);
   }
 
