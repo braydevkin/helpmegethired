@@ -1,10 +1,11 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { CurationUnitOutputSchema } from "@helpmegethired/shared";
+import { CurationUnitOutputSchema, type CurationUnitKind } from "@helpmegethired/shared";
 import { describe, expect, it } from "vitest";
 
 import { ModelKey } from "../../model-choice/model-key";
+import { instructionsFor } from "../curation-prompts";
 import type { CurationCall } from "./curation-model";
 import { CurationCallFailedError, ModelKeyRejectedError, ProviderRateLimitedError } from "./curation-model-errors";
 import type { CurationPrompt, CurationSource } from "./curation-prompt";
@@ -95,5 +96,43 @@ describe("FakeCurationModel", () => {
     expect(output.statements).toHaveLength(1);
     expect(resume).toContain(output.statements[0]?.evidence[0]?.quote);
     expect(usage.inputTokens).toBeGreaterThan(0);
+  });
+
+  describe("a key that scripts an outcome", () => {
+    const keyedCallOf = (key: string, kind: CurationUnitKind): CurationCall => ({
+      prompt: { ...promptOf(experienceSource), instructions: instructionsFor(kind) },
+      modelId: "claude-sonnet-5",
+      modelKey: new ModelKey(key),
+    });
+
+    it("plays the outcome for the named kind of unit, every time, and answers every other unit", async () => {
+      const model = new FakeCurationModel();
+      const key = "sk-ant-fake-provider_error-on-synthesis";
+
+      await expect(model.generate(keyedCallOf(key, "synthesis"))).rejects.toMatchObject({ name: CurationCallFailedError.name, outcome: "provider_error" });
+      await expect(model.generate(keyedCallOf(key, "experience"))).resolves.toMatchObject({ output: { statements: [expect.any(Object)] } });
+      await expect(model.generate(keyedCallOf(key, "synthesis"))).rejects.toMatchObject({ outcome: "provider_error" });
+    });
+
+    it("pauses the named kind of unit with a rate limit", async () => {
+      await expect(new FakeCurationModel().generate(keyedCallOf("sk-ant-fake-rate_limited-on-synthesis", "synthesis"))).rejects.toEqual(
+        new ProviderRateLimitedError(FAKE_RETRY_AFTER_SECONDS),
+      );
+    });
+
+    it.each(["sk-ant-fake-answer-on-synthesis", "sk-ant-fake-provider_error-on-everything", "sk-ant-fake-provider_error-on-synthesis-", "sk-ant-development-key-000000"])(
+      "answers every unit for %s, which scripts nothing it knows",
+      async (key) => {
+        await expect(new FakeCurationModel().generate(keyedCallOf(key, "synthesis"))).resolves.toMatchObject({ output: { statements: [expect.any(Object)] } });
+      },
+    );
+
+    it("plays its constructor's script before the key's", async () => {
+      const model = new FakeCurationModel(["timeout"]);
+      const call = keyedCallOf("sk-ant-fake-provider_error-on-synthesis", "synthesis");
+
+      await expect(model.generate(call)).rejects.toMatchObject({ outcome: "timeout" });
+      await expect(model.generate(call)).rejects.toMatchObject({ outcome: "provider_error" });
+    });
   });
 });
