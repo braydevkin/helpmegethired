@@ -1,19 +1,25 @@
 import { Injectable, Logger } from "@nestjs/common";
-import type { CurationStatus, Id } from "@helpmegethired/shared";
+import type { CurationActionErrorCode, CurationStatus, Id } from "@helpmegethired/shared";
 
 import type { Database } from "../database/database";
 import { isUniqueViolation } from "../database/database-errors";
 import { TransactionRunner } from "../database/transaction-runner";
 import { CurationActionRefusedError } from "./curation-errors";
-import { CURATION_PROMPT_VERSION, CurationStarter, type EnqueuedCuration } from "./curation-starter";
+import { CurationStarter, type EnqueuedCuration } from "./curation-starter";
 import { CurationRepository, type CurationReadiness } from "./curation.repository";
-import { isRerunAllowed } from "./rerun-gate";
+import { RerunGate } from "./rerun-gate";
 
 const ONE_ACTIVE_PER_ACCOUNT_INDEX = "curations_one_active_per_account_idx";
 
 const RETRYABLE_STATUSES: readonly CurationStatus[] = ["failed", "cancelled"];
 
-const activeRefusal = () => new CurationActionRefusedError("curation_active", "A Curation is already queued or running");
+const STARTING_REFUSALS = {
+  curation_active: "A Curation is already queued or running",
+  curation_not_ready: "The Profile must be confirmed and a Model Key stored first",
+  curation_unchanged: "The Curation already completed for this Profile, Model, and prompt version; running it again would produce the same Statements",
+} satisfies Partial<Record<CurationActionErrorCode, string>>;
+
+const startingRefusal = (code: keyof typeof STARTING_REFUSALS) => new CurationActionRefusedError(code, STARTING_REFUSALS[code]);
 
 // What the Candidate can do to a Curation from the analysis page. Stopping and retrying cost almost
 // nothing because the runner resumes; a re-run starts from zero on the Candidate's tokens, so it
@@ -26,6 +32,7 @@ export class CurationActions {
     private readonly transactions: TransactionRunner,
     private readonly curations: CurationRepository,
     private readonly starter: CurationStarter,
+    private readonly rerunGate: RerunGate,
   ) {}
 
   // The runner stops at its next unit boundary; the saved Statements stay for a retry, and nothing
@@ -75,18 +82,13 @@ export class CurationActions {
   }
 
   // The new Curation builds beside the current completed one, which stays retrievable until the new
-  // one completes and supersedes it.
+  // one completes and supersedes it. The gate is the one the progress answer carries.
   async rerun(accountId: Id): Promise<void> {
     const created = await this.startingWork(accountId, async (transaction, readiness) => {
-      const latest = await this.curations.findLatestOf(accountId, readiness.ingestionId, transaction);
-      const current = await this.curations.findCurrentCompleted(accountId, transaction);
-      const wanted = { sourceIngestionId: readiness.ingestionId, modelId: readiness.modelId, promptVersion: CURATION_PROMPT_VERSION };
+      const refusal = await this.rerunGate.refusalFor(accountId, transaction);
 
-      if (!isRerunAllowed(latest, current, wanted)) {
-        throw new CurationActionRefusedError(
-          "curation_unchanged",
-          "The Curation already completed for this Profile, Model, and prompt version; running it again would produce the same Statements",
-        );
+      if (refusal) {
+        throw startingRefusal(refusal);
       }
 
       return this.starter.createFrom(accountId, readiness, transaction);
@@ -106,19 +108,19 @@ export class CurationActions {
         await this.curations.lockForChange(accountId, transaction);
 
         if (await this.curations.findActive(accountId, transaction)) {
-          throw activeRefusal();
+          throw startingRefusal("curation_active");
         }
 
         const readiness = await this.curations.readinessOf(accountId, transaction);
 
         if (!readiness) {
-          throw new CurationActionRefusedError("curation_not_ready", "The Profile must be confirmed and a Model Key stored first");
+          throw startingRefusal("curation_not_ready");
         }
 
         return work(transaction, readiness);
       });
     } catch (error) {
-      throw isUniqueViolation(error, ONE_ACTIVE_PER_ACCOUNT_INDEX) ? activeRefusal() : error;
+      throw isUniqueViolation(error, ONE_ACTIVE_PER_ACCOUNT_INDEX) ? startingRefusal("curation_active") : error;
     }
 
     await this.starter.enqueue(started);

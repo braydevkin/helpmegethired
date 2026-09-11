@@ -1,6 +1,16 @@
 import { createHash } from "node:crypto";
 
-import type { CurationFailureReason, CurationMetrics, CurationProgress, CurationProgressState, CurationStatus, CurationUnitSummary, Id } from "@helpmegethired/shared";
+import type {
+  CurationFailureReason,
+  CurationMetrics,
+  CurationProgress,
+  CurationProgressState,
+  CurationRerun,
+  CurationRerunRefusal,
+  CurationStatus,
+  CurationUnitSummary,
+  Id,
+} from "@helpmegethired/shared";
 
 export interface ProgressedCuration {
   id: Id;
@@ -20,7 +30,11 @@ export function percentageOf(units: readonly Pick<CurationUnitSummary, "status">
   return Math.floor((100 * units.filter((unit) => unit.status === "saved").length) / units.length);
 }
 
-export function curationProgressOf(curation: ProgressedCuration, units: readonly CurationUnitSummary[], metrics: CurationMetrics): CurationProgress {
+export function rerunOf(refusal: CurationRerunRefusal | null): CurationRerun {
+  return { allowed: refusal === null, refusal };
+}
+
+export function curationProgressOf(curation: ProgressedCuration, units: readonly CurationUnitSummary[], metrics: CurationMetrics, rerun: CurationRerun): CurationProgress {
   return {
     curationId: curation.id,
     status: curation.status,
@@ -34,6 +48,7 @@ export function curationProgressOf(curation: ProgressedCuration, units: readonly
     modelId: curation.modelId,
     failureReason: curation.failureReason,
     resumeAfter: curation.resumeAfter?.toISOString() ?? null,
+    rerun,
   };
 }
 

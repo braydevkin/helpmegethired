@@ -122,6 +122,8 @@ describe("cancel, retry, and re-run a Curation", () => {
 
   const progressOf = async (response: Response): Promise<CurationProgress | null> => CurationProgressStateSchema.parse(await response.json()).progress;
 
+  const poll = (token: string) => fetch(`${baseUrl}/profile/curation`, { headers: { authorization: `Bearer ${token}` } });
+
   const errorOf = async (response: Response): Promise<ApiError> => ApiErrorSchema.parse(await response.json());
 
   const openSession = async (): Promise<{ accountId: Id; token: string }> => {
@@ -305,8 +307,10 @@ describe("cancel, retry, and re-run a Curation", () => {
     expect(await retrievedIds(accountId)).toEqual(idsOf(before));
   });
 
-  it("refuses a re-run of an unchanged completed Curation with a reason, and starts nothing", async () => {
+  it("refuses a re-run of an unchanged completed Curation with the reason the progress already carried, and starts nothing", async () => {
     const { accountId, token, curationId } = await completed();
+
+    expect((await progressOf(await poll(token)))?.rerun).toEqual({ allowed: false, refusal: "curation_unchanged" });
 
     const refused = await act("rerun", token);
 
@@ -320,9 +324,16 @@ describe("cancel, retry, and re-run a Curation", () => {
     ["the prompt version", { prompt_version: "curation/0" }],
   ])("allows a re-run once %s changed since the current Curation was produced", async (_change, columns) => {
     const { accountId, token, curationId } = await completed();
+    const before = await poll(token);
+
+    expect((await progressOf(before))?.rerun).toEqual({ allowed: false, refusal: "curation_unchanged" });
 
     await database.updateTable("curations").set(columns).where("id", "=", curationId).execute();
 
+    const after = await poll(token);
+
+    expect(after.headers.get("etag")).not.toBe(before.headers.get("etag"));
+    expect((await progressOf(after))?.rerun).toEqual({ allowed: true, refusal: null });
     expect((await act("rerun", token)).status).toBe(202);
     expect(await newestCurationOf(accountId)).not.toBe(curationId);
   });
@@ -342,6 +353,8 @@ describe("cancel, retry, and re-run a Curation", () => {
 
   it("answers 409 to a retry or a re-run while a Curation is queued", async () => {
     const { token } = await curated();
+
+    expect((await progressOf(await poll(token)))?.rerun).toEqual({ allowed: false, refusal: "curation_active" });
 
     for (const action of ["retry", "rerun"] as const) {
       const refused = await act(action, token);
@@ -391,6 +404,19 @@ describe("cancel, retry, and re-run a Curation", () => {
       expect(refused.status).toBe(422);
       expect(await errorOf(refused)).toMatchObject({ code: "curation_not_ready" });
     }
+  });
+
+  it("carries curation_not_ready in the progress once the Model Key is revoked, as the re-run endpoint answers", async () => {
+    const { accountId, token } = await completed();
+
+    await database.updateTable("account_model_choices").set({ sealed_key: null }).where("account_id", "=", accountId).execute();
+
+    expect((await progressOf(await poll(token)))?.rerun).toEqual({ allowed: false, refusal: "curation_not_ready" });
+
+    const refused = await act("rerun", token);
+
+    expect(refused.status).toBe(422);
+    expect(await errorOf(refused)).toMatchObject({ code: "curation_not_ready" });
   });
 
   it("never acts on another Account's Curation", async () => {

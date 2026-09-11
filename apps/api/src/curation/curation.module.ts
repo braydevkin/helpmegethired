@@ -11,6 +11,7 @@ import { CurationRunRepository } from "./curation-run.repository";
 import { CurationStarter } from "./curation-starter";
 import { CurationController } from "./curation.controller";
 import { CurationRepository } from "./curation.repository";
+import { RerunGate } from "./rerun-gate";
 import { StatementReviewController } from "./statement-review.controller";
 import { StatementReviewRepository } from "./statement-review.repository";
 import { StatementReviewService } from "./statement-review.service";
@@ -27,6 +28,7 @@ import { StatementRepository } from "./statement.repository";
     CurationProgressRepository,
     CurationProgressService,
     CurationActions,
+    RerunGate,
     { provide: CurationQueue, useClass: BullMqCurationQueue },
     { provide: Clock, useClass: SystemClock },
     StatementReviewRepository,

@@ -8,7 +8,7 @@ import { ScreenHeading } from "../../../../components/molecules/screen-heading/s
 import { CountedFacts } from "../../../../components/organisms/counted-facts/counted-facts";
 import { CurationUnitsPanel } from "../../../../components/organisms/curation-units-panel/curation-units-panel";
 import { RunDetails } from "../../../../components/organisms/run-details/run-details";
-import { countedFactsOf, failureOf, jobMatchingLockOf, pageHeadingOf, runDetailsOf, type RunSource } from "../../../../lib/curation-analysis/view";
+import { countedFactsOf, failureOf, jobMatchingLockOf, pageHeadingOf, rerunReasonOf, runDetailsOf, type RunSource } from "../../../../lib/curation-analysis/view";
 import type { CurationActions } from "./use-curation-actions";
 import styles from "./analysis.module.css";
 
@@ -95,10 +95,12 @@ export function RunPanels({ progress, run, actions, running }: ProgressSectionPr
   );
 }
 
-// The page does not repeat the API's gating rules: a refused re-run disables the button and says why beside it.
-export function CompletedClosing({ actions }: ActionsProps) {
+// The progress carries the API's own re-run gate, so a re-run it would refuse is disabled with the
+// reason before any click; a refusal that raced a change is shown the same way.
+export function CompletedClosing({ progress, actions }: ProgressSectionProps & ActionsProps) {
   const reasonId = useId();
-  const refused = actions.rerunRefusal !== undefined;
+  const reason = rerunReasonOf(progress.rerun) ?? actions.rerunRefusal;
+  const refused = reason !== undefined;
 
   return (
     <div className={styles.closing}>
@@ -115,7 +117,7 @@ export function CompletedClosing({ actions }: ActionsProps) {
         </Button>
         {refused && (
           <p id={reasonId} className={styles.rerunReason}>
-            {actions.rerunRefusal}
+            {reason}
           </p>
         )}
       </div>

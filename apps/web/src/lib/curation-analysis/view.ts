@@ -193,6 +193,10 @@ export function refusalMessageOf(code: CurationActionErrorCode | undefined, fall
   return code ? REFUSALS[code] : fallback;
 }
 
+export function rerunReasonOf({ refusal }: { refusal: CurationActionErrorCode | null }): string | undefined {
+  return refusal ? REFUSALS[refusal] : undefined;
+}
+
 export function statementSourceOf({ source }: Pick<CuratedStatement, "source">): string {
   return WHOLE_PROFILE_SOURCES[source.unitKind] ?? source.title;
 }

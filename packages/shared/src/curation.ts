@@ -85,6 +85,19 @@ export const CurationUnitSummarySchema = CurationUnitFieldsSchema.pick({
 
 export type CurationUnitSummary = z.infer<typeof CurationUnitSummarySchema>;
 
+// The code `POST /profile/curation/rerun` would answer right now, carried with the progress so the
+// page can say why before any click.
+export const CurationRerunRefusalSchema = CurationActionErrorCodeSchema.extract(["curation_active", "curation_not_ready", "curation_unchanged"]);
+export type CurationRerunRefusal = z.infer<typeof CurationRerunRefusalSchema>;
+
+export const CurationRerunSchema = z
+  .object({
+    allowed: z.boolean(),
+    refusal: CurationRerunRefusalSchema.nullable(),
+  })
+  .refine(({ allowed, refusal }) => allowed === (refusal === null), { message: "A re-run carries a refusal exactly when it is not allowed", path: ["refusal"] });
+export type CurationRerun = z.infer<typeof CurationRerunSchema>;
+
 // Three units run at once, so the units being read are the listed ones whose status is
 // `running`, not one current unit.
 export const CurationProgressSchema = z
@@ -101,6 +114,7 @@ export const CurationProgressSchema = z
     modelId: TextSchema,
     failureReason: CurationFailureReasonSchema.nullable(),
     resumeAfter: TimestampSchema.nullable(),
+    rerun: CurationRerunSchema,
   })
   .refine(
     ({ units }) => units.total === units.list.length && units.saved === units.list.filter((unit) => unit.status === "saved").length,

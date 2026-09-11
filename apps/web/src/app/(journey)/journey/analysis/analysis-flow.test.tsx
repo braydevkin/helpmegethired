@@ -163,7 +163,20 @@ describe("AnalysisFlow", () => {
     expect(within(firstStatement()).getByRole("button", { name: "Looks right" })).toHaveAttribute("aria-pressed", "false");
   });
 
-  it("disables Run it again with the reason when nothing changed", async () => {
+  it("disables Run it again with its reason before any click when the progress says a re-run is refused", () => {
+    renderFlow({ progress: progressOf(unitsOf(9, 9, 0), { status: "completed", rerun: { allowed: false, refusal: "curation_unchanged" } }) }, found);
+
+    const runAgain = screen.getByRole("button", { name: "Run it again" });
+
+    expect(runAgain).toHaveAttribute("aria-disabled", "true");
+    expect(runAgain).toHaveAccessibleDescription(UNCHANGED);
+
+    fireEvent.click(runAgain);
+
+    expect(rerunCurationAction).not.toHaveBeenCalled();
+  });
+
+  it("disables Run it again with the API's reason when a re-run the progress allowed is refused anyway", async () => {
     vi.mocked(rerunCurationAction).mockResolvedValue({ ok: false, code: "curation_unchanged", message: UNCHANGED });
 
     renderFlow(completed, found);
