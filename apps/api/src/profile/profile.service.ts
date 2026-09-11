@@ -2,6 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { EMPTY_BASIC_PROFILE, type Id, type Ingestion, type Profile, type ProfileSource } from "@helpmegethired/shared";
 
 import { Clock } from "../common/clock";
+import { CurationStarter } from "../curation/curation-starter";
 import { IngestionRepository } from "../ingestion/ingestion.repository";
 import { careerDuration } from "../parser";
 import { UploadedResumeRepository } from "../resumes/uploaded-resume.repository";
@@ -19,6 +20,7 @@ export class ProfileService {
     private readonly ingestions: IngestionRepository,
     private readonly resumes: UploadedResumeRepository,
     private readonly clock: Clock,
+    private readonly curations: CurationStarter,
   ) {}
 
   // An Account with no completed Ingestion has an empty Profile: the page renders it as such.
@@ -28,11 +30,13 @@ export class ProfileService {
     return ingestion ? this.builtProfile(accountId, ingestion) : emptyProfile(accountId);
   }
 
-  // Confirming records the time once and keeps it on a repeat, so the call is idempotent.
+  // Confirming records the time once and keeps it on a repeat, so the call is idempotent. With a
+  // Model Key already stored, it also starts the Curation (ADR-0024).
   async confirm(accountId: Id): Promise<Profile> {
     const ingestion = await this.ingestions.findLatestCompleted(accountId, RESUME_SOURCE);
+    const confirmed = ingestion && (await this.curations.commitAndStart(accountId, (transaction) => this.profiles.confirm(accountId, ingestion.id, transaction)));
 
-    if (!ingestion || !(await this.profiles.confirm(accountId, ingestion.id))) {
+    if (!ingestion || !confirmed) {
       throw new ProfileNotFoundError(accountId);
     }
 

@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import type { AccountModelChoice, Id, ModelChoiceRequest, ModelChoiceState } from "@helpmegethired/shared";
 
+import { CurationStarter } from "../curation/curation-starter";
 import { ModelChoiceNotFoundError, ModelKeyNotFoundError, ModelKeyRefusedError, type ModelKeyRefusal } from "./model-choice-errors";
 import { ModelChoiceRepository, type StoredModelChoice } from "./model-choice.repository";
 import { ModelKey, type UsableModelKey } from "./model-key";
@@ -28,6 +29,7 @@ export class ModelChoiceService {
     private readonly choices: ModelChoiceRepository,
     private readonly cipher: ModelKeyCipher,
     private readonly validator: ModelKeyValidator,
+    private readonly curations: CurationStarter,
   ) {}
 
   async get(accountId: Id): Promise<ModelChoiceState> {
@@ -37,7 +39,7 @@ export class ModelChoiceService {
   }
 
   // The key is checked with the Provider before anything is stored, so a key it refuses never
-  // replaces one that works.
+  // replaces one that works. Storing it on a confirmed Profile starts the Curation (ADR-0024).
   async save(accountId: Id, { provider, modelId, key }: ModelChoiceRequest): Promise<AccountModelChoice> {
     const verdict = await this.validator.validate({ provider, modelId }, key);
 
@@ -48,7 +50,8 @@ export class ModelChoiceService {
       throw new ModelKeyRefusedError(refusal);
     }
 
-    const stored = await this.choices.save(accountId, { provider, modelId, sealedKey: this.cipher.seal(accountId, key) });
+    const sealedKey = this.cipher.seal(accountId, key);
+    const stored = await this.curations.commitAndStart(accountId, (transaction) => this.choices.save(accountId, { provider, modelId, sealedKey }, transaction));
 
     this.logger.log(`Model Choice saved for Account ${accountId} at ${provider}/${modelId}`);
 
