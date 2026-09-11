@@ -10,7 +10,9 @@ const PENDING_STATES: ReadonlySet<JobState | "unknown"> = new Set<JobState>([
   "waiting-children",
 ]);
 
-const FINISHED_STATES: ReadonlySet<JobState | "unknown"> = new Set<JobState>(["completed", "failed"]);
+// An "unknown" job is a hash left outside every state list: it will never be delivered, yet it
+// still takes the id, so it is cleared like a finished one.
+const FINISHED_STATES: ReadonlySet<JobState | "unknown"> = new Set<JobState | "unknown">(["completed", "failed", "unknown"]);
 
 export async function hasPendingJob(queue: Queue, jobId: string): Promise<boolean> {
   const job = await queue.getJob(jobId);
