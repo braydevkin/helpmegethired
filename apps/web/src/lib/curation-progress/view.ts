@@ -1,6 +1,7 @@
 import type {
   CurationFailureReason,
   CurationMetrics,
+  CurationPauseReason,
   CurationProgress,
   CurationProgressState,
   CurationStatus,
@@ -111,12 +112,28 @@ const RUN_FAILURE_LEADS: Record<CurationFailureReason, string> = {
   model_key_rejected: "Your AI provider refused the key saved on your Account, so nothing more could be read. Everything already saved is kept.",
 };
 
+const PAUSED_HEADINGS: Record<CurationPauseReason, { title: string; lead: string }> = {
+  provider_rate_limit: { title: "Paused for a moment", lead: "Your AI provider asked us to slow down. Reading picks up again on its own." },
+  embedding_ceiling: {
+    title: "Paused until the allowance resets",
+    lead: "Your account has used its daily analysis allowance. Everything saved is kept, and the analysis finishes on its own.",
+  },
+};
+
+// The allowance resets at midnight UTC, which is often another day where the Candidate lives, so
+// that notice carries the date as well as the time.
+export function pausedNoticeOf({ pauseReason }: Pick<CurationProgress, "pauseReason">): { lead: string; withDate: boolean } {
+  return pauseReason === "embedding_ceiling"
+    ? { lead: "Your account reached its daily analysis allowance. Resumes on", withDate: true }
+    : { lead: "Paused by your AI provider. Resumes at", withDate: false };
+}
+
 export function headingOf(progress: CurationProgress): { title: string; lead: string } {
   switch (phaseOf(progress)) {
     case "active":
       return { title: "Understanding what you have done", lead: "We read one role or project at a time and write down what it proves about you." };
     case "paused":
-      return { title: "Paused for a moment", lead: "Your AI provider asked us to slow down. Reading picks up again on its own." };
+      return PAUSED_HEADINGS[progress.pauseReason ?? "provider_rate_limit"];
     case "completed":
       return { title: "All passes saved and indexed", lead: "Ready for job matching." };
     case "failed":

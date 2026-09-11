@@ -17,6 +17,7 @@ const curation: ProgressedCuration = {
   modelId: "claude-sonnet-5",
   failureReason: null,
   resumeAfter: null,
+  pauseReason: null,
 };
 
 const allowed = rerunOf(null);
@@ -61,8 +62,16 @@ describe("curationProgressOf", () => {
       modelId: "claude-sonnet-5",
       failureReason: null,
       resumeAfter: null,
+      pauseReason: null,
       rerun: { allowed: true, refusal: null },
     });
+  });
+
+  it("says why a paused Curation waits, a rate limit or the embedding ceiling", () => {
+    const resumeAfter = new Date("2026-09-12T00:00:00.000Z");
+    const atCeiling = curationProgressOf({ ...curation, status: "queued", resumeAfter, pauseReason: "embedding_ceiling" }, unitsWith("saved"), metrics, allowed);
+
+    expect(CurationProgressSchema.parse(atCeiling)).toMatchObject({ resumeAfter: "2026-09-12T00:00:00.000Z", pauseReason: "embedding_ceiling" });
   });
 
   it("carries the failure reason and when a rate-limited Curation resumes", () => {

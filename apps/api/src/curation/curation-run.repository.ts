@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import {
   ModelIdSchema,
   type CurationFailureReason,
+  type CurationPauseReason,
   type CurationStatus,
   type CurationUnitFailureReason,
   type Evidence,
@@ -81,7 +82,14 @@ export class CurationRunRepository {
   async beginAttempt(id: Id): Promise<CurationRun | undefined> {
     const row = await this.database
       .updateTable("curations")
-      .set({ status: "running", attempts: sql<number>`attempts + 1`, started_at: sql<Date>`coalesce(started_at, now())`, resume_after: null, ...updatedNow })
+      .set({
+        status: "running",
+        attempts: sql<number>`attempts + 1`,
+        started_at: sql<Date>`coalesce(started_at, now())`,
+        resume_after: null,
+        pause_reason: null,
+        ...updatedNow,
+      })
       .where("id", "=", id)
       .where("status", "in", ACTIVE)
       .where(sql<boolean>`attempts < max_attempts`)
@@ -151,12 +159,12 @@ export class CurationRunRepository {
       .execute();
   }
 
-  // A rate limit says nothing about the input, so the attempt is given back and the Curation waits
-  // for resume_after (ADR-0024).
-  async pause(id: Id, resumeAfter: Date): Promise<void> {
+  // A rate limit or the embedding ceiling says nothing about the input, so the attempt is given
+  // back and the Curation waits for resume_after (ADR-0024, #133).
+  async pause(id: Id, resumeAfter: Date, reason: CurationPauseReason): Promise<void> {
     await this.database
       .updateTable("curations")
-      .set({ status: "queued", attempts: sql<number>`attempts - 1`, resume_after: resumeAfter, ...updatedNow })
+      .set({ status: "queued", attempts: sql<number>`attempts - 1`, resume_after: resumeAfter, pause_reason: reason, ...updatedNow })
       .where("id", "=", id)
       .where("status", "=", "running")
       .execute();

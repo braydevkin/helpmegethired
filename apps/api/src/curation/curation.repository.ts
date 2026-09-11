@@ -150,7 +150,7 @@ export class CurationRepository {
   async cancel(accountId: Id, curationId: Id, transaction: Database): Promise<void> {
     await transaction
       .updateTable("curations")
-      .set({ status: "cancelled", resume_after: null, ...updatedNow })
+      .set({ status: "cancelled", resume_after: null, pause_reason: null, ...updatedNow })
       .where("account_id", "=", accountId)
       .where("id", "=", curationId)
       .where("status", "in", ACTIVE_CURATION_STATUSES)
@@ -162,7 +162,7 @@ export class CurationRepository {
   async requeue(accountId: Id, curationId: Id, transaction: Database): Promise<void> {
     await transaction
       .updateTable("curations")
-      .set({ status: "queued", attempts: 0, failure_reason: null, resume_after: null, ...updatedNow })
+      .set({ status: "queued", attempts: 0, failure_reason: null, resume_after: null, pause_reason: null, ...updatedNow })
       .where("account_id", "=", accountId)
       .where("id", "=", curationId)
       .where("status", "in", REPLACEABLE_STATUSES)

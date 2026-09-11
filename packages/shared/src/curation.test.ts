@@ -124,11 +124,18 @@ describe("CurationProgressSchema", () => {
     modelId: "claude-sonnet-5",
     failureReason: null,
     resumeAfter: null,
+    pauseReason: null,
     rerun: { allowed: true, refusal: null },
   };
 
   it("accepts the counts, the units with their states, the metrics and the model", () => {
     expect(CurationProgressSchema.safeParse(progress).success).toBe(true);
+  });
+
+  it("accepts a Curation paused at the Account's embedding ceiling until a given time", () => {
+    const paused = { ...progress, status: "queued", resumeAfter: "2026-09-12T00:00:00.000Z", pauseReason: "embedding_ceiling" };
+
+    expect(CurationProgressSchema.safeParse(paused).success).toBe(true);
   });
 
   it("accepts a re-run refused with the code the endpoint would answer", () => {
@@ -145,6 +152,8 @@ describe("CurationProgressSchema", () => {
     ["a refused re-run without its refusal", { ...progress, rerun: { allowed: false, refusal: null } }],
     ["a refusal a re-run never answers", { ...progress, rerun: { allowed: false, refusal: "curation_not_retryable" } }],
     ["a missing re-run gate", { ...progress, rerun: undefined }],
+    ["a pause reason the platform never gives", { ...progress, pauseReason: "quota_exceeded" }],
+    ["a missing pause reason", { ...progress, pauseReason: undefined }],
   ])("rejects %s", (_label, input) => {
     expect(CurationProgressSchema.safeParse(input).success).toBe(false);
   });

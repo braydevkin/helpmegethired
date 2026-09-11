@@ -22,7 +22,7 @@ export class CurationProgressRepository {
   async currentOf(accountId: Id): Promise<CurrentCuration | undefined> {
     const row = await this.database
       .selectFrom("curations")
-      .select(["id", "status", "model_id", "failure_reason", "resume_after", "source_ingestion_id"])
+      .select(["id", "status", "model_id", "failure_reason", "resume_after", "pause_reason", "source_ingestion_id"])
       .where("account_id", "=", accountId)
       .where("source_ingestion_id", "=", latestProfileIngestionOf(this.database, accountId))
       .where("status", "<>", "superseded")
@@ -38,7 +38,14 @@ export class CurationProgressRepository {
     const [units, profile] = await Promise.all([this.unitsOf(row.id), this.countedProfileOf(accountId, row.source_ingestion_id)]);
 
     return {
-      curation: { id: row.id, status: row.status, modelId: row.model_id, failureReason: row.failure_reason, resumeAfter: row.resume_after },
+      curation: {
+        id: row.id,
+        status: row.status,
+        modelId: row.model_id,
+        failureReason: row.failure_reason,
+        resumeAfter: row.resume_after,
+        pauseReason: row.pause_reason,
+      },
       units,
       profile,
     };
