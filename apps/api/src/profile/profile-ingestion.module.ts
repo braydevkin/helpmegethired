@@ -1,6 +1,7 @@
 import { Inject, Module, type OnModuleInit } from "@nestjs/common";
 
 import { AuthModule } from "../auth/auth.module";
+import { CurationModule } from "../curation/curation.module";
 import { ExtractionModule } from "../extraction/extraction.module";
 import { IngestionObservers } from "../ingestion/ingestion-observer";
 import { IngestionModule } from "../ingestion/ingestion.module";
@@ -30,7 +31,7 @@ const PROCESSOR_CLASSES = [
 
 // Loaded by the worker only: the API never runs a Segment.
 @Module({
-  imports: [AuthModule, IngestionModule, ExtractionModule, ProfileModule],
+  imports: [AuthModule, IngestionModule, ExtractionModule, ProfileModule, CurationModule],
   providers: [
     ...PROCESSOR_CLASSES,
     ResumeIngestionObserver,

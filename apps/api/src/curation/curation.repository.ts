@@ -1,6 +1,8 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { ACTIVE_CURATION_STATUSES, type Curation, type CurationStatus, type Id, type ModelId } from "@helpmegethired/shared";
+import { sql } from "kysely";
 
+import { lockAccount } from "../database/account-lock";
 import { DATABASE, type Database } from "../database/database";
 import type { CurationSubjects, NewCurationUnit } from "./curation-units";
 import { toCuration } from "./curation.mapper";
@@ -10,6 +12,8 @@ const RESUME_SOURCE = "upload";
 // A Curation of the same Ingestion in any other state is the one the Candidate has, so a second
 // one would only duplicate it; these two free the Ingestion for a new one.
 const REPLACEABLE_STATUSES = ["failed", "cancelled"] as const satisfies readonly CurationStatus[];
+
+const SUPERSEDABLE_STATUSES = ["queued", "running", "completed"] as const satisfies readonly CurationStatus[];
 
 const PROFILE_ORDER = ["segment_position", "position"] as const;
 
@@ -96,6 +100,35 @@ export class CurationRepository {
       .executeTakeFirst();
 
     return row && toCuration(row);
+  }
+
+  // A new Ingestion replaces the Profile these Curations cite (ADR-0024). Their rows are locked
+  // before the Account row because a runner saving a unit holds its Curation's row and then needs
+  // the Account row for the Statements' foreign key; the other order would deadlock the two. The
+  // Account lock keeps a confirm of the replaced Profile from starting a Curation beside them.
+  async supersedeEarlierThan(accountId: Id, keptIngestionId: Id, transaction: Database): Promise<Id[]> {
+    await transaction
+      .selectFrom("curations")
+      .select("id")
+      .where("account_id", "=", accountId)
+      .where("source_ingestion_id", "!=", keptIngestionId)
+      .where("status", "in", SUPERSEDABLE_STATUSES)
+      .forUpdate()
+      .execute();
+    await lockAccount(accountId, transaction);
+
+    const superseded = await transaction
+      .updateTable("curations")
+      .set({ status: "superseded", updated_at: sql<Date>`now()` })
+      .where("account_id", "=", accountId)
+      .where("source_ingestion_id", "!=", keptIngestionId)
+      .where("status", "in", SUPERSEDABLE_STATUSES)
+      .returning("id")
+      .execute();
+
+    await transaction.deleteFrom("statements").where("account_id", "=", accountId).where("source_ingestion_id", "!=", keptIngestionId).execute();
+
+    return superseded.map((row) => row.id);
   }
 
   async create(accountId: Id, curation: NewCuration, database: Database = this.database): Promise<Curation> {
