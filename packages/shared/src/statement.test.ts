@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { UPLOADED_RESUME_ID, experience } from "./candidate.fixtures.js";
 import { CURATION_UNIT_INPUT_MAX_CHARACTERS } from "./curation.js";
-import { EvidenceSchema, StatementReviewSchema, StatementSchema } from "./statement.js";
+import { CurationStatementsSchema, EvidenceSchema, StatementReviewRequestSchema, StatementReviewSchema, StatementSchema } from "./statement.js";
 
 const quote = "Leads the ingestion platform";
 
@@ -85,5 +85,52 @@ describe("StatementSchema", () => {
     ["no review", { ...statement, review: undefined }],
   ])("rejects %s", (_label, input) => {
     expect(StatementSchema.safeParse(input).success).toBe(false);
+  });
+});
+
+describe("CurationStatementsSchema", () => {
+  const curated = {
+    id: "7e6f5a4b-8c9d-4e0f-9a1b-3c4d5e6f7a8b",
+    text: "Leads the ingestion platform at Analytical Engines Ltd since March 2021.",
+    labels: ["leadership"],
+    evidence: [evidence],
+    promptVersion: "curation/1",
+    modelId: "claude-sonnet-5",
+    review: { state: "rejected", reviewedAt: "2026-09-10T11:00:00.000Z" },
+    createdAt: "2026-09-10T10:30:00.000Z",
+    source: { unitKind: "experience", title: "Staff Engineer at Analytical Engines Ltd" },
+  };
+
+  it("accepts the Statements of a Curation, each with the unit it came from", () => {
+    expect(CurationStatementsSchema.safeParse({ curationId: "5d4c3b2a-1f0e-4d9c-8b7a-6f5e4d3c2b1a", statements: [curated] }).success).toBe(true);
+  });
+
+  it("accepts no Curation yet, with no Statements", () => {
+    expect(CurationStatementsSchema.safeParse({ curationId: null, statements: [] }).success).toBe(true);
+  });
+
+  it.each([
+    ["Statements with no Curation", { curationId: null, statements: [curated] }],
+    ["a Statement with no source", { curationId: "5d4c3b2a-1f0e-4d9c-8b7a-6f5e4d3c2b1a", statements: [{ ...curated, source: undefined }] }],
+    ["a source of an unknown unit kind", { curationId: "5d4c3b2a-1f0e-4d9c-8b7a-6f5e4d3c2b1a", statements: [{ ...curated, source: { unitKind: "education", title: "BSc" } }] }],
+  ])("rejects %s", (_label, input) => {
+    expect(CurationStatementsSchema.safeParse(input).success).toBe(false);
+  });
+
+  it("says in its contract that a review is not carried across a re-run", () => {
+    expect(CurationStatementsSchema.description).toMatch(/not carried to the Statements of a re-run/);
+  });
+});
+
+describe("StatementReviewRequestSchema", () => {
+  it.each(["accepted", "rejected", "unreviewed"])("accepts %s", (state) => {
+    expect(StatementReviewRequestSchema.safeParse({ state }).success).toBe(true);
+  });
+
+  it.each([
+    ["an unknown state", { state: "liked" }],
+    ["no state", {}],
+  ])("rejects %s", (_label, input) => {
+    expect(StatementReviewRequestSchema.safeParse(input).success).toBe(false);
   });
 });

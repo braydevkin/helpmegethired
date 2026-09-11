@@ -6,7 +6,13 @@ import { DATABASE, type Database } from "../database/database";
 import type { StatementRow } from "../database/database.schema";
 import { toVectorLiteral } from "./vector";
 
-const toStatement = (row: StatementRow): Statement =>
+// The columns a Statement answer is read from, which leaves out the embedding a list never shows.
+export type StatementFields = Pick<
+  StatementRow,
+  "id" | "text" | "labels" | "evidence" | "prompt_version" | "model_id" | "review_state" | "reviewed_at" | "created_at"
+>;
+
+export const toStatement = (row: StatementFields): Statement =>
   StatementSchema.parse({
     id: row.id,
     text: row.text,

@@ -446,7 +446,7 @@ A Curation that runs again keeps its id as job id, and the job of its earlier at
 
 #### Curation routes
 
-Every route is Candidate-owned, and the schemas live in `packages/shared` (`CurationSchema`, `CurationUnitSchema`, `CurationProgressSchema`, `CurationMetricsSchema`, `StatementSchema`, `EvidenceSchema`, `StatementReviewSchema`, `ModelCatalogueSchema`, `AccountModelChoiceSchema`), so they reach the OpenAPI document like every other route (ADR-0022).
+Every route is Candidate-owned, and the schemas live in `packages/shared` (`CurationSchema`, `CurationUnitSchema`, `CurationProgressSchema`, `CurationMetricsSchema`, `StatementSchema`, `EvidenceSchema`, `StatementReviewSchema`, `CurationStatementsSchema`, `StatementReviewRequestSchema`, `ModelCatalogueSchema`, `AccountModelChoiceSchema`), so they reach the OpenAPI document like every other route (ADR-0022).
 
 | Route | Answers |
 | --- | --- |
@@ -457,8 +457,8 @@ Every route is Candidate-owned, and the schemas live in `packages/shared` (`Cura
 | `POST /profile/curation/cancel` | Cancels a `queued` or `running` Curation |
 | `POST /profile/curation/retry` | Re-queues a `failed` or `cancelled` Curation from its first unsaved unit |
 | `POST /profile/curation/rerun` | Starts a new Curation alongside the current one when the gate allows it, or refuses with a reason |
-| `GET /profile/curation/statements` | The Statements of the current Curation with their text, labels, Evidence, source description, and review state |
-| `PUT /profile/curation/statements/:id/review` | Sets `accepted` or `rejected`, or clears back to `unreviewed` |
+| `GET /profile/curation/statements` | The Statements of the current Curation, the latest `completed` one that retrieval reads, in the order of their units, each with its text, labels, Evidence, source (the kind and title of the unit that wrote it), and review state; `{ "curationId": null, "statements": [] }` until a Curation completes. A rejected Statement is listed here and never retrieved. The answer's contract says that a review is not carried to the Statements of a re-run |
+| `PUT /profile/curation/statements/:id/review` | Sets `accepted` or `rejected` with the time, or clears back to `unreviewed`, and answers the Statement; a Statement of another Account answers `404` exactly like one that does not exist |
 
 Only `cancel`, `retry`, and `rerun` ever answer `409`, and only while a Curation is already `queued` or `running`. The percentage counts saved units only, so a fresh process answers the same number.
 

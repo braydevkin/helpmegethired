@@ -40,6 +40,8 @@ describe("the OpenAPI document", () => {
         "GET /profile",
         "POST /profile/confirm",
         "GET /profile/curation",
+        "GET /profile/curation/statements",
+        "PUT /profile/curation/statements/{id}/review",
       ].sort(),
     );
   });
@@ -51,7 +53,7 @@ describe("the OpenAPI document", () => {
       expect(names.map((name) => `#/components/schemas/${name}`)).toContain(reference);
     }
 
-    expect(names).toEqual(expect.arrayContaining(["Account", "ApiError", "ResumeUpload", "ResumeUploadReceipt", "UploadedResume", "Profile", "CurationProgressState"]));
+    expect(names).toEqual(expect.arrayContaining(["Account", "ApiError", "ResumeUpload", "ResumeUploadReceipt", "UploadedResume", "Profile", "CurationProgressState", "CurationStatements", "CuratedStatement", "StatementReviewRequest"]));
     expect(document.components.schemas.Profile).toMatchObject({ type: "object", required: expect.arrayContaining(["accountId", "reviewFlags", "source"]) });
     expect(document.components.schemas.CurationProgressState).toMatchObject({ type: "object", required: ["progress"] });
   });
@@ -63,6 +65,18 @@ describe("the OpenAPI document", () => {
     expect(poll?.responses["200"]).toMatchObject({ headers: { ETag: expect.any(Object) } });
     expect(Object.keys(poll?.responses ?? {})).toEqual(expect.arrayContaining(["200", "304", "401"]));
     expect(refsIn(responseSchemaOf(poll?.responses["200"] ?? {}))).toEqual(["#/components/schemas/CurationProgressState"]);
+  });
+
+  it("describes the Statement list and its review, and says a review is not carried across a re-run", () => {
+    const list = document.paths["/profile/curation/statements"]?.get;
+    const review = document.paths["/profile/curation/statements/{id}/review"]?.put;
+
+    expect(refsIn(responseSchemaOf(list?.responses["200"] ?? {}))).toEqual(["#/components/schemas/CurationStatements"]);
+    expect(review?.parameters).toContainEqual(expect.objectContaining({ name: "id", in: "path", description: "The Statement id" }));
+    expect(refsIn(review?.requestBody)).toEqual(["#/components/schemas/StatementReviewRequest"]);
+    expect(refsIn(responseSchemaOf(review?.responses["200"] ?? {}))).toEqual(["#/components/schemas/CuratedStatement"]);
+    expect(Object.keys(review?.responses ?? {})).toEqual(expect.arrayContaining(["200", "400", "401", "404"]));
+    expect(document.components.schemas.CurationStatements?.description).toMatch(/not carried to the Statements of a re-run/);
   });
 
   it("gives every operation an id, a summary, and at least one answer, and every error answer the shared ApiError", () => {

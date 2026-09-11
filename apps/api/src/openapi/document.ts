@@ -3,13 +3,16 @@ import {
   AccountModelChoiceSchema,
   AccountSchema,
   ApiErrorSchema,
+  CuratedStatementSchema,
   CurationProgressStateSchema,
+  CurationStatementsSchema,
   HealthStatusSchema,
   ModelChoiceRequestSchema,
   ModelChoiceStateSchema,
   ProfileSchema,
   ResumeUploadReceiptSchema,
   ResumeUploadSchema,
+  StatementReviewRequestSchema,
   UploadedResumeListSchema,
   UploadedResumeSchema,
   UploadedResumeStatusSchema,
@@ -65,6 +68,9 @@ const COMPONENTS: Record<string, { schema: ZodType; io: "input" | "output" }> = 
   ModelChoiceRequest: { schema: ModelChoiceRequestSchema, io: "input" },
   AccountModelChoice: { schema: AccountModelChoiceSchema, io: "output" },
   CurationProgressState: { schema: CurationProgressStateSchema, io: "output" },
+  CurationStatements: { schema: CurationStatementsSchema, io: "output" },
+  CuratedStatement: { schema: CuratedStatementSchema, io: "output" },
+  StatementReviewRequest: { schema: StatementReviewRequestSchema, io: "input" },
 };
 
 const ref = (name: string): JsonSchema => ({ $ref: `#/components/schemas/${name}` });
@@ -88,13 +94,16 @@ const validationFailed = error("The body did not pass the shared schema; `issues
 
 const body = (name: string): JsonSchema => ({ required: true, content: { [JSON_TYPE]: { schema: ref(name) } } });
 
-const idParameter: JsonSchema = {
+const idParameterOf = (description: string): JsonSchema => ({
   name: "id",
   in: "path",
   required: true,
-  description: "The Uploaded Resume id",
+  description,
   schema: jsonSchemaOf(z.uuid(), "output"),
-};
+});
+
+const idParameter = idParameterOf("The Uploaded Resume id");
+const statementIdParameter = idParameterOf("The Statement id");
 
 const ifNoneMatchParameter: JsonSchema = {
   name: "If-None-Match",
@@ -294,6 +303,33 @@ const paths: OpenApiDocument["paths"] = {
         }),
         "304": notModified,
         "401": unauthorized,
+      },
+    },
+  },
+  "/profile/curation/statements": {
+    get: {
+      tags: ["Curation"],
+      summary: "The Statements of the current Curation",
+      description:
+        "Every Statement of the latest completed Curation, the one retrieval reads, in the order of its units: the sentence, its labels, its Evidence, the unit it came from, and its review. An Account with no completed Curation answers `curationId: null` with no Statements. A rejected Statement is listed here and never retrieved. A review is not carried to the Statements of a re-run.",
+      operationId: "listCurationStatements",
+      responses: { "200": json("The Statements, or none yet", ref("CurationStatements")), "401": unauthorized },
+    },
+  },
+  "/profile/curation/statements/{id}/review": {
+    put: {
+      tags: ["Curation"],
+      summary: "Review a Statement",
+      description:
+        "Sets the review to `accepted` or `rejected`, recording when, or clears it back to `unreviewed`. A rejected Statement keeps its row and is left out of every retrieval; accepted and unreviewed Statements are both retrieved.",
+      operationId: "reviewStatement",
+      parameters: [statementIdParameter],
+      requestBody: body("StatementReviewRequest"),
+      responses: {
+        "200": json("The reviewed Statement", ref("CuratedStatement")),
+        "400": validationFailed,
+        "401": unauthorized,
+        "404": notFound,
       },
     },
   },

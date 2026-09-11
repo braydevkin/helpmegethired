@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { CURATION_UNIT_INPUT_MAX_CHARACTERS } from "./curation.js";
+import { CURATION_UNIT_INPUT_MAX_CHARACTERS, CurationUnitKindSchema } from "./curation.js";
 import { IdSchema, TextSchema, TimestampSchema, listOf } from "./primitives.js";
 
 export const EvidenceKindSchema = z.enum(["experience", "project", "text_span"]);
@@ -53,3 +53,39 @@ export const StatementSchema = z.object({
 });
 
 export type Statement = z.infer<typeof StatementSchema>;
+
+// Where the Candidate reads a Statement came from: the unit that wrote it, which is one
+// Experience or Project, or the cross-cutting or synthesis reading of the whole Profile.
+export const StatementSourceSchema = z.object({
+  unitKind: CurationUnitKindSchema,
+  title: TextSchema,
+});
+
+export type StatementSource = z.infer<typeof StatementSourceSchema>;
+
+export const CuratedStatementSchema = StatementSchema.extend({
+  source: StatementSourceSchema,
+});
+
+export type CuratedStatement = z.infer<typeof CuratedStatementSchema>;
+
+export const CurationStatementsSchema = z
+  .object({
+    curationId: IdSchema.nullable(),
+    statements: listOf(CuratedStatementSchema),
+  })
+  .refine(({ curationId, statements }) => curationId !== null || statements.length === 0, {
+    message: "Only a Curation has Statements",
+    path: ["statements"],
+  })
+  .describe(
+    "The Statements of the current Curation, the latest completed one, which is what retrieval reads; `curationId: null` with no Statements until one completes. A review belongs to its Statement and is not carried to the Statements of a re-run, which have no stable identity to inherit it from.",
+  );
+
+export type CurationStatements = z.infer<typeof CurationStatementsSchema>;
+
+export const StatementReviewRequestSchema = z.object({
+  state: StatementReviewStateSchema,
+});
+
+export type StatementReviewRequest = z.infer<typeof StatementReviewRequestSchema>;
