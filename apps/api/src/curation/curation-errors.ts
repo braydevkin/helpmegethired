@@ -7,10 +7,10 @@ export class CurationNotFoundError extends Error {
   }
 }
 
-// Thrown so the queue retries the job with its backoff; the units that failed carry the reason.
+// Thrown so the queue retries the job with its backoff; a failed unit carries its own reason.
 export class CurationAttemptFailedError extends Error {
   constructor(curationId: Id, status: CurationStatus | undefined) {
-    super(`Curation ${curationId} ended its attempt with a failed unit; now ${status ?? "unknown"}`);
+    super(`Curation ${curationId} ended its attempt without completing; now ${status ?? "unknown"}`);
     this.name = "CurationAttemptFailedError";
   }
 }

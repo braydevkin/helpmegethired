@@ -14,6 +14,7 @@ import { sql } from "kysely";
 import { DATABASE, type Database } from "../database/database";
 import type { CurationRow, CurationUnitRow } from "../database/database.schema";
 import type { CuratedExperience, CuratedProject } from "./unit-input";
+import { toVectorLiteral } from "./vector";
 
 const updatedNow = { updated_at: sql<Date>`now()` };
 const ACTIVE = ["queued", "running"] as const satisfies readonly CurationStatus[];
@@ -121,16 +122,37 @@ export class CurationRunRepository {
       .execute();
   }
 
-  async completeAttempt(id: Id): Promise<boolean> {
-    const row = await this.database
-      .updateTable("curations")
-      .set({ status: "completed", failure_reason: null, completed_at: sql<Date>`now()`, ...updatedNow })
-      .where("id", "=", id)
-      .where("status", "=", "running")
-      .returning("id")
-      .executeTakeFirst();
+  statementsToEmbed(curationId: Id): Promise<{ id: Id; text: string }[]> {
+    return this.database.selectFrom("statements").select(["id", "text"]).where("curation_id", "=", curationId).orderBy("id").execute();
+  }
 
-    return row !== undefined;
+  // Every vector and `completed` are one transaction, written only while the Curation still runs:
+  // a Curation is never half indexed, and the queue never finishes a job whose row says running.
+  completeWithEmbeddings(id: Id, vectors: readonly { statementId: Id; embedding: readonly number[] }[]): Promise<boolean> {
+    return this.database.transaction().execute(async (transaction) => {
+      const current = await transaction.selectFrom("curations").select("status").where("id", "=", id).forUpdate().executeTakeFirst();
+
+      if (current?.status !== "running") {
+        return false;
+      }
+
+      for (const { statementId, embedding } of vectors) {
+        await transaction
+          .updateTable("statements")
+          .set({ embedding: toVectorLiteral(embedding), ...updatedNow })
+          .where("id", "=", statementId)
+          .where("curation_id", "=", id)
+          .execute();
+      }
+
+      await transaction
+        .updateTable("curations")
+        .set({ status: "completed", failure_reason: null, completed_at: sql<Date>`now()`, ...updatedNow })
+        .where("id", "=", id)
+        .execute();
+
+      return true;
+    });
   }
 
   unitsOf(curationId: Id): Promise<CurationUnitRow[]> {

@@ -410,7 +410,7 @@ A unit's response is parsed by the shared Statement schema and its Statements ar
 
 Once every unit is saved, every Statement of the Curation is embedded through the platform embedding model into `vector(1536)` (ADR-0023), and `completed` is written in the same transaction as the last vectors, before the job returns. An embedding failure is a failure of the Curation, not of a unit: attempts and backoff apply, and no Statement is left half-indexed. The per-Account embedding budget is checked before every embedding call, and reaching it pauses the Curation with `resume_after` rather than failing it (#133).
 
-Retrieval reads the Statements of the Account's current Curation, the latest `completed` one, excluding rejected ones, filtered by `account_id` in SQL before similarity ordering. No later layer reads the Profile or the extracted text (ADR-0024); the extracted text stays on the Uploaded Resume as an auditable fallback.
+Retrieval reads the Statements of the Account's current Curation, the latest `completed` one, excluding rejected ones, filtered by `account_id` in SQL before similarity ordering. No later layer reads the Profile or the extracted text (ADR-0024); the extracted text stays on the Uploaded Resume as an auditable fallback. `StatementRepository.nearest(accountId, query, limit)` is that read, ordered by cosine distance under the HNSW index, and `CurationRunRepository.completeWithEmbeddings` is the one transaction that writes every vector and `completed`, only while the Curation still runs.
 
 #### Invalidation and re-run
 
