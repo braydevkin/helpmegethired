@@ -3,12 +3,12 @@ import type { SegmentRecognition } from "@helpmegethired/shared";
 
 import { UploadedResumeRunRepository } from "../../extraction/uploaded-resume-run.repository";
 import type { SegmentContext } from "../../ingestion/segment-processor";
-import { extractCertifications } from "../../parser";
+import { certificationsOf, splitSections } from "../../parser";
 import { SegmentModelReader } from "../../recognition/segment-model-reader";
 import { verifyCertifications } from "../../recognition/verification";
 import { ProfileRepository } from "../profile.repository";
 import type { RecognizedCertifications } from "./recognized";
-import { ResumeSegmentProcessor, ownLinesOf, type ResumeSegmentContent } from "./resume-segment.processor";
+import { ResumeSegmentProcessor } from "./resume-segment.processor";
 
 @Injectable()
 export class CertificationsSegmentProcessor extends ResumeSegmentProcessor<"certifications", RecognizedCertifications> {
@@ -22,12 +22,8 @@ export class CertificationsSegmentProcessor extends ResumeSegmentProcessor<"cert
     super(resumes, modelReader);
   }
 
-  protected override linesOf(content: ResumeSegmentContent): string[] {
-    return ownLinesOf(content, "certifications");
-  }
-
-  protected recognizeByRules(lines: string[]): Promise<RecognizedCertifications> {
-    return Promise.resolve({ certifications: extractCertifications(lines) });
+  protected recognizeByRules(lines: readonly string[]): Promise<RecognizedCertifications> {
+    return Promise.resolve({ certifications: certificationsOf(splitSections(lines)) });
   }
 
   protected verify(lines: readonly string[], byRules: RecognizedCertifications, byModel: SegmentRecognition<"certifications">): RecognizedCertifications {

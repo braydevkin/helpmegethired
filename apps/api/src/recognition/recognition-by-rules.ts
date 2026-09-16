@@ -2,20 +2,16 @@ import type { Field, Period, QuotedPeriod, QuotedText, SegmentRecognition, Segme
 
 import {
   TECHNOLOGIES,
-  basicProfileOf,
-  extractCertifications,
-  extractContact,
-  extractEducation,
-  extractExperiences,
-  extractLanguages,
-  extractProjects,
+  certificationsOf,
+  educationOf,
+  experiencesOf,
   extractSkills,
   findDateRange,
-  partitionLabelled,
+  headerOf,
+  languagesOf,
+  projectsOf,
   splitSections,
-  topLinesOf,
-  withSkills,
-  type SectionKind,
+  type Section,
 } from "../parser";
 import { recognitionSchemaOf } from "./recognition-schema";
 import { VerbatimText } from "./verbatim-text";
@@ -34,13 +30,11 @@ function quoted<Value>(field: Field<Value> | null, quoteOf: (value: Value) => st
 // The Segment's lines as the processors hand them to the model, and the text every quote is cut from.
 class SegmentSource {
   readonly verbatim: VerbatimText;
+  readonly sections: Section[];
 
   constructor(readonly lines: readonly string[]) {
     this.verbatim = new VerbatimText(lines.join("\n"));
-  }
-
-  ownLinesOf(kind: SectionKind): string[] {
-    return partitionLabelled(this.lines, kind).own;
+    this.sections = splitSections(lines);
   }
 
   text(field: Field<string> | null): QuotedText | null {
@@ -104,8 +98,7 @@ const present = <Value>(value: Value | null): Value[] => (value === null ? [] : 
 
 const RECOGNITION_BY_RULES: RecognitionByRules = {
   header: (source) => {
-    const sections = splitSections(source.lines);
-    const basicProfile = basicProfileOf(sections, extractContact(source.verbatim.text, topLinesOf(sections)));
+    const { basicProfile } = headerOf(source.lines);
 
     return {
       headline: source.text(basicProfile.headline),
@@ -115,20 +108,18 @@ const RECOGNITION_BY_RULES: RecognitionByRules = {
     };
   },
   experience: (source) => ({
-    experiences: extractExperiences(source.ownLinesOf("experience"))
-      .map(withSkills)
-      .flatMap((experience) =>
-        present(source.text(experience.role)).map((role) => ({
-          role,
-          company: source.text(experience.company),
-          period: source.period(experience.period),
-          description: source.text(experience.description),
-          skills: source.technologies(experience.skills),
-        })),
-      ),
+    experiences: experiencesOf(source.sections).flatMap((experience) =>
+      present(source.text(experience.role)).map((role) => ({
+        role,
+        company: source.text(experience.company),
+        period: source.period(experience.period),
+        description: source.text(experience.description),
+        skills: source.technologies(experience.skills),
+      })),
+    ),
   }),
   education: (source) => ({
-    education: extractEducation(source.ownLinesOf("education")).flatMap((education) =>
+    education: educationOf(source.sections).flatMap((education) =>
       present(source.text(education.institution)).map((institution) => ({
         institution,
         degree: source.text(education.degree),
@@ -138,7 +129,7 @@ const RECOGNITION_BY_RULES: RecognitionByRules = {
     ),
   }),
   project: (source) => ({
-    projects: extractProjects(source.ownLinesOf("projects")).flatMap((project) =>
+    projects: projectsOf(source.sections).flatMap((project) =>
       present(source.text(project.name)).map((name) => ({
         name,
         description: source.text(project.description),
@@ -148,17 +139,17 @@ const RECOGNITION_BY_RULES: RecognitionByRules = {
     ),
   }),
   skills: (source) => ({
-    skills: extractSkills(splitSections(source.lines)).flatMap((skill) =>
+    skills: extractSkills(source.sections).flatMap((skill) =>
       present(source.technology(skill.name)).map((name) => ({ name, category: skill.category })),
     ),
   }),
   languages: (source) => ({
-    languages: extractLanguages(source.ownLinesOf("languages")).flatMap((language) =>
+    languages: languagesOf(source.sections).flatMap((language) =>
       present(source.text(language.name)).map((name) => ({ name, level: source.text(language.level) })),
     ),
   }),
   certifications: (source) => ({
-    certifications: extractCertifications(source.ownLinesOf("certifications")).flatMap((certification) =>
+    certifications: certificationsOf(source.sections).flatMap((certification) =>
       present(source.text(certification.name)).map((name) => ({
         name,
         issuer: source.text(certification.issuer),

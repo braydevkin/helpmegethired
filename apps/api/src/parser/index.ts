@@ -7,16 +7,25 @@ export { hasDegreeTerm } from "./dictionaries/degrees";
 export { hasJobTitleWord } from "./dictionaries/job-titles";
 export { hasLevelWord } from "./dictionaries/language-levels";
 export { extractEducation, readsAsInstitution } from "./education";
-export { extractExperiences, opensExperience } from "./experiences";
+export { extractExperiences } from "./experiences";
 export { extractLanguages } from "./languages";
-export { extractProjects, opensProject } from "./projects";
+export { extractProjects } from "./projects";
 export { SECTION_KINDS, type SectionKind } from "./dictionaries/section-headers";
 export { TECHNOLOGIES, type Technology } from "./dictionaries/technologies";
-export { PARSER_VERSION, basicProfileOf, parseResume, topLinesOf, withSkills, type ParsedResume } from "./parse-resume";
+export {
+  PARSER_VERSION,
+  certificationsOf,
+  educationOf,
+  experiencesOf,
+  headerOf,
+  languagesOf,
+  parseResume,
+  projectsOf,
+  withSkills,
+  type ParsedResume,
+} from "./parse-resume";
 export { splitSections, type Section } from "./sections";
 export { type LineRange } from "./text";
-export { blockRangesOf } from "./entries";
-export { partitionLabelled, type LabelledParagraph } from "./labelled-lines";
-export { extractContact, isContactLine } from "./contact";
+export { isContactLine } from "./contact";
 export { extractSkills, findTechnologies, skillNamesIn, technologyNamed } from "./skills";
 export { normalise } from "./text";

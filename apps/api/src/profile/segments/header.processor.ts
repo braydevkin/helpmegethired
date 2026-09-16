@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import type { DraftBasicProfile, SegmentRecognition } from "@helpmegethired/shared";
+import type { SegmentRecognition } from "@helpmegethired/shared";
 
 import { AccountRepository } from "../../auth/account.repository";
 import { UploadedResumeRunRepository } from "../../extraction/uploaded-resume-run.repository";
 import type { SegmentContext } from "../../ingestion/segment-processor";
-import { basicProfileOf, extractContact, normalise, splitSections, topLinesOf } from "../../parser";
+import { headerOf, normalise } from "../../parser";
 import { SegmentModelReader } from "../../recognition/segment-model-reader";
 import { verifyHeader } from "../../recognition/verification";
 import { ProfileRepository } from "../profile.repository";
@@ -39,16 +39,14 @@ export class HeaderSegmentProcessor extends ResumeSegmentProcessor<"header", Rec
     super(resumes, modelReader);
   }
 
-  protected async recognizeByRules(lines: string[], context: SegmentContext): Promise<RecognizedHeader> {
+  protected async recognizeByRules(lines: readonly string[], context: SegmentContext): Promise<RecognizedHeader> {
     const account = await this.accounts.findById(context.accountId);
 
     if (!account) {
       throw new AccountMissingError(context.accountId);
     }
 
-    const sections = splitSections(lines);
-    const contact = extractContact(lines.join("\n"), topLinesOf(sections));
-    const basicProfile: DraftBasicProfile = basicProfileOf(sections, contact);
+    const { contact, basicProfile } = headerOf(lines);
 
     return {
       basicProfile,

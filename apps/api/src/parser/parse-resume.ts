@@ -1,15 +1,24 @@
-import type { DraftBasicProfile, DraftExperience, ProfileDraft } from "@helpmegethired/shared";
+import type {
+  DraftBasicProfile,
+  DraftCertification,
+  DraftEducation,
+  DraftExperience,
+  DraftLanguage,
+  DraftProject,
+  ProfileDraft,
+} from "@helpmegethired/shared";
 
 import { field } from "./field";
 import { extractCertifications } from "./certifications";
 import { cleanText } from "./clean";
 import { extractContact, isContactLine, type Contact } from "./contact";
+import type { SectionKind } from "./dictionaries/section-headers";
 import { extractEducation } from "./education";
 import { extractExperiences } from "./experiences";
 import { linesOfKind, ownLinesOf } from "./labelled-lines";
 import { extractLanguages } from "./languages";
 import { extractProjects } from "./projects";
-import { splitSections, type Section } from "./sections";
+import { splitSections, type Section, type SectionLines } from "./sections";
 import { extractSkills, skillNamesIn } from "./skills";
 import { isBlank } from "./text";
 
@@ -21,7 +30,13 @@ export interface ParsedResume {
   draft: ProfileDraft;
 }
 
+export interface ResumeHeader {
+  contact: Contact;
+  basicProfile: DraftBasicProfile;
+}
+
 const HEADLINE_MAX_CHARACTERS = 80;
+const HEADER_KINDS = new Set<SectionKind>(["header", "contact", "summary"]);
 
 const paragraph = (lines: readonly string[]): string =>
   lines
@@ -66,11 +81,35 @@ export function basicProfileOf(sections: readonly Section[], contact: Contact): 
   };
 }
 
+// The header reads the top of the resume and its summaries alone, headings included, so a link
+// written further down, such as a Project's repository, is never taken for the Candidate's own.
+export function headerOf(lines: readonly string[]): ResumeHeader {
+  const topLines = splitSections(lines)
+    .filter((section) => HEADER_KINDS.has(section.kind))
+    .flatMap((section) => lines.slice(section.range.start, section.range.end));
+  const sections = splitSections(topLines);
+  const contact = extractContact(topLines.join("\n"), topLinesOf(sections));
+
+  return { contact, basicProfile: basicProfileOf(sections, contact) };
+}
+
 // A technology named in an Experience's description belongs to that Experience as well.
 export const withSkills = (experience: DraftExperience): DraftExperience => ({
   ...experience,
   skills: skillNamesIn(experience.description?.value ?? ""),
 });
+
+export const experiencesOf = (sections: readonly SectionLines[]): DraftExperience[] =>
+  extractExperiences(ownLinesOf(sections, "experience")).map(withSkills);
+
+export const educationOf = (sections: readonly SectionLines[]): DraftEducation[] => extractEducation(ownLinesOf(sections, "education"));
+
+export const projectsOf = (sections: readonly SectionLines[]): DraftProject[] => extractProjects(ownLinesOf(sections, "projects"));
+
+export const languagesOf = (sections: readonly SectionLines[]): DraftLanguage[] => extractLanguages(linesOfKind(sections, "languages"));
+
+export const certificationsOf = (sections: readonly SectionLines[]): DraftCertification[] =>
+  extractCertifications(linesOfKind(sections, "certifications"));
 
 export function parseResume(rawText: string): ParsedResume {
   const text = cleanText(rawText);
@@ -83,12 +122,12 @@ export function parseResume(rawText: string): ParsedResume {
     draft: {
       parserVersion: PARSER_VERSION,
       basicProfile: basicProfileOf(sections, contact),
-      experiences: extractExperiences(ownLinesOf(sections, "experience")).map(withSkills),
-      education: extractEducation(ownLinesOf(sections, "education")),
-      projects: extractProjects(ownLinesOf(sections, "projects")),
+      experiences: experiencesOf(sections),
+      education: educationOf(sections),
+      projects: projectsOf(sections),
       skills: extractSkills(sections),
-      languages: extractLanguages(linesOfKind(sections, "languages")),
-      certifications: extractCertifications(linesOfKind(sections, "certifications")),
+      languages: languagesOf(sections),
+      certifications: certificationsOf(sections),
     },
   };
 }

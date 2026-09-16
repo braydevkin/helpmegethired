@@ -1,6 +1,6 @@
 import type { SegmentRecognition } from "@helpmegethired/shared";
 
-import { extractContact, isContactLine, splitSections, topLinesOf } from "../../parser";
+import { headerOf, isContactLine } from "../../parser";
 import type { RecognizedHeader } from "../../profile/segments/recognized";
 import { textReadingOf, textRule, urlReadingOf, urlRule, verifiedField, type Reading } from "./fields";
 import { SegmentText, comparable } from "./segment-text";
@@ -21,7 +21,7 @@ const aboutTheCandidate = (lines: readonly string[], name: string | undefined) =
 export function verifyHeader(lines: readonly string[], byRules: RecognizedHeader, byModel: SegmentRecognition<"header">): RecognizedHeader {
   const text = new SegmentText(lines);
   const { basicProfile } = byRules;
-  const withoutContact = aboutTheCandidate(lines, extractContact(lines.join("\n"), topLinesOf(splitSections(lines))).name?.value);
+  const withoutContact = aboutTheCandidate(lines, headerOf(lines).contact.name?.value);
 
   return {
     basicProfile: {

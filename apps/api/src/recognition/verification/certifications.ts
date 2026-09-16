@@ -1,7 +1,7 @@
 import type { DraftCertification, SegmentRecognition } from "@helpmegethired/shared";
 
 import type { RecognizedCertifications } from "../../profile/segments/recognized";
-import { alignEntries, type AlignedEntry, locatedByModel, locatedByRules, oneLineEntryScore } from "./align-entries";
+import { alignEntries, type AlignedEntry, locatedEntries, oneLineEntryScore } from "./align-entries";
 import { quotedReadingOf, textReadingOf, textRule, verifiedField, yearRule, type Reading } from "./fields";
 import { SegmentText } from "./segment-text";
 
@@ -22,10 +22,6 @@ function readingOf(text: SegmentText, certification: CertificationByModel): Cert
 }
 
 function merged({ byModel, byRules }: AlignedEntry<CertificationReading, DraftCertification>): DraftCertification {
-  if (byModel === null) {
-    return byRules;
-  }
-
   return {
     name: verifiedField(byRules?.name ?? null, byModel.name, plainText),
     issuer: verifiedField(byRules?.issuer ?? null, byModel.issuer, plainText),
@@ -41,9 +37,17 @@ export function verifyCertifications(
   const text = new SegmentText(lines);
   const readings = byModel.certifications.flatMap((certification) => readingOf(text, certification) ?? []);
   const aligned = alignEntries(
-    readings.map((reading) => locatedByModel(reading, [reading.name.value], [reading.name, reading.issuer, reading.year])),
-    byRules.certifications.map((certification) =>
-      locatedByRules(text, certification, [certification.name.value], [certification.name.value, certification.issuer?.value]),
+    locatedEntries(
+      text,
+      readings.map((reading) => ({ entry: reading, names: [reading.name.value], texts: [reading.name.quote, reading.issuer?.quote, reading.year?.quote] })),
+    ),
+    locatedEntries(
+      text,
+      byRules.certifications.map((certification) => ({
+        entry: certification,
+        names: [certification.name.value],
+        texts: [certification.name.value, certification.issuer?.value],
+      })),
     ),
     oneLineEntryScore,
   );

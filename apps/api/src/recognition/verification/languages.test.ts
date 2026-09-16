@@ -41,12 +41,17 @@ describe("verifyLanguages", () => {
     ]);
   });
 
-  it("takes the Model's name at low when the rules read it differently, and keeps the rules' entries it did not return", () => {
+  it("takes the Model's name at low when the rules read it differently, and leaves out the rules' entries it did not return", () => {
     const { languages } = verifyLanguages(lines, byRules, { languages: [{ name: quoted("Portuguese"), level: quoted("Some") }] });
 
-    expect(languages).toEqual([
-      ...byRules.languages.slice(0, 2),
-      { name: { value: "Portuguese", confidence: "low" }, level: { value: "Some", confidence: "medium" } },
-    ]);
+    expect(languages).toEqual([{ name: { value: "Portuguese", confidence: "low" }, level: { value: "Some", confidence: "medium" } }]);
+  });
+
+  it("saves no language when the Model read none, however many the rules took from a technologies list", () => {
+    const skillsLine = ["Languages: TypeScript, Go, Python, Kotlin"];
+    const rules = { languages: extractLanguages(["TypeScript, Go, Python, Kotlin"]) };
+
+    expect(rules.languages.length).toBeGreaterThan(0);
+    expect(verifyLanguages(skillsLine, rules, { languages: [] })).toEqual({ languages: [] });
   });
 });

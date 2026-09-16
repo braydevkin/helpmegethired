@@ -3,12 +3,12 @@ import type { SegmentRecognition } from "@helpmegethired/shared";
 
 import { UploadedResumeRunRepository } from "../../extraction/uploaded-resume-run.repository";
 import type { SegmentContext } from "../../ingestion/segment-processor";
-import { extractLanguages } from "../../parser";
+import { languagesOf, splitSections } from "../../parser";
 import { SegmentModelReader } from "../../recognition/segment-model-reader";
 import { verifyLanguages } from "../../recognition/verification";
 import { ProfileRepository } from "../profile.repository";
 import type { RecognizedLanguages } from "./recognized";
-import { ResumeSegmentProcessor, ownLinesOf, type ResumeSegmentContent } from "./resume-segment.processor";
+import { ResumeSegmentProcessor } from "./resume-segment.processor";
 
 @Injectable()
 export class LanguagesSegmentProcessor extends ResumeSegmentProcessor<"languages", RecognizedLanguages> {
@@ -22,12 +22,8 @@ export class LanguagesSegmentProcessor extends ResumeSegmentProcessor<"languages
     super(resumes, modelReader);
   }
 
-  protected override linesOf(content: ResumeSegmentContent): string[] {
-    return ownLinesOf(content, "languages");
-  }
-
-  protected recognizeByRules(lines: string[]): Promise<RecognizedLanguages> {
-    return Promise.resolve({ languages: extractLanguages(lines) });
+  protected recognizeByRules(lines: readonly string[]): Promise<RecognizedLanguages> {
+    return Promise.resolve({ languages: languagesOf(splitSections(lines)) });
   }
 
   protected verify(lines: readonly string[], byRules: RecognizedLanguages, byModel: SegmentRecognition<"languages">): RecognizedLanguages {

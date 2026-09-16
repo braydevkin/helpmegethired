@@ -23,7 +23,7 @@ describe("selectRecognitionModel", () => {
     const model = selectRecognitionModel({ NODE_ENV: "test", MODEL_ADAPTER: null });
     const { output } = await model.recognize({
       kind: "languages",
-      lines: ["English - Native"],
+      lines: ["LANGUAGES", "English - Native"],
       modelId: "claude-sonnet-5",
       modelKey: new ModelKey("sk-ant-development-key-000000"),
     });

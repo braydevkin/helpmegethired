@@ -10,8 +10,8 @@ import { ProfileRepository } from "../profile.repository";
 import type { RecognizedSkills } from "./recognized";
 import { ResumeSegmentProcessor } from "./resume-segment.processor";
 
-// Reads the whole text: the Skills are the union of the skills section and every technology
-// named inside an Experience or a Project.
+// The Skills are the union of the skills section and every technology named inside an Experience
+// or a Project.
 @Injectable()
 export class SkillsSegmentProcessor extends ResumeSegmentProcessor<"skills", RecognizedSkills> {
   readonly kind = "skills";
@@ -24,7 +24,7 @@ export class SkillsSegmentProcessor extends ResumeSegmentProcessor<"skills", Rec
     super(resumes, modelReader);
   }
 
-  protected recognizeByRules(lines: string[]): Promise<RecognizedSkills> {
+  protected recognizeByRules(lines: readonly string[]): Promise<RecognizedSkills> {
     return Promise.resolve({ skills: extractSkills(splitSections(lines)) });
   }
 

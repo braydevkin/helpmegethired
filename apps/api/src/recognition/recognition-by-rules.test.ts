@@ -1,14 +1,16 @@
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
-import { SEGMENT_RECOGNITION_SCHEMAS } from "@helpmegethired/shared";
+import { SEGMENT_RECOGNITION_SCHEMAS, type SegmentRecognitionKind } from "@helpmegethired/shared";
 import { describe, expect, it } from "vitest";
 
-import { cleanedLinesOf, resumeSegmentsOf } from "../profile/segments/resume-segments";
+import { certificationsOf, educationOf, experiencesOf, extractSkills, headerOf, languagesOf, projectsOf, splitSections } from "../parser";
+import { cleanedLinesOf } from "../profile/segments/resume-segments";
 import { recognitionByRules } from "./recognition-by-rules";
+import { verifyCertifications, verifyEducation, verifyExperience, verifyHeader, verifyLanguages, verifyProject, verifySkills } from "./verification";
 
-const UPLOADED_RESUME_ID = "1e4b2a6c-9d3f-4e8a-b7c5-2f6a8d1c3e5b";
 const corpus = join(__dirname, "../../test/fixtures/resumes/corpus");
+const KINDS = Object.keys(SEGMENT_RECOGNITION_SCHEMAS) as SegmentRecognitionKind[];
 
 const quotesIn = (value: unknown): string[] => {
   if (Array.isArray(value)) {
@@ -22,20 +24,12 @@ const quotesIn = (value: unknown): string[] => {
   return Object.entries(value).flatMap(([key, item]) => (key === "quote" && typeof item === "string" ? [item] : quotesIn(item)));
 };
 
-// The lines each Segment's read Step hands over: its ranges line by line, its paragraphs joined.
-function segmentsOfResume(text: string) {
-  const lines = cleanedLinesOf(text);
-  const slice = (range: { start: number; end: number }) => lines.slice(range.start, range.end);
-
-  return resumeSegmentsOf(text, UPLOADED_RESUME_ID).map(({ kind, input }) => ({
-    kind,
-    lines: [...input.ranges.flatMap(slice), ...input.paragraphs.map((range) => slice(range).join(" "))],
-  }));
-}
+const withoutConfidence = (value: unknown): unknown => JSON.parse(JSON.stringify(value, (key, item: unknown) => (key === "confidence" ? undefined : item)));
 
 describe("recognitionByRules", () => {
-  it("answers a position with every value quoted from its lines", () => {
+  it("answers a position with every value quoted from the resume", () => {
     const lines = [
+      "EXPERIENCE",
       "Senior Backend Engineer | Analytical Engines Ltd",
       "London · Mar 2021 – Present",
       "Own the ingestion platform, written in TypeScript on PostgreSQL.",
@@ -72,8 +66,14 @@ describe("recognitionByRules", () => {
     });
   });
 
+  it("never answers a link written below the top of the resume as the Candidate's own", () => {
+    const lines = ["Ada Lovelace", "Senior Backend Engineer", "", "PROJECTS", "", "Difference Engine — github.com/ada-example/difference-engine"];
+
+    expect(recognitionByRules("header", lines).githubUrl).toBeNull();
+  });
+
   it("answers a certification's year as a number quoted as written", () => {
-    expect(recognitionByRules("certifications", ["AWS Certified Solutions Architect — Amazon Web Services, 2023"])).toEqual({
+    expect(recognitionByRules("certifications", ["CERTIFICATIONS", "AWS Certified Solutions Architect — Amazon Web Services, 2023"])).toEqual({
       certifications: [
         {
           name: { value: "AWS Certified Solutions Architect", quote: "AWS Certified Solutions Architect" },
@@ -91,7 +91,7 @@ describe("recognitionByRules", () => {
     ]);
   });
 
-  it("answers nothing for a Segment with no lines", () => {
+  it("answers nothing for a resume with no lines", () => {
     expect(recognitionByRules("languages", [])).toEqual({ languages: [] });
   });
 
@@ -99,15 +99,44 @@ describe("recognitionByRules", () => {
     .filter((name) => name.endsWith(".txt"))
     .sort();
 
-  it.each(resumes)("answers every Segment of %s with output that validates and quotes found in the Segment", (name) => {
-    for (const { kind, lines } of segmentsOfResume(readFileSync(join(corpus, name), "utf8"))) {
+  it.each(resumes)("answers every part of %s with output that validates and quotes found in the resume", (name) => {
+    const lines = cleanedLinesOf(readFileSync(join(corpus, name), "utf8"));
+    const text = lines.join("\n");
+
+    for (const kind of KINDS) {
       const output = recognitionByRules(kind, lines);
-      const text = lines.join("\n");
 
       expect(SEGMENT_RECOGNITION_SCHEMAS[kind].parse(output)).toEqual(output);
       for (const quote of quotesIn(output)) {
         expect(text).toContain(quote);
       }
     }
+  });
+
+  // Without a Provider the fake answers what the rules read, so its verified reading must be the
+  // rules' Profile: an entry lost or doubled here would change the Profile the local stack builds.
+  it.each(resumes)("verifies into the entries the rules read from %s", (name) => {
+    const lines = cleanedLinesOf(readFileSync(join(corpus, name), "utf8"));
+    const sections = splitSections(lines);
+    const header = { basicProfile: headerOf(lines).basicProfile, accountMismatch: { name: false, email: false } };
+    const rules = {
+      experiences: experiencesOf(sections),
+      education: educationOf(sections),
+      projects: projectsOf(sections),
+      skills: extractSkills(sections),
+      languages: languagesOf(sections),
+      certifications: certificationsOf(sections),
+    };
+    const verified = {
+      experiences: verifyExperience(lines, rules, recognitionByRules("experience", lines)).experiences,
+      education: verifyEducation(lines, rules, recognitionByRules("education", lines)).education,
+      projects: verifyProject(lines, rules, recognitionByRules("project", lines)).projects,
+      skills: verifySkills(lines, rules, recognitionByRules("skills", lines)).skills,
+      languages: verifyLanguages(lines, rules, recognitionByRules("languages", lines)).languages,
+      certifications: verifyCertifications(lines, rules, recognitionByRules("certifications", lines)).certifications,
+    };
+
+    expect(withoutConfidence(verified)).toEqual(withoutConfidence(rules));
+    expect(withoutConfidence(verifyHeader(lines, header, recognitionByRules("header", lines)))).toEqual(withoutConfidence(header));
   });
 });

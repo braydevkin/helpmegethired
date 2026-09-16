@@ -51,16 +51,21 @@ describe("verifyEducation", () => {
       fieldOfStudy: null,
       period: null,
     };
-    const { education } = verifyEducation(lines, byRules, { education: [bootcamp] });
+    const { education } = verifyEducation(lines, byRules, { education: [bootcamp, cambridge] });
 
-    expect(education).toHaveLength(3);
-    expect(education.slice(0, 2)).toEqual(byRules.education);
-    expect(education[2]).toEqual({
+    expect(education.map((entry) => entry.institution.value)).toEqual(["University of Cambridge", "Le Wagon"]);
+    expect(education[1]).toEqual({
       institution: { value: "Le Wagon", confidence: "medium" },
       degree: { value: "Web Development Bootcamp", confidence: "high" },
       fieldOfStudy: null,
       period: null,
     });
+  });
+
+  it("leaves out an entry only the rules read", () => {
+    const { education } = verifyEducation(lines, byRules, { education: [cambridge] });
+
+    expect(education.map((entry) => entry.institution.value)).toEqual(["University of Cambridge"]);
   });
 
   it("keeps a field only the rules read at the rules' Confidence", () => {

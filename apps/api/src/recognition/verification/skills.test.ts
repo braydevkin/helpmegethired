@@ -33,7 +33,13 @@ describe("verifySkills", () => {
   it("keeps C, C++, and C# apart", () => {
     const languages = ["SKILLS", "", "C, C++, C#"];
     const rules = { skills: extractSkills(splitSections(languages)) };
-    const { skills } = verifySkills(languages, rules, { skills: [{ name: quoted("C++"), category: "Languages & runtimes" }] });
+    const { skills } = verifySkills(languages, rules, {
+      skills: [
+        { name: quoted("C#"), category: "Languages & runtimes" },
+        { name: quoted("C++"), category: "Languages & runtimes" },
+        { name: quoted("C"), category: "Languages & runtimes" },
+      ],
+    });
 
     expect(skills.map((skill) => skill.name)).toEqual(["C", "C++", "C#"]);
   });
@@ -48,7 +54,7 @@ describe("verifySkills", () => {
       ],
     });
 
-    expect(skills).toEqual(rules.skills);
+    expect(skills).toEqual([{ name: "TypeScript", category: "Languages & runtimes", confidence: "high" }]);
   });
 
   it("does not raise a skill only the Model read because it read it twice", () => {
@@ -62,9 +68,22 @@ describe("verifySkills", () => {
     expect(skills.filter((skill) => skill.name === "Temporalite")).toEqual([{ name: "Temporalite", category: "Infrastructure", confidence: "medium" }]);
   });
 
-  it("discards a skill the Segment never names and keeps every skill only the rules found", () => {
+  it("discards a skill the Segment never names and leaves out every skill only the rules found", () => {
     const { skills } = verifySkills(lines, byRules, { skills: [{ name: quoted("Kubernetes"), category: "Infrastructure" }] });
 
-    expect(skills).toEqual(byRules.skills);
+    expect(byRules.skills.length).toBeGreaterThan(0);
+    expect(skills).toEqual([]);
+  });
+
+  it("keeps the rules' order for the skills both read, with the ones only the Model read after them", () => {
+    const { skills } = verifySkills(lines, byRules, {
+      skills: [
+        { name: quoted("Temporalite"), category: "Infrastructure" },
+        { name: quoted("PostgreSQL"), category: "Frameworks & data" },
+        { name: quoted("TypeScript"), category: "Languages & runtimes" },
+      ],
+    });
+
+    expect(skills.map((skill) => skill.name)).toEqual(["TypeScript", "PostgreSQL", "Temporalite"]);
   });
 });

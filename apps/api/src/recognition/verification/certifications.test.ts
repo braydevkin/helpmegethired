@@ -27,8 +27,8 @@ describe("verifyCertifications", () => {
     });
   });
 
-  it("keeps the rules' year at low when the Model read another, and takes the Model's issuer at low", () => {
-    const [, kubernetes] = verifyCertifications(lines, byRules, {
+  it("keeps the rules' year at low when the Model read another, takes the Model's issuer at low, and leaves out a certification it did not return", () => {
+    const [kubernetes, ...others] = verifyCertifications(lines, byRules, {
       certifications: [
         {
           name: quoted("Certified Kubernetes Administrator", "Certified Kubernetes Administrator"),
@@ -41,6 +41,7 @@ describe("verifyCertifications", () => {
     expect(byRules.certifications[1]?.year).toEqual({ value: 2021, confidence: "medium" });
     expect(kubernetes?.year).toEqual({ value: 2021, confidence: "low" });
     expect(kubernetes?.issuer).toEqual({ value: "CNCF", confidence: "low" });
+    expect(others).toEqual([]);
   });
 
   it("pairs certifications listed on one line by name, whatever order the Model returns them in", () => {

@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-import { SEGMENT_RECOGNITION_SCHEMAS, type SegmentRecognitionKind } from "@helpmegethired/shared";
+import { CURATION_UNIT_INPUT_MAX_CHARACTERS, SEGMENT_RECOGNITION_SCHEMAS, type SegmentRecognitionKind } from "@helpmegethired/shared";
 import { describe, expect, it } from "vitest";
 
 import { RECOGNITION_INPUT_MAX_CHARACTERS, RECOGNITION_PROMPT_VERSION, instructionsFor, recognitionMessagesOf, segmentTextOf } from "./recognition-prompt";
@@ -34,6 +34,25 @@ describe("recognitionMessagesOf", () => {
       expect(text).toContain("copied character for character");
       expect(text).toContain("Never invent");
     }
+  });
+
+  it("asks every kind to read the whole Resume, and every list part to find its entries wherever they sit", () => {
+    for (const kind of KINDS) {
+      expect(instructionsFor(kind)).toContain("whole Resume");
+    }
+
+    for (const kind of KINDS.filter((each) => each !== "header" && each !== "skills")) {
+      expect(instructionsFor(kind)).toContain("wherever it sits, whatever heading it is written under");
+      expect(instructionsFor(kind)).toContain("as a wrapped line does");
+    }
+  });
+
+  it("tells each list part what belongs to another part", () => {
+    expect(instructionsFor("experience")).toContain("belongs to that position and never begins a position or a project of its own");
+    expect(instructionsFor("project")).toContain("A position the Candidate held at an employer is not a project");
+    expect(instructionsFor("education")).toContain("is a certification, not education");
+    expect(instructionsFor("certifications")).toContain("written under an education");
+    expect(instructionsFor("languages")).toContain("never a spoken language");
   });
 
   it("names every Skill category the schema accepts", () => {
@@ -69,7 +88,7 @@ describe("recognitionMessagesOf", () => {
   });
 
   it("carries a version for the log line", () => {
-    expect(RECOGNITION_PROMPT_VERSION).toBe("recognition/1");
+    expect(RECOGNITION_PROMPT_VERSION).toBe("recognition/2");
   });
 });
 
@@ -86,11 +105,21 @@ describe("segmentTextOf", () => {
     expect(segmentTextOf(["Kubernetes and Terraform and Docker"], 20)).toEqual({ text: "Kubernetes and", truncated: true });
   });
 
-  it("caps at the same bound as a Curation Unit", () => {
-    const { text, truncated } = segmentTextOf(Array.from({ length: 1000 }, (_, index) => `Line ${index} of a long Resume`));
+  it("caps a whole Resume at 30,000 characters, a bound of its own rather than a Curation Unit's, cut at a line", () => {
+    const { text, truncated } = segmentTextOf(Array.from({ length: 2000 }, (_, index) => `Line ${index} of a long Resume`));
 
+    expect(RECOGNITION_INPUT_MAX_CHARACTERS).toBe(30_000);
+    expect(RECOGNITION_INPUT_MAX_CHARACTERS).not.toBe(CURATION_UNIT_INPUT_MAX_CHARACTERS);
     expect(truncated).toBe(true);
-    expect(text.length).toBeLessThanOrEqual(8000);
+    expect(text.length).toBeLessThanOrEqual(30_000);
+    expect(text.length).toBeGreaterThan(29_900);
     expect(text.endsWith("of a long Resume")).toBe(true);
+  });
+
+  it("keeps a Resume longer than a Curation Unit's bound whole", () => {
+    const lines = Array.from({ length: 600 }, (_, index) => `Line ${index} of a long Resume`);
+
+    expect(lines.join("\n").length).toBeGreaterThan(CURATION_UNIT_INPUT_MAX_CHARACTERS);
+    expect(segmentTextOf(lines)).toEqual({ text: lines.join("\n"), truncated: false });
   });
 });

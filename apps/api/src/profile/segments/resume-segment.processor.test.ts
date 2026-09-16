@@ -8,7 +8,7 @@ import type { SegmentContext } from "../../ingestion/segment-processor";
 import { ModelKeyNotFoundError } from "../../model-choice/model-choice-errors";
 import type { ModelChoiceService } from "../../model-choice/model-choice.service";
 import { ModelKey } from "../../model-choice/model-key";
-import { extractExperiences, withSkills } from "../../parser";
+import { experiencesOf, splitSections } from "../../parser";
 import type { RecognitionModel } from "../../recognition/recognition-model";
 import { SegmentModelReader } from "../../recognition/segment-model-reader";
 import type { ProfileRepository } from "../profile.repository";
@@ -28,8 +28,8 @@ const CONTEXT: SegmentContext = {
   position: 1,
 };
 
-const EXPERIENCE: ResumeSegmentContent = {
-  lines: ["Analytical Engines Ltd", "Senior Backend Engineer", "Mar 2021 – Present", "Own the ingestion platform."],
+const RESUME: ResumeSegmentContent = {
+  lines: ["Ada Lovelace", "", "EXPERIENCE", "Analytical Engines Ltd", "Senior Backend Engineer", "Mar 2021 – Present", "Own the ingestion platform."],
 };
 
 const resumes = {} as UploadedResumeRunRepository;
@@ -70,18 +70,21 @@ describe("ResumeSegmentProcessor.recognize", () => {
     const { reader, recognize } = doubles(experienceByModel, false);
     const processor = new ExperienceSegmentProcessor(resumes, reader, profiles);
 
-    await expect(processor.recognize(EXPERIENCE, CONTEXT)).resolves.toEqual({ experiences: extractExperiences(EXPERIENCE.lines).map(withSkills) });
+    const recognized = await processor.recognize(RESUME, CONTEXT);
+
+    expect(recognized.experiences).toHaveLength(1);
+    expect(recognized).toEqual({ experiences: experiencesOf(splitSections(RESUME.lines)) });
     expect(recognize).not.toHaveBeenCalled();
   });
 
-  it("sends the Segment's lines to the Account's Model and answers the rules' verification of its reading", async () => {
+  it("sends the whole résumé to the Account's Model and answers the rules' verification of its reading", async () => {
     const { reader, recognize, usableModelKey } = doubles(experienceByModel);
     const processor = new ExperienceSegmentProcessor(resumes, reader, profiles);
 
-    const recognized = await processor.recognize(EXPERIENCE, CONTEXT);
+    const recognized = await processor.recognize(RESUME, CONTEXT);
 
     expect(usableModelKey).toHaveBeenCalledWith(CONTEXT.accountId);
-    expect(recognize).toHaveBeenCalledWith(expect.objectContaining({ kind: "experience", lines: EXPERIENCE.lines, modelId: "claude-sonnet-5" }));
+    expect(recognize).toHaveBeenCalledWith(expect.objectContaining({ kind: "experience", lines: RESUME.lines, modelId: "claude-sonnet-5" }));
     expect(recognized.experiences).toEqual([
       {
         role: { value: "Senior Backend Engineer", confidence: "high" },
@@ -99,16 +102,28 @@ describe("ResumeSegmentProcessor.recognize", () => {
 
     recognize.mockImplementation(() => Promise.reject(new ProviderRateLimitedError(30)));
 
-    await expect(processor.recognize(EXPERIENCE, CONTEXT)).rejects.toBeInstanceOf(ProviderRateLimitedError);
+    await expect(processor.recognize(RESUME, CONTEXT)).rejects.toBeInstanceOf(ProviderRateLimitedError);
   });
 
-  it("offers the Model only the lines the kind's rules read, never another kind's labelled paragraph", async () => {
-    const { reader, recognize } = doubles({ languages: [] });
+  it("offers the Model the whole résumé, a paragraph labelled with another kind included, and keeps only the entries it returned", async () => {
+    const lines = ["SUMMARY", "Languages: English - Native, Klingon - Basic", "Certifications: AWS Solutions Architect, 2023"];
+    const { reader, recognize } = doubles({ languages: [{ name: { value: "English", quote: "English" }, level: { value: "Native", quote: "Native" } }] });
     const processor = new LanguagesSegmentProcessor(resumes, reader, profiles);
 
-    await processor.recognize({ lines: ["Languages: English - Native", "Certifications: AWS Solutions Architect, 2023"] }, CONTEXT);
+    const { languages } = await processor.recognize({ lines }, CONTEXT);
 
-    expect(recognize).toHaveBeenCalledWith(expect.objectContaining({ lines: ["English - Native"] }));
+    expect(recognize).toHaveBeenCalledWith(expect.objectContaining({ lines }));
+    expect(languages.map((language) => language.name.value)).toEqual(["English"]);
+  });
+
+  it("reads a Segment of the whole stored text", async () => {
+    const stored = { findById: () => Promise.resolve({ rawText: "Ada Lovelace\n\nEXPERIENCE\nAcme" }) } as unknown as UploadedResumeRunRepository;
+    const { reader } = doubles({ experiences: [] });
+    const processor = new ExperienceSegmentProcessor(stored, reader, profiles);
+
+    await expect(processor.read({ uploadedResumeId: CONTEXT.segmentId, ranges: [{ start: 0, end: 4 }] })).resolves.toEqual({
+      lines: ["Ada Lovelace", "", "EXPERIENCE", "Acme"],
+    });
   });
 
   it("checks the Account before any Model call on the header", async () => {
