@@ -24,16 +24,18 @@ const NEW_ENTRY = "new-experience";
 
 const EMPTY_VALUES: ExperienceFormValues = { id: null, role: "", company: "", periodStart: "", periodEnd: "", description: "", skills: "" };
 
+const blankWhenMissing = (text: string | null | undefined): string => text ?? "";
+
 // The timeline writes the period for reading; the form asks for the months the Experience
 // actually carries, which is why it corrects the Experience and not what is on screen.
-const valuesOf = (experience: Experience): ExperienceFormValues => ({
-  id: experience.id,
-  role: experience.role,
-  company: experience.company ?? "",
-  periodStart: experience.period?.start ?? "",
-  periodEnd: experience.period?.end ?? "",
-  description: experience.description ?? "",
-  skills: experience.skills.join(", "),
+const valuesOf = ({ id, role, company, period, description, skills }: Experience): ExperienceFormValues => ({
+  id,
+  role,
+  company: blankWhenMissing(company),
+  periodStart: blankWhenMissing(period?.start),
+  periodEnd: blankWhenMissing(period?.end),
+  description: blankWhenMissing(description),
+  skills: skills.join(", "),
 });
 
 // The Experience timeline with the Candidate's corrections on it: a role to correct, a role

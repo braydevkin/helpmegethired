@@ -67,7 +67,7 @@
   margin-top: var(--space-timeline-entry);
 }
 
-@media (max-width: 560px) {
+@media (width <= 560px) {
   .period {
     grid-template-columns: minmax(0, 1fr);
   }
