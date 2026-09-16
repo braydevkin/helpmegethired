@@ -29,7 +29,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const renderFlow = () => render(<ModelChoiceFlow entry={entry} initialChoice={null} apiPublicUrl={API} />);
+const next = { href: "/journey/resume", label: "Continue to your résumé", hint: "Upload your résumé next." };
+
+const renderFlow = () => render(<ModelChoiceFlow entry={entry} initialChoice={null} next={next} apiPublicUrl={API} />);
 
 const submitKey = (key: string) => {
   fireEvent.change(screen.getByLabelText("Anthropic API key"), { target: { value: key } });
@@ -48,6 +50,7 @@ describe("ModelChoiceFlow", () => {
 
     expect(await screen.findByText("Your Anthropic key is stored")).toBeInTheDocument();
     expect(requestModelKeyTicketAction).toHaveBeenCalledWith();
+    expect(screen.getByRole("link", { name: "Continue to your résumé" })).toHaveAttribute("href", "/journey/resume");
 
     const [url, init] = requestOf(0);
 

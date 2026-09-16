@@ -51,6 +51,13 @@ describe("ResumeClient", () => {
     await expect(client.complete(token, resume.id)).rejects.toBeInstanceOf(ResumeRefusedError);
   });
 
+  it("raises model_key_missing when the upload is refused for a missing Model Key", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(json(409, { statusCode: 409, message: "no key", error: "Conflict", code: "model_key_missing" }));
+    const client = new ResumeClient("http://api.test", fetchMock);
+
+    await expect(client.requestUpload(token, { fileName: "ada.pdf", sizeBytes: 1024, sha256: resume.sha256 })).rejects.toMatchObject({ code: "model_key_missing", status: 409 });
+  });
+
   it("refuses with the status alone when the body is not JSON", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response("<html>Bad gateway</html>", { status: 502, headers: { "content-type": "text/html" } }));
     const client = new ResumeClient("http://api.test", fetchMock);

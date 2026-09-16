@@ -107,6 +107,12 @@ describe("the OpenAPI document", () => {
     expect(JSON.stringify(responseSchemaOf(conflict ?? {}))).toContain('"enum":["upload_incomplete","ingestion_active"]');
   });
 
+  it("refuses to reserve an upload for an Account with no Model Key", () => {
+    const conflict = document.paths["/resumes"]?.post?.responses["409"];
+
+    expect(JSON.stringify(responseSchemaOf(conflict ?? {}))).toContain('"enum":["model_key_missing"]');
+  });
+
   it("answers 409 only on the Curation actions, and names why a re-run is refused", () => {
     const conflicts = operations.filter(({ operation }) => operation.responses["409"] && operation.tags.includes("Curation")).map(({ path }) => path);
     const refused = document.paths["/profile/curation/rerun"]?.post?.responses["422"];

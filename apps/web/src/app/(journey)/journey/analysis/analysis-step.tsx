@@ -15,7 +15,7 @@ export interface AnalysisStepProps {
   profile: Profile;
 }
 
-const STEP_LABEL = "Step 2 · Profile analysis";
+const STEP_LABEL = "Step 3 · Profile analysis";
 const NO_CURATION: CurationProgressState = { progress: null };
 
 // Confirming the Profile and storing a Model Key are the two things that create a Curation, so

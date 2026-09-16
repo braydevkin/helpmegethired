@@ -2,24 +2,33 @@ import { join } from "node:path";
 
 import { expect, test } from "@playwright/test";
 
+import { revokeModelKey, storeModelKey } from "./helpers/curation-api.js";
+import { apiAs } from "./helpers/resume-api.js";
 import { signUpAndReadSessionToken } from "./helpers/sign-in.js";
 
-const apiUrl = process.env.E2E_API_URL ?? "http://localhost:3001";
 const fixture = join(import.meta.dirname, "../../apps/api/test/fixtures/resumes/corpus/ada-single-column-en.pdf");
 const SETTLE_TIMEOUT_MS = 120_000;
 
-// The stack under test runs the development key check and the fake model, so any key but the
-// documented refused one is accepted and the Curation completes with no Provider account.
-const DUMMY_MODEL_KEY = "sk-ant-e2e-dummy-model-key-0000";
-
-test("a Candidate confirms the Profile, chooses the AI, watches the analysis complete, and rejects a Statement from the keyboard", async ({ page, playwright }) => {
+test("a Candidate whose key was revoked confirms the Profile, stores a key again, watches the analysis complete, and rejects a Statement from the keyboard", async ({
+  page,
+  playwright,
+}) => {
   test.setTimeout(SETTLE_TIMEOUT_MS * 3);
 
   const { token } = await signUpAndReadSessionToken(page);
+  const api = await apiAs(playwright.request, token);
+
+  await storeModelKey(api);
 
   await page.goto("/journey");
   await page.locator("input[type=file]").setInputFiles(fixture);
   await expect(page.getByTestId("upload-percentage")).toHaveText("100%", { timeout: SETTLE_TIMEOUT_MS });
+
+  await revokeModelKey(api);
+
+  await page.goto("/journey");
+  await expect(page).toHaveURL(/\/journey\/ai$/);
+  await expect(page.getByRole("button", { name: "Continue to your profile" })).toBeDisabled();
 
   await page.goto("/journey/analysis");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Confirm your profile to start the analysis");
@@ -32,10 +41,7 @@ test("a Candidate confirms the Profile, chooses the AI, watches the analysis com
   await expect(page).toHaveURL(/\/journey\/analysis$/);
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Choose your AI to start the analysis");
 
-  const api = await playwright.request.newContext({ baseURL: apiUrl, extraHTTPHeaders: { authorization: `Bearer ${token}` } });
-  const saved = await api.put("/account/model", { data: { provider: "anthropic", modelId: "claude-sonnet-5", key: DUMMY_MODEL_KEY } });
-
-  expect(saved.ok()).toBe(true);
+  await storeModelKey(api);
   await api.dispose();
 
   await page.reload();

@@ -86,7 +86,7 @@ describe("ResumeUploadFlow", () => {
   });
 
   it("starts idle with the designed copy", () => {
-    render(<ResumeUploadFlow initialResume={null} profileHref="/journey/profile" />);
+    render(<ResumeUploadFlow initialResume={null} modelKeyStored profileHref="/journey/profile" modelChoiceHref="/journey/ai" />);
 
     expect(screen.getByText("First things first")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Upload your résumé");
@@ -94,7 +94,7 @@ describe("ResumeUploadFlow", () => {
   });
 
   it("refuses a PNG and an oversized PDF in the browser and sends nothing", () => {
-    render(<ResumeUploadFlow initialResume={null} profileHref="/journey/profile" />);
+    render(<ResumeUploadFlow initialResume={null} modelKeyStored profileHref="/journey/profile" modelChoiceHref="/journey/ai" />);
 
     pickFile(new File(["png"], "ada.png", { type: "image/png" }));
     expect(screen.getByRole("alert")).toHaveTextContent("That file is not a PDF. Export your résumé as PDF and try again.");
@@ -112,7 +112,7 @@ describe("ResumeUploadFlow", () => {
     vi.mocked(createResumeAction).mockResolvedValue({ ok: true, value: { resume: resume({ status: "pending" }), upload: presigned } });
     vi.mocked(completeResumeAction).mockResolvedValue({ ok: true, value: resume({ status: "uploaded" }) });
     vi.mocked(readResumeAction).mockResolvedValue({ ok: true, value: { changed: false } });
-    render(<ResumeUploadFlow initialResume={null} profileHref="/journey/profile" />);
+    render(<ResumeUploadFlow initialResume={null} modelKeyStored profileHref="/journey/profile" modelChoiceHref="/journey/ai" />);
 
     pickFile(pdf);
 
@@ -140,7 +140,7 @@ describe("ResumeUploadFlow", () => {
 
   it("goes back to idle with the designed message when the PUT fails", async () => {
     vi.mocked(createResumeAction).mockResolvedValue({ ok: true, value: { resume: resume({ status: "pending" }), upload: presigned } });
-    render(<ResumeUploadFlow initialResume={null} profileHref="/journey/profile" />);
+    render(<ResumeUploadFlow initialResume={null} modelKeyStored profileHref="/journey/profile" modelChoiceHref="/journey/ai" />);
 
     pickFile(pdf);
     await waitFor(() => expect(FakeXhr.instances).toHaveLength(1));
@@ -152,7 +152,7 @@ describe("ResumeUploadFlow", () => {
 
   it("shows the API's refusal on the idle state", async () => {
     vi.mocked(createResumeAction).mockResolvedValue({ ok: false, message: "Your previous résumé is still being read. Wait for it to finish, then try again." });
-    render(<ResumeUploadFlow initialResume={null} profileHref="/journey/profile" />);
+    render(<ResumeUploadFlow initialResume={null} modelKeyStored profileHref="/journey/profile" modelChoiceHref="/journey/ai" />);
 
     pickFile(pdf);
 
@@ -168,7 +168,7 @@ describe("ResumeUploadFlow", () => {
       .mockResolvedValueOnce({ ok: true, value: { changed: false } })
       .mockResolvedValueOnce({ ok: true, value: { changed: true, resume: building, etag: '"b"' } })
       .mockResolvedValueOnce({ ok: true, value: { changed: true, resume: done, etag: '"c"' } });
-    render(<ResumeUploadFlow initialResume={resume({ status: "uploaded" })} profileHref="/journey/profile" />);
+    render(<ResumeUploadFlow initialResume={resume({ status: "uploaded" })} modelKeyStored profileHref="/journey/profile" modelChoiceHref="/journey/ai" />);
 
     expect(screen.getByTestId("upload-percentage")).toHaveTextContent("25%");
 
@@ -193,8 +193,37 @@ describe("ResumeUploadFlow", () => {
     expect(readResumeAction).toHaveBeenCalledTimes(3);
   });
 
+  it("shows the gate to Choose your AI instead of the upload control while no key is stored", () => {
+    render(<ResumeUploadFlow initialResume={null} modelKeyStored={false} profileHref="/journey/profile" modelChoiceHref="/journey/ai" />);
+
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Choose your AI before you upload");
+    expect(screen.getByRole("link", { name: "Choose your AI" })).toHaveAttribute("href", "/journey/ai");
+    expect(document.querySelector("input[type=file]")).toBeNull();
+  });
+
+  it("keeps showing a record already being read while no key is stored, and gates the next upload", () => {
+    render(<ResumeUploadFlow initialResume={resume({ status: "failed", errorCode: "scanned_pdf" })} modelKeyStored={false} profileHref="/journey/profile" modelChoiceHref="/journey/ai" />);
+
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("We couldn't read that PDF");
+
+    fireEvent.click(screen.getByRole("button", { name: "Upload a different PDF" }));
+
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Choose your AI before you upload");
+  });
+
+  it("switches to the gate when the API refuses the upload for a missing key", async () => {
+    vi.mocked(createResumeAction).mockResolvedValue({ ok: false, message: "Choose your AI and save your key before you upload: it is what reads your résumé.", code: "model_key_missing" });
+    render(<ResumeUploadFlow initialResume={null} modelKeyStored profileHref="/journey/profile" modelChoiceHref="/journey/ai" />);
+
+    pickFile(pdf);
+
+    expect(await screen.findByRole("link", { name: "Choose your AI" })).toHaveAttribute("href", "/journey/ai");
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Choose your AI before you upload");
+    expect(FakeXhr.instances).toHaveLength(0);
+  });
+
   it("renders a failed record with the lead for its code and offers a new upload", () => {
-    render(<ResumeUploadFlow initialResume={resume({ status: "failed", errorCode: "scanned_pdf" })} profileHref="/journey/profile" />);
+    render(<ResumeUploadFlow initialResume={resume({ status: "failed", errorCode: "scanned_pdf" })} modelKeyStored profileHref="/journey/profile" modelChoiceHref="/journey/ai" />);
 
     expect(screen.getByText("Something went wrong")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("We couldn't read that PDF");

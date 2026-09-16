@@ -420,7 +420,7 @@
           "Resumes"
         ],
         "summary": "Reserve an Uploaded Resume and get the presigned upload",
-        "description": "Declares the file name, size, and SHA-256. Answers a pending record and a presigned PUT the browser sends the bytes to. The same bytes already uploaded answer the existing record with no upload to perform.",
+        "description": "Declares the file name, size, and SHA-256. Answers a pending record and a presigned PUT the browser sends the bytes to. The same bytes already uploaded answer the existing record with no upload to perform. Refused until the Account stores a Model Key.",
         "operationId": "requestUpload",
         "requestBody": {
           "required": true,
@@ -469,6 +469,34 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`model_key_missing` when the Account has no usable Model Key to read the Resume with; nothing is reserved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "model_key_missing"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
                 }
               }
             }

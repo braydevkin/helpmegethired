@@ -13,10 +13,13 @@ import { failureLeadOf, foundCountOf, percentageOf, profileDataRowsOf, stagesOf,
 import { RESUME_MAX_SIZE_MB, rejectionOf } from "../../../../lib/resume-upload/rejection";
 import { sha256Of } from "../../../../lib/resume-upload/sha256";
 import { completeResumeAction, createResumeAction, readResumeAction } from "./actions";
+import { ModelChoiceBeforeUpload } from "./model-choice-before-upload";
 
 export interface ResumeUploadFlowProps {
   initialResume: UploadedResume | null;
+  modelKeyStored: boolean;
   profileHref: string;
+  modelChoiceHref: string;
 }
 
 type FlowState =
@@ -55,8 +58,9 @@ function putBytes(url: string, headers: Record<string, string>, file: File, onPr
   return { request, done };
 }
 
-function useResumeUploadFlow(initialResume: UploadedResume | null) {
+function useResumeUploadFlow(initialResume: UploadedResume | null, initialModelKeyStored: boolean) {
   const [state, setState] = useState<FlowState>(initialResume ? tracked(initialResume) : { phase: "idle" });
+  const [modelKeyStored, setModelKeyStored] = useState(initialModelKeyStored);
   const generation = useRef(0);
 
   const fail = useCallback((message: string) => setState({ phase: "idle", message }), []);
@@ -83,6 +87,11 @@ function useResumeUploadFlow(initialResume: UploadedResume | null) {
       }
 
       if (!created.ok) {
+        // The key can be revoked in another tab after this page loaded.
+        if ("code" in created && created.code === "model_key_missing") {
+          setModelKeyStored(false);
+        }
+
         fail(created.message);
 
         return;
@@ -170,7 +179,7 @@ function useResumeUploadFlow(initialResume: UploadedResume | null) {
     };
   }, [state]);
 
-  return { state, upload, cancel, startOver };
+  return { state, modelKeyStored, upload, cancel, startOver };
 }
 
 const IDLE_LEAD =
@@ -262,8 +271,12 @@ function ProcessingState({ state, onCancel }: StateViewProps) {
   );
 }
 
-export function ResumeUploadFlow({ initialResume, profileHref }: ResumeUploadFlowProps) {
-  const { state, upload, cancel, startOver } = useResumeUploadFlow(initialResume);
+export function ResumeUploadFlow({ initialResume, modelKeyStored: initialModelKeyStored, profileHref, modelChoiceHref }: ResumeUploadFlowProps) {
+  const { state, modelKeyStored, upload, cancel, startOver } = useResumeUploadFlow(initialResume, initialModelKeyStored);
+
+  if (state.phase === "idle" && !modelKeyStored) {
+    return <ModelChoiceBeforeUpload modelChoiceHref={modelChoiceHref} />;
+  }
 
   if (state.phase === "idle") {
     return (

@@ -1,4 +1,4 @@
-import type { IngestionProgress, ResumeUploadErrorCode, UploadedResume } from "@helpmegethired/shared";
+import type { IngestionProgress, ResumeRefusalCode, ResumeUploadErrorCode, UploadedResume } from "@helpmegethired/shared";
 
 export type StageState = "done" | "active" | "waiting" | "failed";
 
@@ -141,4 +141,6 @@ const FAILURE_LEADS: Record<ResumeUploadErrorCode, string> = {
 
 export const failureLeadOf = (code: ResumeUploadErrorCode | null): string => FAILURE_LEADS[code ?? "extraction_failed"];
 
-export const INGESTION_ACTIVE_MESSAGE = FAILURE_LEADS.ingestion_active;
+export const MODEL_KEY_MISSING_MESSAGE = "Choose your AI and save your key before you upload: it is what reads your résumé.";
+
+export const refusalMessageOf = (code: ResumeRefusalCode): string => (code === "model_key_missing" ? MODEL_KEY_MISSING_MESSAGE : failureLeadOf(code));

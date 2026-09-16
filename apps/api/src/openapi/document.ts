@@ -22,7 +22,7 @@ import {
   UploadedResumeStatusSchema,
   type CurationActionErrorCode,
   type ModelChoiceErrorCode,
-  type ResumeUploadErrorCode,
+  type ResumeRefusalCode,
 } from "@helpmegethired/shared";
 import { z, type ZodType } from "zod";
 
@@ -91,7 +91,7 @@ const json = (description: string, schema: JsonSchema, headers?: Record<string, 
 });
 
 // An error answer is the shared ApiError, narrowed to the codes that route can carry.
-const error = (description: string, codes: readonly (ResumeUploadErrorCode | ModelChoiceErrorCode | CurationActionErrorCode)[] = []): JsonSchema =>
+const error = (description: string, codes: readonly (ResumeRefusalCode | ModelChoiceErrorCode | CurationActionErrorCode)[] = []): JsonSchema =>
   json(
     description,
     codes.length === 0 ? ref("ApiError") : { allOf: [ref("ApiError"), { type: "object", properties: { code: { type: "string", enum: codes } }, required: ["code"] }] },
@@ -236,7 +236,7 @@ const paths: OpenApiDocument["paths"] = {
       tags: ["Resumes"],
       summary: "Reserve an Uploaded Resume and get the presigned upload",
       description:
-        "Declares the file name, size, and SHA-256. Answers a pending record and a presigned PUT the browser sends the bytes to. The same bytes already uploaded answer the existing record with no upload to perform.",
+        "Declares the file name, size, and SHA-256. Answers a pending record and a presigned PUT the browser sends the bytes to. The same bytes already uploaded answer the existing record with no upload to perform. Refused until the Account stores a Model Key.",
       operationId: "requestUpload",
       requestBody: body("ResumeUpload"),
       responses: {
@@ -244,6 +244,7 @@ const paths: OpenApiDocument["paths"] = {
         "200": json("The existing record for the same bytes; `upload` is null once the file arrived, or a fresh URL while the record is still pending", ref("ResumeUploadReceipt")),
         "400": validationFailed,
         "401": unauthorized,
+        "409": error("`model_key_missing` when the Account has no usable Model Key to read the Resume with; nothing is reserved", ["model_key_missing"]),
       },
     },
     get: {
