@@ -9,6 +9,7 @@ export * from "./profile-parts.js";
 export * from "./profile-correction.js";
 export * from "./profile.js";
 export * from "./profile-draft.js";
+export * from "./profile-recognition.js";
 export * from "./resume.js";
 export * from "./resume-upload.js";
 export * from "./resume-routes.js";
