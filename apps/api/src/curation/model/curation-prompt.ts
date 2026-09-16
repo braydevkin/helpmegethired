@@ -20,7 +20,7 @@ export interface CurationMessages {
   user: string;
 }
 
-const CONTENT_TAG = "candidate_content";
+export const CONTENT_TAG = "candidate_content";
 const SOURCE_TAG = "source";
 
 // The Candidate's text is attacker-controlled (docs/security.md, "AI pipeline"): anything in it
