@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { TECHNOLOGIES } from "./dictionaries/technologies";
-import { extractSkills, findTechnologies, skillNamesIn } from "./skills";
+import { extractSkills, findTechnologies, skillNamesIn, technologyNamed } from "./skills";
 
 describe("technology dictionary", () => {
   it("holds about three hundred terms with a category each", () => {
@@ -13,6 +13,21 @@ describe("technology dictionary", () => {
     const keys = TECHNOLOGIES.flatMap((technology) => [...technology.synonyms, ...technology.exact.map((spelling) => `=${spelling}`)]);
 
     expect(new Set(keys).size).toBe(keys.length);
+  });
+});
+
+describe("technologyNamed", () => {
+  it("names the technology a whole term spells, with its synonyms and exact spellings", () => {
+    expect(technologyNamed("nodejs")?.name).toBe("Node.js");
+    expect(technologyNamed("C++")?.name).toBe("C++");
+    expect(technologyNamed("Go")?.name).toBe("Go");
+  });
+
+  it("names nothing for a term that is more than one technology, or a technology among other words", () => {
+    expect(technologyNamed("Node.js and Express")).toBeUndefined();
+    expect(technologyNamed("TypeScript React")).toBeUndefined();
+    expect(technologyNamed("go")).toBeUndefined();
+    expect(technologyNamed("")).toBeUndefined();
   });
 });
 

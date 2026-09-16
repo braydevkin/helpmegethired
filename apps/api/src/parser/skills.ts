@@ -31,6 +31,13 @@ const technologyAt = (tokens: readonly string[], start: number, length: number):
   return bySynonym.get(raw.map(normaliseToken).join(" ")) ?? byExactSpelling.get(raw.join(" "));
 };
 
+// A term that is one technology as a whole, as "nodejs" is Node.js and "Node.js and Express" is none.
+export function technologyNamed(term: string): Technology | undefined {
+  const tokens = tokensOf(term);
+
+  return tokens.length > 0 ? technologyAt(tokens, 0, tokens.length) : undefined;
+}
+
 // The longest term wins at each position, so "Google Cloud Platform" is one match and not
 // three, and each technology is listed once, where it first appears.
 export function findTechnologies(text: string): Technology[] {
