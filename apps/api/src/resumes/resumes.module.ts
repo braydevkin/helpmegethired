@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 
 import { IngestionModule } from "../ingestion/ingestion.module";
+import { ModelChoiceModule } from "../model-choice/model-choice.module";
 import { QueueModule } from "../queue/queue.module";
 import { StorageModule } from "../storage/storage.module";
 import { BullMqResumeExtractionQueue } from "./bullmq-resume-extraction.queue";
@@ -10,7 +11,7 @@ import { UploadedResumeRepository } from "./uploaded-resume.repository";
 import { UploadedResumeService } from "./uploaded-resume.service";
 
 @Module({
-  imports: [QueueModule, StorageModule, IngestionModule],
+  imports: [QueueModule, StorageModule, IngestionModule, ModelChoiceModule],
   controllers: [ResumesController],
   providers: [
     UploadedResumeRepository,

@@ -1,13 +1,14 @@
 import { Catch, HttpStatus, type ArgumentsHost, type ExceptionFilter } from "@nestjs/common";
-import type { ApiError, ResumeUploadErrorCode } from "@helpmegethired/shared";
+import type { ApiError, ResumeRefusalCode } from "@helpmegethired/shared";
 import type { Response } from "express";
 
 import { IngestionAlreadyActiveError } from "../ingestion/ingestion-errors";
+import { ModelKeyNotFoundError } from "../model-choice/model-choice-errors";
 import { UploadIncompleteError, UploadInFlightError, UploadedResumeNotFoundError } from "./resume-errors";
 
-type ResumeError = UploadedResumeNotFoundError | UploadIncompleteError | UploadInFlightError | IngestionAlreadyActiveError;
+type ResumeError = UploadedResumeNotFoundError | UploadIncompleteError | UploadInFlightError | IngestionAlreadyActiveError | ModelKeyNotFoundError;
 
-const conflict = (code: ResumeUploadErrorCode, message: string): ApiError => ({
+const conflict = (code: ResumeRefusalCode, message: string): ApiError => ({
   statusCode: HttpStatus.CONFLICT,
   message,
   error: "Conflict",
@@ -23,10 +24,14 @@ export function apiErrorOf(error: ResumeError): ApiError {
     return conflict("upload_incomplete", error.message);
   }
 
+  if (error instanceof ModelKeyNotFoundError) {
+    return conflict(error.code, error.message);
+  }
+
   return conflict("ingestion_active", error.message);
 }
 
-@Catch(UploadedResumeNotFoundError, UploadIncompleteError, UploadInFlightError, IngestionAlreadyActiveError)
+@Catch(UploadedResumeNotFoundError, UploadIncompleteError, UploadInFlightError, IngestionAlreadyActiveError, ModelKeyNotFoundError)
 export class ResumeErrorFilter implements ExceptionFilter<ResumeError> {
   catch(error: ResumeError, host: ArgumentsHost): void {
     const body = apiErrorOf(error);

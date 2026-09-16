@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   RESUME_MAX_PAGES,
   RESUME_MAX_SIZE_BYTES,
+  ResumeRefusalCodeSchema,
   ResumeUploadErrorCodeSchema,
   ResumeUploadSchema,
 } from "./resume-upload.js";
@@ -65,5 +66,15 @@ describe("ResumeUploadErrorCodeSchema", () => {
 
   it("rejects a code the page cannot show", () => {
     expect(ResumeUploadErrorCodeSchema.safeParse("virus_found").success).toBe(false);
+  });
+
+  it("never gives a record the refusal of an Account with no Model Key", () => {
+    expect(ResumeUploadErrorCodeSchema.safeParse("model_key_missing").success).toBe(false);
+  });
+});
+
+describe("ResumeRefusalCodeSchema", () => {
+  it("adds the missing Model Key to every code a record can carry", () => {
+    expect(ResumeRefusalCodeSchema.options).toEqual([...ResumeUploadErrorCodeSchema.options, "model_key_missing"]);
   });
 });
