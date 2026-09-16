@@ -90,7 +90,9 @@ describe("verifyExperience", () => {
     ]);
     const byModel = byModelOf([modelEntry({ role: quoted("Cut the median processing time with Temporalite."), company: null, period: null, description: null })]);
 
-    expect(verifyExperience(lines, byRules, byModel).experiences).toHaveLength(2);
+    expect(verifyExperience(lines, byRules, byModel).experiences).toEqual([
+      { role: { value: "Cut the median processing time with Temporalite.", confidence: "medium" }, company: null, period: null, description: null, skills: [] },
+    ]);
   });
 
   it("discards a value whose quote the Segment never says and keeps the rules' field", () => {
@@ -100,11 +102,11 @@ describe("verifyExperience", () => {
     expect(verifyExperience(lines, byRules, byModel).experiences[0]?.company).toEqual({ value: "Analytical Engines Ltd", confidence: "high" });
   });
 
-  it("drops a Model entry whose role is not in the Segment and keeps the rules' reading as it was", () => {
+  it("drops a Model entry whose role is not in the Segment, and with it the rules' entry it would have verified", () => {
     const byRules = byRulesOf(extractExperiences(lines).map(withSkills));
     const byModel = byModelOf([modelEntry({ role: quoted("Chief Technology Officer") })]);
 
-    expect(verifyExperience(lines, byRules, byModel)).toEqual(byRules);
+    expect(verifyExperience(lines, byRules, byModel)).toEqual({ experiences: [] });
   });
 
   it("keeps an Experience only the Model read, high where a rule confirms it", () => {
@@ -119,10 +121,11 @@ describe("verifyExperience", () => {
     });
   });
 
-  it("keeps an Experience only the rules read", () => {
+  it("leaves out an Experience only the rules read", () => {
     const byRules = byRulesOf(extractExperiences(lines).map(withSkills));
 
-    expect(verifyExperience(lines, byRules, byModelOf([]))).toEqual(byRules);
+    expect(byRules.experiences).toHaveLength(1);
+    expect(verifyExperience(lines, byRules, byModelOf([]))).toEqual({ experiences: [] });
   });
 
   it("adds the Model's skills that are in the Segment, a known one under its canonical name", () => {

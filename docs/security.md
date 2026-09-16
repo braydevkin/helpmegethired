@@ -104,6 +104,7 @@ Every text a model reads is attacker-controlled: the stored Resume text, the Pro
 - The deterministic facts computed by the platform (#108) sit outside the Candidate block and are labelled as computed, so the text cannot restate them.
 - A prompt carries the content of one Account only.
 - Each Curation Unit's input is capped at 8,000 characters, truncated at a line boundary, and the unit records that it was truncated (#113).
+- The recognition of each Profile part reads the whole cleaned résumé, capped at 30,000 characters and truncated at a line boundary, with the truncation known to the caller.
 - No tool that can perform a side effect is exposed to the model. Retrieval is done by the code before the call, never by the model choosing to call something.
 
 ### Retrieval

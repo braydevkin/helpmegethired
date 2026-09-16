@@ -11,7 +11,7 @@ import { FakeRecognitionModel } from "./fake-recognition-model";
 import { recognitionByRules } from "./recognition-by-rules";
 import type { RecognitionCall } from "./recognition-model";
 
-const experienceLines = ["Backend Engineer | Difference Works", "Manchester · Jun 2016 – Feb 2021", "Built the billing service in TypeScript on PostgreSQL."];
+const experienceLines = ["EXPERIENCE", "Backend Engineer | Difference Works", "Manchester · Jun 2016 – Feb 2021", "Built the billing service in TypeScript on PostgreSQL."];
 
 const callOf = <Kind extends SegmentRecognitionKind>(kind: Kind, lines: readonly string[], key = "sk-ant-development-key-000000"): RecognitionCall<Kind> => ({
   kind,
@@ -61,12 +61,12 @@ describe("FakeRecognitionModel", () => {
       const key = "sk-ant-fake-invalid_output-on-experience";
 
       await expect(model.recognize(callOf("experience", experienceLines, key))).rejects.toMatchObject({ name: CurationCallFailedError.name, outcome: "invalid_output" });
-      await expect(model.recognize(callOf("languages", ["English - Native"], key))).resolves.toMatchObject({ output: { languages: [expect.any(Object)] } });
+      await expect(model.recognize(callOf("languages", ["LANGUAGES", "English - Native"], key))).resolves.toMatchObject({ output: { languages: [expect.any(Object)] } });
       await expect(model.recognize(callOf("experience", experienceLines, key))).rejects.toMatchObject({ outcome: "invalid_output" });
     });
 
     it("pauses the named kind of Segment with a rate limit", async () => {
-      await expect(new FakeRecognitionModel().recognize(callOf("languages", ["English - Native"], "sk-ant-fake-rate_limited-on-languages"))).rejects.toEqual(
+      await expect(new FakeRecognitionModel().recognize(callOf("languages", ["LANGUAGES", "English - Native"], "sk-ant-fake-rate_limited-on-languages"))).rejects.toEqual(
         new ProviderRateLimitedError(FAKE_RETRY_AFTER_SECONDS),
       );
     });

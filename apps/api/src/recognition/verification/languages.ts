@@ -2,7 +2,7 @@ import type { DraftLanguage, SegmentRecognition } from "@helpmegethired/shared";
 
 import { hasLevelWord } from "../../parser";
 import type { RecognizedLanguages } from "../../profile/segments/recognized";
-import { alignEntries, type AlignedEntry, locatedByModel, locatedByRules, oneLineEntryScore } from "./align-entries";
+import { alignEntries, type AlignedEntry, locatedEntries, oneLineEntryScore } from "./align-entries";
 import { textReadingOf, textRule, verifiedField, type Reading } from "./fields";
 import { SegmentText } from "./segment-text";
 
@@ -23,10 +23,6 @@ function readingOf(text: SegmentText, language: LanguageByModel): LanguageReadin
 }
 
 function merged({ byModel, byRules }: AlignedEntry<LanguageReading, DraftLanguage>): DraftLanguage {
-  if (byModel === null) {
-    return byRules;
-  }
-
   return {
     name: verifiedField(byRules?.name ?? null, byModel.name, plainText),
     level: verifiedField(byRules?.level ?? null, byModel.level, levelRule),
@@ -37,8 +33,14 @@ export function verifyLanguages(lines: readonly string[], byRules: RecognizedLan
   const text = new SegmentText(lines);
   const readings = byModel.languages.flatMap((language) => readingOf(text, language) ?? []);
   const aligned = alignEntries(
-    readings.map((reading) => locatedByModel(reading, [reading.name.value], [reading.name, reading.level])),
-    byRules.languages.map((language) => locatedByRules(text, language, [language.name.value], [language.name.value, language.level?.value])),
+    locatedEntries(
+      text,
+      readings.map((reading) => ({ entry: reading, names: [reading.name.value], texts: [reading.name.quote, reading.level?.quote] })),
+    ),
+    locatedEntries(
+      text,
+      byRules.languages.map((language) => ({ entry: language, names: [language.name.value], texts: [language.name.value, language.level?.value] })),
+    ),
     oneLineEntryScore,
   );
 

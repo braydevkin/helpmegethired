@@ -2,7 +2,6 @@ import type { SegmentRecognition } from "@helpmegethired/shared";
 
 import { UploadedResumeRunRepository } from "../../extraction/uploaded-resume-run.repository";
 import { SegmentProcessor, type SegmentContext } from "../../ingestion/segment-processor";
-import { partitionLabelled, type SectionKind } from "../../parser";
 import { SegmentModelReader } from "../../recognition/segment-model-reader";
 import { UploadedResumeNotFoundError } from "../../resumes/resume-errors";
 import { cleanedLinesOf, type ResumeSegmentInput, type ResumeSegmentKind } from "./resume-segments";
@@ -19,9 +18,9 @@ export class ResumeTextMissingError extends Error {
 }
 
 // What every resume kind shares. The read Step: the stored text, cleaned, sliced by the
-// Segment's ranges, with each labelled paragraph joined into one line. The recognize Step: the
-// rules read the kind's lines, the Candidate's Model reads the same lines when the Account holds
-// a Model Key, and the kind's rules verify the Model's reading into the rules' shape.
+// Segment's ranges. The recognize Step: the kind's rules read those lines their own way, the
+// Candidate's Model reads the same lines when the Account holds a Model Key, and the kind's rules
+// verify the Model's reading into the rules' shape.
 export abstract class ResumeSegmentProcessor<Kind extends ResumeSegmentKind, Recognized> extends SegmentProcessor<
   ResumeSegmentInput,
   ResumeSegmentContent,
@@ -36,18 +35,11 @@ export abstract class ResumeSegmentProcessor<Kind extends ResumeSegmentKind, Rec
     super();
   }
 
-  // The lines the kind reads, the rules and the Model alike, so a paragraph that belongs to another
-  // kind is never offered to the Model as this kind's.
-  protected linesOf(content: ResumeSegmentContent): string[] {
-    return content.lines;
-  }
-
-  protected abstract recognizeByRules(lines: string[], context: SegmentContext): Promise<Recognized>;
+  protected abstract recognizeByRules(lines: readonly string[], context: SegmentContext): Promise<Recognized>;
 
   protected abstract verify(lines: readonly string[], byRules: Recognized, byModel: SegmentRecognition<Kind>): Recognized;
 
-  async recognize(content: ResumeSegmentContent, context: SegmentContext): Promise<Recognized> {
-    const lines = this.linesOf(content);
+  async recognize({ lines }: ResumeSegmentContent, context: SegmentContext): Promise<Recognized> {
     const byRules = await this.recognizeByRules(lines, context);
     const byModel = await this.modelReader.read({ accountId: context.accountId, kind: this.kind, lines });
 
@@ -66,15 +58,7 @@ export abstract class ResumeSegmentProcessor<Kind extends ResumeSegmentKind, Rec
     }
 
     const lines = cleanedLinesOf(record.rawText);
-    const slice = (range: { start: number; end: number }) => lines.slice(range.start, range.end);
 
-    return {
-      lines: [...input.ranges.flatMap(slice), ...input.paragraphs.map((range) => slice(range).join(" "))],
-    };
+    return { lines: input.ranges.flatMap((range) => lines.slice(range.start, range.end)) };
   }
 }
-
-// The lines that belong to the kind itself, with a labelled paragraph of another kind left out
-// and the kind's own label stripped.
-export const ownLinesOf = (content: ResumeSegmentContent, kind: SectionKind): string[] =>
-  partitionLabelled(content.lines, kind).own;

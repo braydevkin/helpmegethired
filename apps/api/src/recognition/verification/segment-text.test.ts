@@ -26,6 +26,13 @@ describe("SegmentText", () => {
     expect(text.linesOf("ngine")).toBeUndefined();
   });
 
+  it("answers the lines of every whole occurrence of a quote, in the order the text says them", () => {
+    const twice = new SegmentText(["Backend Engineer | Acme", "Senior Backend Engineers", "", "Backend Engineer | Globex"]);
+
+    expect(twice.occurrencesOf("backend engineer")).toEqual([[0], [3]]);
+    expect(twice.occurrencesOf("Initech")).toEqual([]);
+  });
+
   it("finds a later whole occurrence when an earlier one sits inside a word", () => {
     const repeated = new SegmentText(["Built on Google Cloud", "Wrote the Go services"]);
 

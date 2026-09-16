@@ -153,7 +153,7 @@ describe("profile built by Segments", () => {
   const statusesOf = async (ingestionId: Id) => (await ingestionRuns.segmentsOf(ingestionId)).map((segment) => segment.status);
 
   describe("hand-over", () => {
-    it("creates the Ingestion from the sections, links it to the record, and enqueues it once", async () => {
+    it("creates the Ingestion with one Segment per Profile part, links it to the record, and enqueues it once", async () => {
       const accountId = await newAccount();
       const { record, ingestionId } = await handedOver(accountId, "ada-single-column-en");
 
@@ -161,7 +161,6 @@ describe("profile built by Segments", () => {
       expect(await ingestions.findById(accountId, ingestionId)).toMatchObject({ source: "upload", status: "queued" });
       expect((await ingestionRuns.segmentsOf(ingestionId)).map((segment) => segment.kind)).toEqual([
         "header",
-        "experience",
         "experience",
         "education",
         "project",
@@ -251,7 +250,7 @@ describe("profile built by Segments", () => {
   });
 
   describe("resuming", () => {
-    it("continues at the save of the third Segment after a crash following its recognize, redoing no earlier Segment", async () => {
+    it("continues at the save of the Experience Segment after a crash following its recognize, redoing no earlier Segment", async () => {
       const accountId = await newAccount();
       const { ingestionId } = await handedOver(accountId, "ada-single-column-en");
       const experiences = registry.processorFor("experience");
@@ -260,7 +259,7 @@ describe("profile built by Segments", () => {
       const recognize = vi.spyOn(experiences, "recognize");
       let crashed = false;
       const save = vi.spyOn(experiences, "save").mockImplementation((recognized, segmentContext) => {
-        if (segmentContext.position === 2 && !crashed) {
+        if (!crashed) {
           crashed = true;
 
           return Promise.reject(new Error("worker killed after recognize"));
@@ -271,14 +270,14 @@ describe("profile built by Segments", () => {
 
       await expect(runner.run(ingestionId)).rejects.toThrow("worker killed after recognize");
 
-      expect(await statusesOf(ingestionId)).toEqual(["saved", "saved", "recognized", "pending", "pending", "pending", "pending", "pending"]);
+      expect(await statusesOf(ingestionId)).toEqual(["saved", "recognized", "pending", "pending", "pending", "pending", "pending"]);
 
       await runner.run(ingestionId);
 
-      expect(await statusesOf(ingestionId)).toEqual(["saved", "saved", "saved", "saved", "saved", "saved", "saved", "saved"]);
-      expect(read).toHaveBeenCalledTimes(2);
-      expect(recognize).toHaveBeenCalledTimes(2);
-      expect(save).toHaveBeenCalledTimes(3);
+      expect(await statusesOf(ingestionId)).toEqual(["saved", "saved", "saved", "saved", "saved", "saved", "saved"]);
+      expect(read).toHaveBeenCalledTimes(1);
+      expect(recognize).toHaveBeenCalledTimes(1);
+      expect(save).toHaveBeenCalledTimes(2);
       expect((await profiles.get(accountId)).experiences).toHaveLength(2);
     });
   });

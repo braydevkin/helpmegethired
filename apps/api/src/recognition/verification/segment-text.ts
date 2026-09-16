@@ -53,23 +53,34 @@ export class SegmentText {
   // The indexes of the lines the quote's first whole occurrence spans, or undefined when the
   // Segment never says it.
   linesOf(quote: string): number[] | undefined {
-    const needle = collapsed(quote);
-    const index = needle.length > 0 ? this.wholeOccurrenceOf(needle) : -1;
+    return this.occurrencesOf(quote)[0];
+  }
 
-    if (index === -1) {
-      return undefined;
+  // The lines each whole occurrence of the quote spans, in the order the Segment says them.
+  occurrencesOf(quote: string): number[][] {
+    const needle = collapsed(quote);
+    const occurrences: number[][] = [];
+    let index = needle.length > 0 ? this.wholeOccurrenceFrom(needle, 0) : -1;
+
+    while (index !== -1) {
+      occurrences.push(this.linesSpannedBy(index, needle.length));
+      index = this.wholeOccurrenceFrom(needle, index + needle.length);
     }
 
+    return occurrences;
+  }
+
+  private linesSpannedBy(index: number, length: number): number[] {
     const first = this.lineAt(index);
-    const last = this.lineAt(index + needle.length - 1);
+    const last = this.lineAt(index + length - 1);
 
     return Array.from({ length: last - first + 1 }, (_, step) => first + step);
   }
 
-  private wholeOccurrenceOf(needle: string): number {
+  private wholeOccurrenceFrom(needle: string, from: number): number {
     const startsInWord = isAlphanumeric(needle[0]);
     const endsInWord = isAlphanumeric(needle.at(-1));
-    let index = this.searchable.indexOf(needle);
+    let index = this.searchable.indexOf(needle, from);
 
     while (index !== -1) {
       const cutBefore = startsInWord && isAlphanumeric(this.searchable[index - 1]);

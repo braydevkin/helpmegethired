@@ -2,7 +2,7 @@ import type { DraftProject, SegmentRecognition } from "@helpmegethired/shared";
 
 import { skillNamesIn } from "../../parser";
 import type { RecognizedProject } from "../../profile/segments/recognized";
-import { alignEntries, type AlignedEntry, locatedByModel, locatedByRules, spanningEntryScore } from "./align-entries";
+import { alignEntries, type AlignedEntry, locatedEntries, spanningEntryScore } from "./align-entries";
 import { textReadingOf, textRule, urlReadingOf, urlRule, verifiedField, type Reading } from "./fields";
 import { SegmentText } from "./segment-text";
 import { distinctNames, skillNamesOf } from "./skill-names";
@@ -32,10 +32,6 @@ function readingOf(text: SegmentText, project: ProjectByModel): ProjectReading |
 }
 
 function merged({ byModel, byRules }: AlignedEntry<ProjectReading, DraftProject>): DraftProject {
-  if (byModel === null) {
-    return byRules;
-  }
-
   const name = verifiedField(byRules?.name ?? null, byModel.name, plainText);
   const description = verifiedField(byRules?.description ?? null, byModel.description, plainText);
 
@@ -51,8 +47,18 @@ export function verifyProject(lines: readonly string[], byRules: RecognizedProje
   const text = new SegmentText(lines);
   const readings = byModel.projects.flatMap((project) => readingOf(text, project) ?? []);
   const aligned = alignEntries(
-    readings.map((reading) => locatedByModel(reading, [reading.name.value], [reading.name, reading.description, reading.url])),
-    byRules.projects.map((project) => locatedByRules(text, project, [project.name.value], [project.name.value, project.description?.value])),
+    locatedEntries(
+      text,
+      readings.map((reading) => ({
+        entry: reading,
+        names: [reading.name.value],
+        texts: [reading.name.quote, reading.description?.quote, reading.url?.quote],
+      })),
+    ),
+    locatedEntries(
+      text,
+      byRules.projects.map((project) => ({ entry: project, names: [project.name.value], texts: [project.name.value, project.description?.value] })),
+    ),
     spanningEntryScore,
   );
 
