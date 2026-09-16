@@ -50,7 +50,7 @@ export function sourcesOf(unit: { kind: CurationUnitKind; subjectId: Id | null }
 // The cap counts every character of the Candidate's own text a prompt carries, titles included,
 // and cuts a source at its last line boundary before the cap, so no source ends mid-line; a single
 // line longer than the cap is cut at its last word boundary instead of being dropped.
-const boundaryOf = (cut: string): number => {
+export const boundaryOf = (cut: string): number => {
   const lineEnd = cut.lastIndexOf("\n");
 
   if (lineEnd >= 0) {
