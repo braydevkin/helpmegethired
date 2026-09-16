@@ -1,7 +1,7 @@
 import { expect, test, type APIRequest, type APIRequestContext, type Page } from "@playwright/test";
 import type { CurationProgress } from "@helpmegethired/shared";
 
-import { confirmProfile, fakeKeyPlaying, hasStatus, progressOf, progressUntil, statementsOf, storeModelKey } from "./helpers/curation-api.js";
+import { confirmProfile, DUMMY_MODEL_KEY, fakeKeyPlaying, hasStatus, progressOf, progressUntil, statementsOf, storeModelKey } from "./helpers/curation-api.js";
 import { apiAs, SETTLE_TIMEOUT_MS, uploadCorpusResume } from "./helpers/resume-api.js";
 import { signUpAndReadSessionToken } from "./helpers/sign-in.js";
 
@@ -12,11 +12,13 @@ const savedUnitIdsOf = (progress: CurationProgress | null): string[] =>
   (progress?.units.list ?? []).filter((unit) => unit.status === "saved").map((unit) => unit.id);
 
 // Each scenario signs up its own Candidate, so a key that scripts the fake reaches only that
-// Candidate's Curation, whatever else runs on the stack at the same time.
-async function candidateWithConfirmedProfile(page: Page, request: APIRequest): Promise<APIRequestContext> {
+// Candidate's Curation, whatever else runs on the stack at the same time. The key is stored before
+// the upload, so confirming the Profile starts the Curation on it.
+async function candidateWithConfirmedProfile(page: Page, request: APIRequest, modelKey: string = DUMMY_MODEL_KEY): Promise<APIRequestContext> {
   const { token } = await signUpAndReadSessionToken(page);
   const api = await apiAs(request, token);
 
+  await storeModelKey(api, modelKey);
   await uploadCorpusResume(api, FIRST_RESUME);
   await confirmProfile(api);
 
@@ -27,9 +29,7 @@ test.describe("a Curation against the fake provider", () => {
   test.describe.configure({ timeout: SETTLE_TIMEOUT_MS * 4 });
 
   test("a unit that fails past its attempts ends the Curation failed, and a retry resumes without redoing a saved unit", async ({ page, playwright }) => {
-    const api = await candidateWithConfirmedProfile(page, playwright.request);
-
-    await storeModelKey(api, fakeKeyPlaying("provider_error", "synthesis"));
+    const api = await candidateWithConfirmedProfile(page, playwright.request, fakeKeyPlaying("provider_error", "synthesis"));
 
     const failed = await progressUntil(api, hasStatus("failed", "completed"));
     const saved = savedUnitIdsOf(failed);
@@ -57,8 +57,6 @@ test.describe("a Curation against the fake provider", () => {
 
   test("a new Resume supersedes a completed Curation, and none of its Statements remain", async ({ page, playwright }) => {
     const api = await candidateWithConfirmedProfile(page, playwright.request);
-
-    await storeModelKey(api);
 
     const completed = await progressUntil(api, hasStatus("completed", "failed"));
 
@@ -90,9 +88,7 @@ test.describe("a Curation against the fake provider", () => {
   });
 
   test("a new Resume supersedes a Curation that is still in progress", async ({ page, playwright }) => {
-    const api = await candidateWithConfirmedProfile(page, playwright.request);
-
-    await storeModelKey(api, fakeKeyPlaying("rate_limited", "synthesis"));
+    const api = await candidateWithConfirmedProfile(page, playwright.request, fakeKeyPlaying("rate_limited", "synthesis"));
 
     const paused = await progressUntil(api, (progress) => progress?.status === "queued" && progress.resumeAfter !== null);
 

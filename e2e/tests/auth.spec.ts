@@ -36,7 +36,7 @@ test("a Candidate signs up in three steps, signs out, and signs in again", async
 
   await verifyEmail(page, "/sign-in", email);
 
-  await expect(page).toHaveURL(/\/journey$/);
+  await expect(page).toHaveURL(/\/journey\/ai$/);
   await expect(page.getByTestId("account-email")).toHaveText(email);
 });
 

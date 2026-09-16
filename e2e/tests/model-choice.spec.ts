@@ -11,7 +11,7 @@ test("a Candidate saves their own key from the keyboard, sees it only as stored,
   await page.waitForLoadState("networkidle");
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Which AI should read your profile?");
-  await expect(page.getByRole("button", { name: "Continue to the analysis" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Continue to your résumé" })).toBeDisabled();
   await expect(page.getByText("Add your API key to continue.")).toBeVisible();
 
   const keyField = page.getByLabel("Anthropic API key");
@@ -31,7 +31,7 @@ test("a Candidate saves their own key from the keyboard, sees it only as stored,
 
   await expect(page.getByText("Your Anthropic key is stored")).toBeVisible();
   await expect(page.getByText("Stored · billed by Anthropic")).toBeVisible();
-  await expect(page.getByRole("link", { name: "Continue to the analysis" })).toHaveAttribute("href", "/journey/analysis");
+  await expect(page.getByRole("link", { name: "Continue to your résumé" })).toHaveAttribute("href", "/journey/resume");
   expect(await page.content()).not.toContain(key);
 
   await page.reload();
@@ -43,5 +43,5 @@ test("a Candidate saves their own key from the keyboard, sees it only as stored,
   await page.keyboard.press("Enter");
 
   await expect(page.getByText("Not added yet")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Continue to the analysis" })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "Continue to your résumé" })).toBeDisabled();
 });

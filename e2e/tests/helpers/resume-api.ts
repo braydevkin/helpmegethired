@@ -21,9 +21,12 @@ export async function parsed<Output>(response: APIResponse, schema: { parse: (in
   return schema.parse(await response.json());
 }
 
-// The three calls of the upload contract: reserve, PUT the bytes to storage, complete.
+export const requestUpload = (api: APIRequestContext, bytes: Buffer, fileName: string): Promise<APIResponse> => api.post("/resumes", { data: uploadOf(bytes, fileName) });
+
+// The three calls of the upload contract: reserve, PUT the bytes to storage, complete. The
+// Account needs a stored Model Key first, since the Model reads the Resume.
 export async function upload(api: APIRequestContext, bytes: Buffer, fileName: string): Promise<UploadedResume> {
-  const requested = await api.post("/resumes", { data: uploadOf(bytes, fileName) });
+  const requested = await requestUpload(api, bytes, fileName);
 
   expect(requested.status()).toBe(201);
 
