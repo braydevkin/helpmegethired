@@ -97,7 +97,7 @@ One run of profile building for an Account from one source, which is always an U
 _Avoid_: Import, upload job, parsing
 
 **Segment**:
-The unit of work inside an Ingestion: one piece of the source that becomes one part of the Profile, for example the header, one Experience, the Education, or one Project. Goes through three Steps and keeps the state of the last one it completed.
+The unit of work inside an Ingestion: one part of the Profile read from the whole source, for example the header, the Experiences, the Education, or the Projects. Goes through three Steps and keeps the state of the last one it completed.
 _Avoid_: Chunk, task, item
 
 **Step**:
