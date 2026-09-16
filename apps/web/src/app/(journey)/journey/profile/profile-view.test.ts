@@ -94,4 +94,20 @@ describe("profileViewOf", () => {
     expect(profileViewOf(profile).notice?.title).toBe("1 field needs your eyes");
     expect(profileViewOf({ ...profile, reviewFlags: [] }).notice).toBeNull();
   });
+
+  it("offers corrections on a Profile built from a résumé until it is confirmed", () => {
+    expect(profileViewOf(profile).correctable).toBe(true);
+    expect(profileViewOf({ ...profile, confirmedAt: "2026-09-09T10:00:00.000Z" }).correctable).toBe(false);
+    expect(profileViewOf({ ...profile, source: null }).correctable).toBe(false);
+  });
+
+  it("marks only the Experiences the Candidate corrected as their own", () => {
+    const [senior, freelance] = profile.experiences;
+    const view = profileViewOf({ ...profile, corrections: { basicProfile: false, entryIds: [freelance!.id] } });
+
+    expect(view.experiences.map((entry) => [entry.id, entry.corrected])).toEqual([
+      [senior!.id, false],
+      [freelance!.id, true],
+    ]);
+  });
 });

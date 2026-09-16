@@ -1,0 +1,27 @@
+.area {
+  width: 100%;
+  min-width: 0;
+  min-height: calc(var(--control-height) * 2);
+  padding: var(--control-padding-inline);
+  border: var(--control-border-width) solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font: inherit;
+  font-size: var(--text-control);
+  line-height: var(--leading-hint);
+  resize: vertical;
+  outline: none;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.area:focus {
+  border-color: var(--color-brand);
+  box-shadow: var(--focus-ring);
+}
+
+.area[aria-invalid="true"] {
+  border-color: var(--color-error);
+}

@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 import { BadRequestException, type INestApplicationContext } from "@nestjs/common";
 import { Test } from "@nestjs/testing";
-import { ProfileSchema, SESSION_LIFETIME_SECONDS, type Id, type Profile } from "@helpmegethired/shared";
+import { ProfileSchema, SESSION_LIFETIME_SECONDS, type ApiError, type Id, type Profile } from "@helpmegethired/shared";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { AppModule } from "../app.module";
@@ -467,6 +467,21 @@ describe("profile built by Segments", () => {
 
       await expect(corrections.addEntry(accountId, "languages", { name: "" })).rejects.toBeInstanceOf(BadRequestException);
       expect((await profiles.get(accountId)).languages).toHaveLength(profile.languages.length);
+    });
+
+    it("refuses an Experience corrected to end before it starts, on the month it ended, and keeps the period", async () => {
+      const accountId = await newAccount();
+      const { profile } = await built(accountId, "ada-single-column-en");
+      const { id, ...experience } = first(profile.experiences, "Experience");
+
+      const refused = corrections.replaceEntry(accountId, "experiences", id, { ...experience, period: { start: "2024-06", end: "2022-03" } });
+      const issues = await refused.then(
+        () => [],
+        (error: BadRequestException) => (error.getResponse() as ApiError).issues ?? [],
+      );
+
+      expect(issues.map((issue) => issue.path)).toEqual(["period.end"]);
+      expect((await profiles.get(accountId)).experiences.find((kept) => kept.id === id)?.period).toEqual(experience.period);
     });
 
     it("answers another Account's entry as absent and leaves it untouched", async () => {

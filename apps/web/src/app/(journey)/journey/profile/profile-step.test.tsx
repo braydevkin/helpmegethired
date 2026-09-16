@@ -8,7 +8,13 @@ import type { Candidate } from "../candidate";
 import { ProfileStep } from "./profile-step";
 
 vi.mock("../../../../lib/model-choice-client", () => ({ modelChoiceClient: { read: vi.fn() } }));
-vi.mock("./actions", () => ({ confirmProfileAction: vi.fn(), readResumeAgainAction: vi.fn() }));
+vi.mock("./actions", () => ({
+  confirmProfileAction: vi.fn(),
+  readResumeAgainAction: vi.fn(),
+  correctBasicProfileAction: vi.fn(),
+  saveExperienceAction: vi.fn(),
+  removeExperienceAction: vi.fn(),
+}));
 vi.mock("../../../(account)/actions", () => ({ signOutAction: vi.fn() }));
 
 const candidate: Candidate = {
