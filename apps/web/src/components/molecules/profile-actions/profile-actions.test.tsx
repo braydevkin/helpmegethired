@@ -10,7 +10,7 @@ describe("ProfileActions", () => {
   it("offers the way back to a new upload and confirms the Profile", async () => {
     const confirm = vi.fn().mockResolvedValue({ ok: true });
 
-    render(<ProfileActions uploadHref={uploadHref} analysisHref={analysisHref} confirmed={false} confirm={confirm} />);
+    render(<ProfileActions uploadHref={uploadHref} analysisHref={analysisHref} confirmed={false} correcting={false} confirm={confirm} />);
 
     expect(screen.getByRole("link", { name: "Re-upload PDF" })).toHaveAttribute("href", uploadHref);
 
@@ -22,7 +22,7 @@ describe("ProfileActions", () => {
   it("says what went wrong and keeps the button when the Profile could not be confirmed", async () => {
     const confirm = vi.fn().mockResolvedValue({ ok: false, message: "We couldn't confirm your Profile. Try again in a moment." });
 
-    render(<ProfileActions uploadHref={uploadHref} analysisHref={analysisHref} confirmed={false} confirm={confirm} />);
+    render(<ProfileActions uploadHref={uploadHref} analysisHref={analysisHref} confirmed={false} correcting={false} confirm={confirm} />);
     fireEvent.click(screen.getByRole("button", { name: "Confirm profile" }));
 
     expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't confirm your Profile");
@@ -30,10 +30,25 @@ describe("ProfileActions", () => {
   });
 
   it("leads on to the analysis once the Profile carries a confirmation", () => {
-    render(<ProfileActions uploadHref={uploadHref} analysisHref={analysisHref} confirmed confirm={vi.fn()} />);
+    render(<ProfileActions uploadHref={uploadHref} analysisHref={analysisHref} confirmed correcting={false} confirm={vi.fn()} />);
 
     expect(screen.queryByRole("button", { name: "Confirm profile" })).not.toBeInTheDocument();
     expect(screen.getByText("Profile confirmed")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: "Open the analysis" })).toHaveAttribute("href", analysisHref);
+  });
+
+  it("says why a confirmed Profile offers no corrections", () => {
+    render(<ProfileActions uploadHref={uploadHref} analysisHref={analysisHref} confirmed correcting={false} confirm={vi.fn()} />);
+
+    expect(screen.getByText("Your Profile takes no more corrections: the analysis reads it as you confirmed it.")).toBeInTheDocument();
+  });
+
+  it("holds the confirmation back while a correction is open, and says what it waits for", () => {
+    render(<ProfileActions uploadHref={uploadHref} analysisHref={analysisHref} confirmed={false} correcting confirm={vi.fn()} />);
+
+    const button = screen.getByRole("button", { name: "Confirm profile" });
+
+    expect(button).toBeDisabled();
+    expect(button).toHaveAccessibleDescription("Save or cancel your correction before confirming.");
   });
 });

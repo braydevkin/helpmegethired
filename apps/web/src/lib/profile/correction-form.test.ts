@@ -62,6 +62,24 @@ describe("experienceFrom", () => {
     expect(reading).toEqual({ ok: false, issues: { role: "Name the role this experience was for." } });
   });
 
+  it("keeps a skill typed twice once, as it was first written", () => {
+    const reading = experienceFrom(formOf({ ...experienceFields, skills: "Node.js, node.js, NestJS, Node.js" }));
+
+    expect(reading).toMatchObject({ ok: true, value: { skills: ["Node.js", "NestJS"] } });
+  });
+
+  it("asks for the month a period ended in the form of one", () => {
+    const reading = experienceFrom(formOf({ ...experienceFields, periodEnd: "June 2024" }));
+
+    expect(reading).toEqual({ ok: false, issues: { "period.end": "Give the month it ended, as 2024-06, or leave it open." } });
+  });
+
+  it("refuses a period that ends before it starts, in the words of the shared schema", () => {
+    const reading = experienceFrom(formOf({ ...experienceFields, periodStart: "2024-06", periodEnd: "2022-03" }));
+
+    expect(reading).toEqual({ ok: false, issues: { "period.end": "The month it ended comes before the month it started." } });
+  });
+
   it("refuses a month that is not one", () => {
     const reading = experienceFrom(formOf({ ...experienceFields, periodStart: "March 2022" }));
 

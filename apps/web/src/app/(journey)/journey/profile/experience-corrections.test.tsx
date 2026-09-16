@@ -1,10 +1,11 @@
 import type { Experience } from "@helpmegethired/shared";
-import { fireEvent, render, screen, waitFor, within } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 
 import type { CorrectionAction, CorrectionResult } from "../../../../lib/profile/correction-form";
 import type { ExperienceEntry } from "../../../../components/organisms/experience-timeline/experience-timeline";
 import { ExperienceCorrections } from "./experience-corrections";
+import { ProfileEditingProvider } from "./profile-editing";
 
 const entries: ExperienceEntry[] = [
   {
@@ -51,15 +52,22 @@ const experiences: Experience[] = [
 const saved: CorrectionAction = () => Promise.resolve({ ok: true });
 const removed = (): Promise<CorrectionResult> => Promise.resolve({ ok: true });
 
-const renderCorrections = (
-  { save = vi.fn(saved), remove = vi.fn(removed), editable = true } = {},
-) => ({
+const renderCorrections = ({ save = vi.fn(saved), remove = vi.fn(removed), editable = true, shown = entries } = {}) => ({
   save,
   remove,
-  ...render(<ExperienceCorrections entries={entries} experiences={experiences} meta="2 roles" editable={editable} save={save} remove={remove} />),
+  ...render(
+    <ProfileEditingProvider>
+      <ExperienceCorrections entries={shown} experiences={experiences} meta="2 roles" editable={editable} save={save} remove={remove} />
+    </ProfileEditingProvider>,
+  ),
 });
 
-const correctFirst = () => fireEvent.click(screen.getAllByRole("button", { name: "Correct this role" })[0]!);
+const CORRECT_FIRST = "Correct this role: Senior Backend Engineer";
+
+const correctFirst = () => fireEvent.click(screen.getByRole("button", { name: CORRECT_FIRST }));
+
+const refusedOn = (issues: Record<string, string>) =>
+  vi.fn<CorrectionAction>(() => Promise.resolve({ ok: false, message: "Some fields need a change before this can be saved.", issues }));
 
 describe("ExperienceCorrections", () => {
   it("marks the roles the Candidate has corrected", () => {
@@ -71,8 +79,22 @@ describe("ExperienceCorrections", () => {
   it("offers nothing to correct once the Profile is confirmed", () => {
     renderCorrections({ editable: false });
 
-    expect(screen.queryByRole("button", { name: "Correct this role" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Correct this role/ })).not.toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Add a role" })).not.toBeInTheDocument();
+  });
+
+  it("names the role each button acts on", () => {
+    renderCorrections();
+
+    expect(screen.getByRole("button", { name: "Correct this role: Freelance Developer" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Remove Freelance Developer" })).toBeInTheDocument();
+  });
+
+  it("says the résumé listed no roles and still offers to add one", () => {
+    renderCorrections({ shown: [] });
+
+    expect(screen.getByText("Your résumé listed no roles.")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Add a role" })).toBeInTheDocument();
   });
 
   it("opens one role at a time, with the months the Experience carries and not the ones on screen", () => {
@@ -83,7 +105,7 @@ describe("ExperienceCorrections", () => {
     expect(screen.getByLabelText("From")).toHaveValue("2022-03");
     expect(screen.getByLabelText("To")).toHaveValue("");
     expect(screen.getByLabelText("Skills")).toHaveValue("Node.js, NestJS");
-    expect(screen.queryByRole("button", { name: "Correct this role" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Correct this role/ })).not.toBeInTheDocument();
   });
 
   it("sends the correction with the id of the role it belongs to", async () => {
@@ -117,46 +139,81 @@ describe("ExperienceCorrections", () => {
     await waitFor(() => expect(screen.getByRole("button", { name: "Add a role" })).toBeInTheDocument());
   });
 
-  it("keeps the form open and names the field when the correction is refused", async () => {
-    const save = vi.fn<CorrectionAction>(() =>
-      Promise.resolve({ ok: false, message: "We couldn't save your correction.", issues: { role: "Name the role this experience was for." } }),
-    );
-
-    renderCorrections({ save });
+  it("keeps the form open with what the Candidate typed, and names the field, when the correction is refused", async () => {
+    renderCorrections({ save: refusedOn({ role: "Name the role this experience was for." }) });
     correctFirst();
+    fireEvent.change(screen.getByLabelText("Company"), { target: { value: "Contoso" } });
     fireEvent.click(screen.getByRole("button", { name: "Save" }));
 
     expect(await screen.findByText("Name the role this experience was for.")).toBeInTheDocument();
     expect(screen.getByRole("group", { name: "Correcting Senior Backend Engineer" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Company")).toHaveValue("Contoso");
+  });
+
+  it("puts a refused month beside the field it was typed in", async () => {
+    renderCorrections({ save: refusedOn({ "period.end": "The month it ended comes before the month it started." }) });
+    correctFirst();
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(await screen.findByText("The month it ended comes before the month it started.")).toBeInTheDocument();
+    expect(screen.getByLabelText("To")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText("From")).not.toHaveAttribute("aria-invalid");
   });
 
   it("removes a role and says so when it could not be removed", async () => {
     const remove = vi.fn((): Promise<CorrectionResult> => Promise.resolve({ ok: false, message: "We couldn't save your correction. Try again in a moment." }));
     const { remove: called } = renderCorrections({ remove });
 
-    fireEvent.click(screen.getAllByRole("button", { name: "Remove" })[1]!);
+    fireEvent.click(screen.getByRole("button", { name: "Remove Freelance Developer" }));
 
     await waitFor(() => expect(called).toHaveBeenCalledWith(entries[1]!.id));
     expect(await screen.findByText("We couldn't save your correction. Try again in a moment.")).toBeInTheDocument();
   });
 
-  it("is correctable with the keyboard alone", async () => {
-    const { save } = renderCorrections();
-    const open = screen.getAllByRole("button", { name: "Correct this role" })[0]!;
+  it("clears a failed removal once the Candidate opens a correction", async () => {
+    const remove = vi.fn((): Promise<CorrectionResult> => Promise.resolve({ ok: false, message: "We couldn't save your correction. Try again in a moment." }));
 
-    open.focus();
-    fireEvent.click(open);
+    renderCorrections({ remove });
+    fireEvent.click(screen.getByRole("button", { name: "Remove Freelance Developer" }));
+    await screen.findByText("We couldn't save your correction. Try again in a moment.");
+    await waitFor(() => expect(screen.getByRole("button", { name: CORRECT_FIRST })).toBeEnabled());
 
-    const role = screen.getByLabelText("Role");
+    correctFirst();
 
-    role.focus();
-    expect(role).toHaveFocus();
-    fireEvent.change(role, { target: { value: "Staff Backend Engineer" } });
+    expect(screen.queryByText("We couldn't save your correction. Try again in a moment.")).not.toBeInTheDocument();
+  });
 
-    const form = within(screen.getByRole("group", { name: "Correcting Senior Backend Engineer" }).closest("form")!);
+  it("offers no correction of any role while one is being removed", async () => {
+    let finish: (result: CorrectionResult) => void = () => undefined;
+    const remove = vi.fn(() => new Promise<CorrectionResult>((resolve) => (finish = resolve)));
 
-    fireEvent.click(form.getByRole("button", { name: "Save" }));
+    renderCorrections({ remove });
+    fireEvent.click(screen.getByRole("button", { name: "Remove Freelance Developer" }));
 
-    await waitFor(() => expect(save).toHaveBeenCalled());
+    await waitFor(() => expect(screen.getByRole("button", { name: CORRECT_FIRST })).toBeDisabled());
+    expect(screen.getByRole("button", { name: "Add a role" })).toBeDisabled();
+
+    finish({ ok: true });
+    await waitFor(() => expect(screen.getByRole("button", { name: CORRECT_FIRST })).toBeEnabled());
+  });
+
+  it("moves the focus into the form it opens, and back to the role's button when it closes", () => {
+    renderCorrections();
+    correctFirst();
+
+    expect(screen.getByLabelText("Role")).toHaveFocus();
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+
+    expect(screen.getByRole("button", { name: CORRECT_FIRST })).toHaveFocus();
+  });
+
+  it("hands the focus back to Add a role once the new role is saved", async () => {
+    renderCorrections();
+    fireEvent.click(screen.getByRole("button", { name: "Add a role" }));
+    fireEvent.change(screen.getByLabelText("Role"), { target: { value: "Volunteer Developer" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    await waitFor(() => expect(screen.getByRole("button", { name: "Add a role" })).toHaveFocus());
   });
 });

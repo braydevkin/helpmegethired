@@ -9,6 +9,7 @@ import type { CorrectionAction, CorrectionResult } from "../../../../lib/profile
 import { ExperienceTimeline, type ExperienceEntry } from "../../../../components/organisms/experience-timeline/experience-timeline";
 import { ExperienceForm, type ExperienceFormValues } from "./experience-form";
 import styles from "./experience-corrections.module.css";
+import { useProfileEditing } from "./profile-editing";
 
 export interface ExperienceCorrectionsProps {
   entries: readonly ExperienceEntry[];
@@ -19,7 +20,7 @@ export interface ExperienceCorrectionsProps {
   remove: (entryId: string) => Promise<CorrectionResult>;
 }
 
-const NEW_ENTRY = "new";
+const NEW_ENTRY = "new-experience";
 
 const EMPTY_VALUES: ExperienceFormValues = { id: null, role: "", company: "", periodStart: "", periodEnd: "", description: "", skills: "" };
 
@@ -35,14 +36,19 @@ const valuesOf = (experience: Experience): ExperienceFormValues => ({
   skills: experience.skills.join(", "),
 });
 
-// The Experience timeline with the Candidate's corrections on it: one entry open at a time,
-// a role they can add, and a role they can take out.
+// The Experience timeline with the Candidate's corrections on it: a role to correct, a role
+// they can add, and a role they can take out. Every button names the role it acts on, since a
+// screen reader lists them apart from the entry they sit in.
 export function ExperienceCorrections({ entries, experiences, meta, editable, save, remove }: ExperienceCorrectionsProps) {
-  const [openEntry, setOpenEntry] = useState<string | null>(null);
+  const editing = useProfileEditing();
   const [failure, setFailure] = useState<string | null>(null);
   const [removing, startRemoving] = useTransition();
+  const offered = editable && editing.openEditor === null;
 
-  const close = () => setOpenEntry(null);
+  const open = (editor: string) => {
+    setFailure(null);
+    editing.open(editor);
+  };
 
   const removeEntry = (entryId: string) => {
     setFailure(null);
@@ -60,18 +66,32 @@ export function ExperienceCorrections({ entries, experiences, meta, editable, sa
       entryForm={(entry) => {
         const experience = experiences.find((candidate) => candidate.id === entry.id);
 
-        return editable && openEntry === entry.id && experience ? (
-          <ExperienceForm values={valuesOf(experience)} legend={`Correcting ${experience.role}`} save={save} onSaved={close} onCancel={close} />
+        return editable && editing.openEditor === entry.id && experience ? (
+          <ExperienceForm values={valuesOf(experience)} legend={`Correcting ${experience.role}`} save={save} onSaved={editing.close} onCancel={editing.close} />
         ) : undefined;
       }}
       entryActions={(entry) =>
-        editable &&
-        openEntry === null && (
+        offered && (
           <div className={styles.actions}>
-            <Button variant="secondary" type="button" className={styles.action} onClick={() => setOpenEntry(entry.id)}>
+            <Button
+              ref={editing.returnFocusTo(entry.id)}
+              variant="secondary"
+              type="button"
+              className={styles.action}
+              aria-label={`Correct this role: ${entry.role}`}
+              disabled={removing}
+              onClick={() => open(entry.id)}
+            >
               Correct this role
             </Button>
-            <Button variant="secondary" type="button" className={styles.action} disabled={removing} onClick={() => removeEntry(entry.id)}>
+            <Button
+              variant="secondary"
+              type="button"
+              className={styles.action}
+              aria-label={`Remove ${entry.role}`}
+              disabled={removing}
+              onClick={() => removeEntry(entry.id)}
+            >
               Remove
             </Button>
           </div>
@@ -80,13 +100,21 @@ export function ExperienceCorrections({ entries, experiences, meta, editable, sa
       footer={
         editable && (
           <div className={styles.footer}>
-            {openEntry === NEW_ENTRY ? (
+            {entries.length === 0 && <p className={styles.empty}>Your résumé listed no roles.</p>}
+            {editing.openEditor === NEW_ENTRY ? (
               <ul className={styles.entries}>
-                <ExperienceForm values={EMPTY_VALUES} legend="A role your résumé missed" save={save} onSaved={close} onCancel={close} />
+                <ExperienceForm values={EMPTY_VALUES} legend="A role your résumé missed" save={save} onSaved={editing.close} onCancel={editing.close} />
               </ul>
             ) : (
-              openEntry === null && (
-                <Button variant="secondary" type="button" className={styles.action} onClick={() => setOpenEntry(NEW_ENTRY)}>
+              offered && (
+                <Button
+                  ref={editing.returnFocusTo(NEW_ENTRY)}
+                  variant="secondary"
+                  type="button"
+                  className={styles.action}
+                  disabled={removing}
+                  onClick={() => open(NEW_ENTRY)}
+                >
                   Add a role
                 </Button>
               )

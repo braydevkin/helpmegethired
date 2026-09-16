@@ -1,5 +1,6 @@
 import { Fragment, type ReactNode } from "react";
 
+import { CORRECTED_LABEL } from "../../../lib/profile/corrected-label";
 import { Badge } from "../../atoms/badge/badge";
 import { Chip } from "../../atoms/chip/chip";
 import { ProfileSection } from "../../molecules/profile-section/profile-section";
@@ -24,8 +25,6 @@ export interface ExperienceTimelineProps {
   entryForm?: (entry: ExperienceEntry) => ReactNode;
   footer?: ReactNode;
 }
-
-export const CORRECTED_LABEL = "Corrected by you";
 
 // The work history as a timeline, each role with what it was about, the skills it used, and
 // whatever the Ingestion could not read with confidence. An entry being corrected gives its

@@ -1,9 +1,11 @@
 "use client";
 
 import type { BasicProfile } from "@helpmegethired/shared";
-import { useActionState, useState } from "react";
+import type { Ref } from "react";
 
-import type { CorrectionAction, CorrectionResult } from "../../../lib/profile/correction-form";
+import { CORRECTED_LABEL } from "../../../lib/profile/corrected-label";
+import type { CorrectionAction } from "../../../lib/profile/correction-form";
+import { useCorrectionForm } from "../../../lib/profile/use-correction-form";
 import { Button } from "../../atoms/button/button";
 import { ErrorMessage } from "../../atoms/error-message/error-message";
 import { TextArea } from "../../atoms/text-area/text-area";
@@ -15,80 +17,76 @@ import styles from "./basic-profile-card.module.css";
 export interface BasicProfileCardProps {
   basicProfile: BasicProfile;
   corrected: boolean;
-  editable: boolean;
+  editing: boolean;
   save: CorrectionAction;
+  onClose: () => void;
+  onEdit?: () => void;
+  editRef?: Ref<HTMLButtonElement>;
 }
 
-const NOT_GIVEN = "Not found in your résumé";
+const NOT_GIVEN = "Not found in your PDF";
 
-const CORRECTED_LABEL = "Corrected by you";
-
-// What the résumé said about the Candidate as a whole, and their answer to it. The name,
-// e-mail, phone and address are Account Information and are not corrected here.
-export function BasicProfileCard({ basicProfile, corrected, editable, save }: BasicProfileCardProps) {
-  const [editing, setEditing] = useState(false);
-  const [result, submit, saving] = useActionState(async (previous: CorrectionResult | null, form: FormData) => {
-    const outcome = await save(previous, form);
-
-    setEditing(!outcome.ok);
-
-    return outcome;
-  }, null);
-
-  const issues = result?.ok === false ? (result.issues ?? {}) : {};
-
-  if (!editing) {
-    return (
-      <ProfileSection title="About you" meta={corrected ? CORRECTED_LABEL : undefined}>
-        <dl className={styles.read}>
-          <Read label="Headline" value={basicProfile.headline} />
-          <Read label="Summary" value={basicProfile.summary} />
-          <Read label="LinkedIn" value={basicProfile.linkedinUrl} />
-          <Read label="GitHub" value={basicProfile.githubUrl} />
-        </dl>
-        {editable && (
-          <Button variant="secondary" type="button" className={styles.action} onClick={() => setEditing(true)}>
-            Correct this
-          </Button>
-        )}
-      </ProfileSection>
-    );
-  }
-
+// What the résumé said about the Candidate as a whole, and their answer to it. The headline
+// and the two addresses are read in the header and the sidebar, so the card shows only the
+// summary until it is corrected. The name, e-mail, phone and address are Account Information.
+export function BasicProfileCard({ basicProfile, corrected, editing, save, onClose, onEdit, editRef }: BasicProfileCardProps) {
   return (
-    <ProfileSection title="About you">
-      <form action={submit} className={styles.form}>
-        <Field id="headline" label="Headline" error={issues.headline}>
-          {(control) => <TextInput {...control} name="headline" defaultValue={basicProfile.headline ?? ""} />}
-        </Field>
-        <Field id="summary" label="Summary" optional error={issues.summary}>
-          {(control) => <TextArea {...control} name="summary" rows={4} defaultValue={basicProfile.summary ?? ""} />}
-        </Field>
-        <Field id="linkedinUrl" label="LinkedIn" optional error={issues.linkedinUrl}>
-          {(control) => <TextInput {...control} name="linkedinUrl" inputMode="url" defaultValue={basicProfile.linkedinUrl ?? ""} />}
-        </Field>
-        <Field id="githubUrl" label="GitHub" optional error={issues.githubUrl}>
-          {(control) => <TextInput {...control} name="githubUrl" inputMode="url" defaultValue={basicProfile.githubUrl ?? ""} />}
-        </Field>
-        <div className={styles.actions}>
-          <Button type="submit" className={styles.action} disabled={saving}>
-            Save
-          </Button>
-          <Button variant="secondary" type="button" className={styles.action} onClick={() => setEditing(false)}>
-            Cancel
-          </Button>
-        </div>
-        {result?.ok === false && <ErrorMessage>{result.message}</ErrorMessage>}
-      </form>
+    <ProfileSection title="About you" meta={corrected ? CORRECTED_LABEL : undefined}>
+      {editing ? (
+        <BasicProfileForm basicProfile={basicProfile} save={save} onClose={onClose} />
+      ) : (
+        <>
+          <dl className={styles.read}>
+            <div className={styles.row}>
+              <dt className={styles.label}>Summary</dt>
+              <dd className={basicProfile.summary === null ? styles.missing : styles.value}>{basicProfile.summary ?? NOT_GIVEN}</dd>
+            </div>
+          </dl>
+          {onEdit && (
+            <Button ref={editRef} variant="secondary" type="button" className={styles.action} onClick={onEdit}>
+              Correct this
+            </Button>
+          )}
+        </>
+      )}
     </ProfileSection>
   );
 }
 
-function Read({ label, value }: { label: string; value: string | null }) {
+interface BasicProfileFormProps {
+  basicProfile: BasicProfile;
+  save: CorrectionAction;
+  onClose: () => void;
+}
+
+// Mounted only while the card is being corrected, so a refusal from one attempt is gone the
+// next time the Candidate opens it.
+function BasicProfileForm({ basicProfile, save, onClose }: BasicProfileFormProps) {
+  const { formRef, onSubmit, saving, failure, issues } = useCorrectionForm(save, onClose);
+
   return (
-    <div className={styles.row}>
-      <dt className={styles.label}>{label}</dt>
-      <dd className={value === null ? styles.missing : styles.value}>{value ?? NOT_GIVEN}</dd>
-    </div>
+    <form ref={formRef} onSubmit={onSubmit} className={styles.form}>
+      <Field id="headline" label="Headline" optional error={issues.headline}>
+        {(control) => <TextInput {...control} name="headline" defaultValue={basicProfile.headline ?? ""} />}
+      </Field>
+      <Field id="summary" label="Summary" optional error={issues.summary}>
+        {(control) => <TextArea {...control} name="summary" rows={4} defaultValue={basicProfile.summary ?? ""} />}
+      </Field>
+      <Field id="linkedinUrl" label="LinkedIn" optional error={issues.linkedinUrl}>
+        {(control) => <TextInput {...control} name="linkedinUrl" inputMode="url" defaultValue={basicProfile.linkedinUrl ?? ""} />}
+      </Field>
+      <Field id="githubUrl" label="GitHub" optional error={issues.githubUrl}>
+        {(control) => <TextInput {...control} name="githubUrl" inputMode="url" defaultValue={basicProfile.githubUrl ?? ""} />}
+      </Field>
+      <div className={styles.actions}>
+        <Button type="submit" className={styles.action} disabled={saving}>
+          Save
+        </Button>
+        <Button variant="secondary" type="button" className={styles.action} onClick={onClose}>
+          Cancel
+        </Button>
+      </div>
+      {failure && <ErrorMessage>{failure.message}</ErrorMessage>}
+    </form>
   );
 }

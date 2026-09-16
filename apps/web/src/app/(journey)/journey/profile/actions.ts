@@ -14,14 +14,20 @@ import {
 } from "../../../../lib/profile/correction-form";
 import { ProfileCorrectionRejectedError, ProfileUnavailableError, profileClient } from "../../../../lib/profile-client";
 import { readSessionToken } from "../../../../lib/session-cookie";
-import { withSession } from "../../../../lib/with-session";
+import { SESSION_EXPIRED_MESSAGE as SIGN_IN_AGAIN_MESSAGE, withSession } from "../../../../lib/with-session";
 import { ANALYSIS_PATH, JOURNEY_PATH } from "../../../paths";
 
 const SESSION_EXPIRED_MESSAGE = "Your session has expired. Sign in again to confirm your Profile.";
 const NOT_CONFIRMED_MESSAGE = "We couldn't confirm your Profile. Try again in a moment.";
 const NOT_SAVED_MESSAGE = "We couldn't save your correction. Try again in a moment.";
+const FIELDS_MESSAGE = "Some fields need a change before this can be saved.";
 const CONFIRMED_MESSAGE = "Your Profile is confirmed, so it takes no more corrections.";
-const CONFLICT = 409;
+
+// A refusal with words of its own; any other status is worth trying again.
+const REFUSAL_MESSAGES: Readonly<Record<number, string>> = {
+  401: SIGN_IN_AGAIN_MESSAGE,
+  409: CONFIRMED_MESSAGE,
+};
 
 export async function confirmProfileAction(): Promise<ConfirmResult> {
   const token = await readSessionToken();
@@ -61,7 +67,7 @@ export async function removeExperienceAction(entryId: string): Promise<Correctio
 // refuses comes back on the field it belongs to.
 async function saved<Value>(reading: FormReading<Value>, write: (token: string, value: Value) => Promise<unknown>): Promise<CorrectionResult> {
   if (!reading.ok) {
-    return { ok: false, message: NOT_SAVED_MESSAGE, issues: reading.issues };
+    return { ok: false, message: FIELDS_MESSAGE, issues: reading.issues };
   }
 
   return written((token) => write(token, reading.value));
@@ -81,10 +87,10 @@ async function written(write: (token: string) => Promise<unknown>): Promise<Corr
 
 const refusal = (error: unknown): CorrectionFailure => {
   if (error instanceof ProfileCorrectionRejectedError) {
-    return { ok: false, message: NOT_SAVED_MESSAGE, issues: error.issues };
+    return { ok: false, message: FIELDS_MESSAGE, issues: error.issues };
   }
 
-  const confirmed = error instanceof ProfileUnavailableError && error.status === CONFLICT;
+  const message = error instanceof ProfileUnavailableError ? REFUSAL_MESSAGES[error.status] : undefined;
 
-  return { ok: false, message: confirmed ? CONFIRMED_MESSAGE : NOT_SAVED_MESSAGE };
+  return { ok: false, message: message ?? NOT_SAVED_MESSAGE };
 };

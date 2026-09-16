@@ -53,6 +53,13 @@
   padding: 0 16px;
 }
 
+.empty {
+  margin: 0;
+  font-size: var(--text-entry-title);
+  line-height: var(--leading-hint);
+  color: var(--color-text-secondary);
+}
+
 .footer {
   display: grid;
   justify-items: start;

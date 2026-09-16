@@ -36,11 +36,15 @@ const textOf = (form: FormData, name: string): string | null => {
   return text === "" ? null : text;
 };
 
-const listOf = (form: FormData, name: string): string[] =>
-  (textOf(form, name) ?? "")
+// A skill typed twice, in any case, is kept once and as it was first written.
+const listOf = (form: FormData, name: string): string[] => {
+  const items = (textOf(form, name) ?? "")
     .split(",")
     .map((item) => item.trim())
     .filter((item) => item !== "");
+
+  return items.filter((item, index) => items.findIndex((other) => other.toLowerCase() === item.toLowerCase()) === index);
+};
 
 // Both ends empty means the entry carries no period at all; a missing start with an end given
 // is a period the Candidate has to finish, and the schema says so.
@@ -58,10 +62,11 @@ function reading<Value>(schema: ZodType<Value>, fields: unknown): FormReading<Va
     return { ok: true, value: parsed.data };
   }
 
+  // A rule across fields, such as a period's order, is written for the Candidate in the schema.
   const issues = parsed.error.issues.map((issue) => {
     const path = issue.path.join(".");
 
-    return [path, MESSAGES[path] ?? FALLBACK_MESSAGE] as const;
+    return [path, issue.code === "custom" ? issue.message : (MESSAGES[path] ?? FALLBACK_MESSAGE)] as const;
   });
 
   return { ok: false, issues: Object.fromEntries(issues) };

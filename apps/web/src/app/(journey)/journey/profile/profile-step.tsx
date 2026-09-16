@@ -1,9 +1,7 @@
 import type { Profile } from "@helpmegethired/shared";
 
-import { ProfileActions } from "../../../../components/molecules/profile-actions/profile-actions";
 import { ProfileHeading } from "../../../../components/molecules/profile-heading/profile-heading";
 import { ReviewNotice } from "../../../../components/molecules/review-notice/review-notice";
-import { BasicProfileCard } from "../../../../components/organisms/basic-profile-card/basic-profile-card";
 import { EducationList } from "../../../../components/organisms/education-list/education-list";
 import { ProfileSidebar } from "../../../../components/organisms/profile-sidebar/profile-sidebar";
 import { ProfileStats } from "../../../../components/organisms/profile-stats/profile-stats";
@@ -14,7 +12,10 @@ import { ANALYSIS_PATH, RESUME_STEP_PATH } from "../../../paths";
 import type { Candidate } from "../candidate";
 import { JourneyFrame } from "../journey-frame";
 import { confirmProfileAction, correctBasicProfileAction, removeExperienceAction, saveExperienceAction } from "./actions";
+import { BasicProfileCorrections } from "./basic-profile-corrections";
 import { ExperienceCorrections } from "./experience-corrections";
+import { ProfileEditingProvider } from "./profile-editing";
+import { ProfileReviewActions } from "./profile-review-actions";
 import { profileViewOf } from "./profile-view";
 
 export interface ProfileStepProps {
@@ -28,47 +29,51 @@ export function ProfileStep({ candidate, profile }: ProfileStepProps) {
   const view = profileViewOf(profile);
 
   return (
-    <JourneyFrame
-      candidate={candidate}
-      stepLabel={view.sourceLabel}
-      heading={
-        <ProfileHeading
-          eyebrow="Your profile"
-          name={candidate.name}
-          headline={view.headline}
-          actions={<ProfileActions uploadHref={RESUME_STEP_PATH} analysisHref={ANALYSIS_PATH} confirmed={profile.confirmedAt !== null} confirm={confirmProfileAction} />}
-        />
-      }
-      sidebar={
-        <ProfileSidebar
-          completeness={view.completeness}
-          contact={contactRowsOf(candidate.account, profile.basicProfile)}
-          languages={profile.languages}
-          certifications={view.certifications}
-        />
-      }
-    >
-      <ProfileStats stats={view.stats} />
-      {view.notice && <ReviewNotice {...view.notice} />}
-      <BasicProfileCard
-        basicProfile={profile.basicProfile}
-        corrected={profile.corrections.basicProfile}
-        editable={view.correctable}
-        save={correctBasicProfileAction}
-      />
-      {(view.experiences.length > 0 || view.correctable) && (
-        <ExperienceCorrections
-          entries={view.experiences}
-          experiences={profile.experiences}
-          meta={view.experienceMeta}
+    <ProfileEditingProvider>
+      <JourneyFrame
+        candidate={candidate}
+        stepLabel={view.sourceLabel}
+        heading={
+          <ProfileHeading
+            eyebrow="Your profile"
+            name={candidate.name}
+            headline={view.headline}
+            actions={
+              <ProfileReviewActions uploadHref={RESUME_STEP_PATH} analysisHref={ANALYSIS_PATH} confirmed={profile.confirmedAt !== null} confirm={confirmProfileAction} />
+            }
+          />
+        }
+        sidebar={
+          <ProfileSidebar
+            completeness={view.completeness}
+            contact={contactRowsOf(candidate.account, profile.basicProfile)}
+            languages={profile.languages}
+            certifications={view.certifications}
+          />
+        }
+      >
+        <ProfileStats stats={view.stats} />
+        {view.notice && <ReviewNotice {...view.notice} />}
+        <BasicProfileCorrections
+          basicProfile={profile.basicProfile}
+          corrected={profile.corrections.basicProfile}
           editable={view.correctable}
-          save={saveExperienceAction}
-          remove={removeExperienceAction}
+          save={correctBasicProfileAction}
         />
-      )}
-      {view.education.length > 0 && <EducationList entries={view.education} />}
-      {view.projects.length > 0 && <ProjectsGrid entries={view.projects} />}
-      {view.skillGroups.length > 0 && <SkillsGroups groups={view.skillGroups} meta={view.skillsMeta} />}
-    </JourneyFrame>
+        {(view.experiences.length > 0 || view.correctable) && (
+          <ExperienceCorrections
+            entries={view.experiences}
+            experiences={profile.experiences}
+            meta={view.experienceMeta}
+            editable={view.correctable}
+            save={saveExperienceAction}
+            remove={removeExperienceAction}
+          />
+        )}
+        {view.education.length > 0 && <EducationList entries={view.education} />}
+        {view.projects.length > 0 && <ProjectsGrid entries={view.projects} />}
+        {view.skillGroups.length > 0 && <SkillsGroups groups={view.skillGroups} meta={view.skillsMeta} />}
+      </JourneyFrame>
+    </ProfileEditingProvider>
   );
 }

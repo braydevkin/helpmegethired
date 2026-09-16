@@ -1,13 +1,12 @@
 "use client";
 
-import { useActionState } from "react";
-
 import { Button } from "../../../../components/atoms/button/button";
 import { ErrorMessage } from "../../../../components/atoms/error-message/error-message";
 import { TextArea } from "../../../../components/atoms/text-area/text-area";
 import { TextInput } from "../../../../components/atoms/text-input/text-input";
 import { Field } from "../../../../components/molecules/field/field";
-import type { CorrectionAction, CorrectionResult } from "../../../../lib/profile/correction-form";
+import type { CorrectionAction } from "../../../../lib/profile/correction-form";
+import { useCorrectionForm } from "../../../../lib/profile/use-correction-form";
 import styles from "./experience-corrections.module.css";
 
 export interface ExperienceFormValues {
@@ -33,21 +32,11 @@ const MONTH_HINT = "As 2022-03";
 // One role as the Candidate corrects it. A save that the API or the schema refuses leaves the
 // form open with what they typed, and says which field it was.
 export function ExperienceForm({ values, legend, save, onSaved, onCancel }: ExperienceFormProps) {
-  const [result, submit, saving] = useActionState(async (previous: CorrectionResult | null, form: FormData) => {
-    const outcome = await save(previous, form);
-
-    if (outcome.ok) {
-      onSaved();
-    }
-
-    return outcome;
-  }, null);
-
-  const issues = result?.ok === false ? (result.issues ?? {}) : {};
+  const { formRef, onSubmit, saving, failure, issues } = useCorrectionForm(save, onSaved);
 
   return (
     <li className={styles.entry}>
-      <form action={submit} className={styles.form}>
+      <form ref={formRef} onSubmit={onSubmit} className={styles.form}>
         <fieldset className={styles.fields}>
           <legend className={styles.legend}>{legend}</legend>
           {values.id !== null && <input type="hidden" name="id" value={values.id} />}
@@ -80,7 +69,7 @@ export function ExperienceForm({ values, legend, save, onSaved, onCancel }: Expe
             Cancel
           </Button>
         </div>
-        {result?.ok === false && <ErrorMessage>{result.message}</ErrorMessage>}
+        {failure && <ErrorMessage>{failure.message}</ErrorMessage>}
       </form>
     </li>
   );
