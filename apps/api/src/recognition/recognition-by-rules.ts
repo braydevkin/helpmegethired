@@ -92,76 +92,99 @@ class SegmentSource {
   }
 }
 
-type RecognitionByRules = { [Kind in SegmentRecognitionKind]: (source: SegmentSource) => SegmentRecognition<Kind> };
-
 const present = <Value>(value: Value | null): Value[] => (value === null ? [] : [value]);
 
-const RECOGNITION_BY_RULES: RecognitionByRules = {
-  header: (source) => {
-    const { basicProfile } = headerOf(source.lines);
+function headerByRules(source: SegmentSource): SegmentRecognition<"header"> {
+  const { basicProfile } = headerOf(source.lines);
 
-    return {
-      headline: source.text(basicProfile.headline),
-      summary: source.text(basicProfile.summary),
-      linkedinUrl: source.url(basicProfile.linkedinUrl),
-      githubUrl: source.url(basicProfile.githubUrl),
-    };
-  },
-  experience: (source) => ({
-    experiences: experiencesOf(source.sections).flatMap((experience) =>
-      present(source.text(experience.role)).map((role) => ({
-        role,
-        company: source.text(experience.company),
-        period: source.period(experience.period),
-        description: source.text(experience.description),
-        skills: source.technologies(experience.skills),
-      })),
-    ),
-  }),
-  education: (source) => ({
-    education: educationOf(source.sections).flatMap((education) =>
-      present(source.text(education.institution)).map((institution) => ({
-        institution,
-        degree: source.text(education.degree),
-        fieldOfStudy: source.text(education.fieldOfStudy),
-        period: source.period(education.period),
-      })),
-    ),
-  }),
-  project: (source) => ({
-    projects: projectsOf(source.sections).flatMap((project) =>
-      present(source.text(project.name)).map((name) => ({
-        name,
-        description: source.text(project.description),
-        url: source.url(project.url),
-        skills: source.technologies(project.skills),
-      })),
-    ),
-  }),
-  skills: (source) => ({
-    skills: extractSkills(source.sections).flatMap((skill) =>
-      present(source.technology(skill.name)).map((name) => ({ name, category: skill.category })),
-    ),
-  }),
-  languages: (source) => ({
-    languages: languagesOf(source.sections).flatMap((language) =>
-      present(source.text(language.name)).map((name) => ({ name, level: source.text(language.level) })),
-    ),
-  }),
-  certifications: (source) => ({
-    certifications: certificationsOf(source.sections).flatMap((certification) =>
-      present(source.text(certification.name)).map((name) => ({
-        name,
-        issuer: source.text(certification.issuer),
-        year: source.year(certification.year),
-      })),
-    ),
-  }),
-};
+  return {
+    headline: source.text(basicProfile.headline),
+    summary: source.text(basicProfile.summary),
+    linkedinUrl: source.url(basicProfile.linkedinUrl),
+    githubUrl: source.url(basicProfile.githubUrl),
+  };
+}
+
+const experienceByRules = (source: SegmentSource): SegmentRecognition<"experience"> => ({
+  experiences: experiencesOf(source.sections).flatMap((experience) =>
+    present(source.text(experience.role)).map((role) => ({
+      role,
+      company: source.text(experience.company),
+      period: source.period(experience.period),
+      description: source.text(experience.description),
+      skills: source.technologies(experience.skills),
+    })),
+  ),
+});
+
+const educationByRules = (source: SegmentSource): SegmentRecognition<"education"> => ({
+  education: educationOf(source.sections).flatMap((education) =>
+    present(source.text(education.institution)).map((institution) => ({
+      institution,
+      degree: source.text(education.degree),
+      fieldOfStudy: source.text(education.fieldOfStudy),
+      period: source.period(education.period),
+    })),
+  ),
+});
+
+const projectByRules = (source: SegmentSource): SegmentRecognition<"project"> => ({
+  projects: projectsOf(source.sections).flatMap((project) =>
+    present(source.text(project.name)).map((name) => ({
+      name,
+      description: source.text(project.description),
+      url: source.url(project.url),
+      skills: source.technologies(project.skills),
+    })),
+  ),
+});
+
+const skillsByRules = (source: SegmentSource): SegmentRecognition<"skills"> => ({
+  skills: extractSkills(source.sections).flatMap((skill) =>
+    present(source.technology(skill.name)).map((name) => ({ name, category: skill.category })),
+  ),
+});
+
+const languagesByRules = (source: SegmentSource): SegmentRecognition<"languages"> => ({
+  languages: languagesOf(source.sections).flatMap((language) =>
+    present(source.text(language.name)).map((name) => ({ name, level: source.text(language.level) })),
+  ),
+});
+
+const certificationsByRules = (source: SegmentSource): SegmentRecognition<"certifications"> => ({
+  certifications: certificationsOf(source.sections).flatMap((certification) =>
+    present(source.text(certification.name)).map((name) => ({
+      name,
+      issuer: source.text(certification.issuer),
+      year: source.year(certification.year),
+    })),
+  ),
+});
+
+// A branch per kind instead of a lookup keyed by it, so a kind added without its rules fails to
+// compile rather than calling whatever the key resolves to.
+function readingByRules(kind: SegmentRecognitionKind, source: SegmentSource): SegmentRecognition<SegmentRecognitionKind> {
+  switch (kind) {
+    case "header":
+      return headerByRules(source);
+    case "experience":
+      return experienceByRules(source);
+    case "education":
+      return educationByRules(source);
+    case "project":
+      return projectByRules(source);
+    case "skills":
+      return skillsByRules(source);
+    case "languages":
+      return languagesByRules(source);
+    case "certifications":
+      return certificationsByRules(source);
+  }
+}
 
 // What the deterministic rules read from a Segment, answered the way a model must answer: every
 // value with the verbatim span it came from. A value whose span cannot be found is left out, as a
 // model's unquotable value would be discarded.
 export function recognitionByRules<Kind extends SegmentRecognitionKind>(kind: Kind, lines: readonly string[]): SegmentRecognition<Kind> {
-  return recognitionSchemaOf(kind).parse(RECOGNITION_BY_RULES[kind](new SegmentSource(lines)));
+  return recognitionSchemaOf(kind).parse(readingByRules(kind, new SegmentSource(lines)));
 }

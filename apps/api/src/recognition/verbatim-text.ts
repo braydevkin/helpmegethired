@@ -42,6 +42,14 @@ function fold(text: string, matchCase: boolean): FoldedText {
 
 const isWordCharacter = (character: string | undefined): boolean => character !== undefined && WORD_CHARACTER.test(character);
 
+// A match that starts or ends on a word character must not continue a word of the text there.
+function isWholeWordsAt(text: string, wanted: string, found: number): boolean {
+  const opensWord = !isWordCharacter(wanted[0]) || !isWordCharacter(text[found - 1]);
+  const closesWord = !isWordCharacter(wanted.at(-1)) || !isWordCharacter(text[found + wanted.length]);
+
+  return opensWord && closesWord;
+}
+
 export interface SpanOptions {
   matchCase?: boolean;
   from?: number;
@@ -65,10 +73,8 @@ export class VerbatimText {
 
     for (let found = haystack.text.indexOf(wanted, firstIndex); found !== -1; found = haystack.text.indexOf(wanted, found + 1)) {
       const last = found + wanted.length - 1;
-      const opensWord = !isWordCharacter(wanted[0]) || !isWordCharacter(haystack.text[found - 1]);
-      const closesWord = !isWordCharacter(wanted.at(-1)) || !isWordCharacter(haystack.text[last + 1]);
 
-      if (opensWord && closesWord) {
+      if (isWholeWordsAt(haystack.text, wanted, found)) {
         return { start: haystack.starts[found] ?? 0, end: haystack.ends[last] ?? 0 };
       }
     }

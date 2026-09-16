@@ -34,7 +34,12 @@ function readingOf(text: SegmentText, experience: ExperienceByModel): Experience
     : null;
 }
 
-function merged({ byModel, byRules }: AlignedEntry<ExperienceReading, DraftExperience>): DraftExperience {
+function mergedSkills({ byModel, byRules }: AlignedEntry<ExperienceReading, DraftExperience>, description: DraftExperience["description"]): string[] {
+  return distinctNames([...(byRules?.skills ?? []), ...byModel.skills, ...skillNamesIn(description?.value ?? "")]);
+}
+
+function merged(entry: AlignedEntry<ExperienceReading, DraftExperience>): DraftExperience {
+  const { byModel, byRules } = entry;
   const description = verifiedField(byRules?.description ?? null, byModel.description, plainText);
 
   return {
@@ -42,7 +47,7 @@ function merged({ byModel, byRules }: AlignedEntry<ExperienceReading, DraftExper
     company: verifiedField(byRules?.company ?? null, byModel.company, plainText),
     period: verifiedField(byRules?.period ?? null, byModel.period, periodRule),
     description,
-    skills: distinctNames([...(byRules?.skills ?? []), ...byModel.skills, ...skillNamesIn(description?.value ?? "")]),
+    skills: mergedSkills(entry, description),
   };
 }
 

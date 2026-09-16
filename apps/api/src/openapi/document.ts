@@ -1,34 +1,8 @@
-import {
-  AccountInformationSchema,
-  BasicProfileSchema,
-  AccountModelChoiceSchema,
-  AccountSchema,
-  ApiErrorSchema,
-  CuratedStatementSchema,
-  CurationProgressStateSchema,
-  CurationStatementsSchema,
-  HealthStatusSchema,
-  ModelChoiceRequestSchema,
-  ModelChoiceStateSchema,
-  ModelKeyTicketSchema,
-  PROFILE_ENTRY_CORRECTION_SCHEMAS,
-  ProfileListPartSchema,
-  ProfileRecognitionReceiptSchema,
-  ProfileSchema,
-  ResumeUploadReceiptSchema,
-  ResumeUploadSchema,
-  StatementReviewRequestSchema,
-  UploadedResumeListSchema,
-  UploadedResumeSchema,
-  UploadedResumeStatusSchema,
-  type CurationActionErrorCode,
-  type ModelChoiceErrorCode,
-  type ProfileRecognitionErrorCode,
-  type ResumeRefusalCode,
-} from "@helpmegethired/shared";
-import { z, type ZodType } from "zod";
+import { ProfileListPartSchema, UploadedResumeStatusSchema } from "@helpmegethired/shared";
+import { z } from "zod";
 
-export type JsonSchema = Record<string, unknown>;
+import { componentSchemas, jsonSchemaOf, ref, type JsonSchema } from "./components";
+import { body, error, json, notFound, unauthorized, validationFailed } from "./responses";
 
 export interface OpenApiDocument {
   openapi: "3.1.0";
@@ -53,60 +27,6 @@ interface Operation {
 
 const SESSION = "session";
 const MODEL_KEY_TICKET = "modelKeyTicket";
-const JSON_TYPE = "application/json";
-
-// Every schema is the shared Zod one turned into JSON Schema: request bodies as the input
-// side (before the parse), answers as the output side, so nothing is described twice.
-const jsonSchemaOf = (schema: ZodType, io: "input" | "output"): JsonSchema =>
-  Object.fromEntries(
-    Object.entries(z.toJSONSchema(schema, { io, target: "draft-2020-12", unrepresentable: "any" })).filter(([key]) => key !== "$schema"),
-  );
-
-const COMPONENTS: Record<string, { schema: ZodType; io: "input" | "output" }> = {
-  HealthStatus: { schema: HealthStatusSchema, io: "output" },
-  Account: { schema: AccountSchema, io: "output" },
-  AccountInformation: { schema: AccountInformationSchema, io: "input" },
-  ApiError: { schema: ApiErrorSchema, io: "output" },
-  ResumeUpload: { schema: ResumeUploadSchema, io: "input" },
-  ResumeUploadReceipt: { schema: ResumeUploadReceiptSchema, io: "output" },
-  UploadedResume: { schema: UploadedResumeSchema, io: "output" },
-  UploadedResumeList: { schema: UploadedResumeListSchema, io: "output" },
-  Profile: { schema: ProfileSchema, io: "output" },
-  BasicProfile: { schema: BasicProfileSchema, io: "input" },
-  ProfileEntryCorrection: { schema: z.union(Object.values(PROFILE_ENTRY_CORRECTION_SCHEMAS)), io: "input" },
-  ProfileRecognitionReceipt: { schema: ProfileRecognitionReceiptSchema, io: "output" },
-  ModelChoiceState: { schema: ModelChoiceStateSchema, io: "output" },
-  ModelChoiceRequest: { schema: ModelChoiceRequestSchema, io: "input" },
-  AccountModelChoice: { schema: AccountModelChoiceSchema, io: "output" },
-  ModelKeyTicket: { schema: ModelKeyTicketSchema, io: "output" },
-  CurationProgressState: { schema: CurationProgressStateSchema, io: "output" },
-  CurationStatements: { schema: CurationStatementsSchema, io: "output" },
-  CuratedStatement: { schema: CuratedStatementSchema, io: "output" },
-  StatementReviewRequest: { schema: StatementReviewRequestSchema, io: "input" },
-};
-
-const ref = (name: string): JsonSchema => ({ $ref: `#/components/schemas/${name}` });
-
-const json = (description: string, schema: JsonSchema, headers?: Record<string, JsonSchema>): JsonSchema => ({
-  description,
-  ...(headers ? { headers } : {}),
-  content: { [JSON_TYPE]: { schema } },
-});
-
-type ErrorCode = ResumeRefusalCode | ModelChoiceErrorCode | CurationActionErrorCode | ProfileRecognitionErrorCode;
-
-// An error answer is the shared ApiError, narrowed to the codes that route can carry.
-const error = (description: string, codes: readonly ErrorCode[] = []): JsonSchema =>
-  json(
-    description,
-    codes.length === 0 ? ref("ApiError") : { allOf: [ref("ApiError"), { type: "object", properties: { code: { type: "string", enum: codes } }, required: ["code"] }] },
-  );
-
-const unauthorized = error("No valid Session bearer token");
-const notFound = error("The Account has no such record; another Account's id answers the same");
-const validationFailed = error("The body did not pass the shared schema; `issues` names each field");
-
-const body = (name: string): JsonSchema => ({ required: true, content: { [JSON_TYPE]: { schema: ref(name) } } });
 
 const idParameterOf = (description: string): JsonSchema => ({
   name: "id",
@@ -510,7 +430,7 @@ export const openApiDocument = (): OpenApiDocument => ({
   security: [{ [SESSION]: [] }],
   paths,
   components: {
-    schemas: Object.fromEntries(Object.entries(COMPONENTS).map(([name, { schema, io }]) => [name, jsonSchemaOf(schema, io)])),
+    schemas: componentSchemas(),
     securitySchemes: {
       [SESSION]: {
         type: "http",

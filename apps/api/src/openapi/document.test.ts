@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { openApiDocument, type JsonSchema } from "./document";
+import type { JsonSchema } from "./components";
+import { openApiDocument } from "./document";
 import { OPENAPI_FILE, renderedDocument } from "./generate";
 
 const document = openApiDocument();
