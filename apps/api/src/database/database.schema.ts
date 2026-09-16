@@ -113,8 +113,9 @@ interface ProfileRowColumns {
   id: Generated<string>;
   account_id: string;
   source_ingestion_id: string;
-  segment_id: string;
+  segment_id: string | null;
   created_at: Generated<Date>;
+  edited_at: ColumnType<Date | null, Date | null | undefined, Date>;
 }
 
 interface OrderedProfileRowColumns extends ProfileRowColumns {

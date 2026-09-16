@@ -2,6 +2,7 @@ import { Inject, Injectable } from "@nestjs/common";
 import { sql, type ExpressionBuilder } from "kysely";
 import type {
   BasicProfile,
+  ProfileCorrections,
   Certification,
   DraftBasicProfile,
   DraftCertification,
@@ -16,6 +17,7 @@ import type {
   IngestionSource,
   Language,
   Period,
+  ProfilePart,
   Project,
   Skill,
 } from "@helpmegethired/shared";
@@ -25,6 +27,7 @@ import type { BasicProfileRow, DatabaseSchema } from "../database/database.schem
 import type { SegmentContext } from "../ingestion/segment-processor";
 import { asJson } from "../ingestion/ingestion.mapper";
 import { toBasicProfile, toCertification, toEducation, toExperience, toLanguage, toProject, toSkill } from "./profile.mapper";
+import { flaggedEntryKey } from "./review-flags";
 
 export interface ProfileRows {
   basicProfile: BasicProfileRow | undefined;
@@ -34,7 +37,20 @@ export interface ProfileRows {
   skills: Skill[];
   languages: Language[];
   certifications: Certification[];
+  corrections: ProfileCorrections;
+  untouchedEntries: ReadonlySet<string>;
 }
+
+interface CorrectableRow {
+  id: Id;
+  edited_at: Date | null;
+}
+
+const correctedIdsOf = (rows: readonly CorrectableRow[]): Id[] => rows.filter((row) => row.edited_at !== null).map((row) => row.id);
+
+// The entries the Candidate has not decided on yet, named as a review flag names them.
+const untouchedKeysOf = <Row extends CorrectableRow>(part: ProfilePart, rows: readonly Row[], nameOf: (row: Row) => string): string[] =>
+  rows.filter((row) => row.edited_at === null).map((row) => flaggedEntryKey(part, nameOf(row)));
 
 export interface StoredBasicProfile extends BasicProfile {
   confirmedAt: Date | null;
@@ -75,17 +91,34 @@ export class ProfileRepository {
 
   async rowsOf(accountId: Id, ingestionId: Id): Promise<ProfileRows> {
     const inOrder = { account_id: accountId, source_ingestion_id: ingestionId };
+    const basicProfile = await this.database.selectFrom("basic_profiles").selectAll().where(byIngestion(inOrder)).executeTakeFirst();
+    const experiences = await this.database.selectFrom("experiences").selectAll().where(byIngestion(inOrder)).orderBy(ORDER).execute();
+    const education = await this.database.selectFrom("education").selectAll().where(byIngestion(inOrder)).orderBy(ORDER).execute();
+    const projects = await this.database.selectFrom("projects").selectAll().where(byIngestion(inOrder)).orderBy(ORDER).execute();
+    const skills = await this.database.selectFrom("skills").selectAll().where(byIngestion(inOrder)).orderBy(ORDER).execute();
+    const languages = await this.database.selectFrom("languages").selectAll().where(byIngestion(inOrder)).orderBy(ORDER).execute();
+    const certifications = await this.database.selectFrom("certifications").selectAll().where(byIngestion(inOrder)).orderBy(ORDER).execute();
 
     return {
-      basicProfile: await this.database.selectFrom("basic_profiles").selectAll().where(byIngestion(inOrder)).executeTakeFirst(),
-      experiences: (await this.database.selectFrom("experiences").selectAll().where(byIngestion(inOrder)).orderBy(ORDER).execute()).map(toExperience),
-      education: (await this.database.selectFrom("education").selectAll().where(byIngestion(inOrder)).orderBy(ORDER).execute()).map(toEducation),
-      projects: (await this.database.selectFrom("projects").selectAll().where(byIngestion(inOrder)).orderBy(ORDER).execute()).map(toProject),
-      skills: (await this.database.selectFrom("skills").selectAll().where(byIngestion(inOrder)).orderBy(ORDER).execute()).map(toSkill),
-      languages: (await this.database.selectFrom("languages").selectAll().where(byIngestion(inOrder)).orderBy(ORDER).execute()).map(toLanguage),
-      certifications: (await this.database.selectFrom("certifications").selectAll().where(byIngestion(inOrder)).orderBy(ORDER).execute()).map(
-        toCertification,
-      ),
+      basicProfile,
+      experiences: experiences.map(toExperience),
+      education: education.map(toEducation),
+      projects: projects.map(toProject),
+      skills: skills.map(toSkill),
+      languages: languages.map(toLanguage),
+      certifications: certifications.map(toCertification),
+      corrections: {
+        basicProfile: basicProfile?.edited_at != null,
+        entryIds: [experiences, education, projects, skills, languages, certifications].flatMap(correctedIdsOf),
+      },
+      untouchedEntries: new Set([
+        ...untouchedKeysOf("experience", experiences, (row) => row.role),
+        ...untouchedKeysOf("education", education, (row) => row.institution),
+        ...untouchedKeysOf("project", projects, (row) => row.name),
+        ...untouchedKeysOf("skill", skills, (row) => row.name),
+        ...untouchedKeysOf("language", languages, (row) => row.name),
+        ...untouchedKeysOf("certification", certifications, (row) => row.name),
+      ]),
     };
   }
 

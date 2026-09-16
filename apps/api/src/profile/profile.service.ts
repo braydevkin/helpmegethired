@@ -9,9 +9,9 @@ import { UploadedResumeRepository } from "../resumes/uploaded-resume.repository"
 import { ProfileNotFoundError } from "./profile-errors";
 import { ProfileRepository, type ProfileRows } from "./profile.repository";
 import { toBasicProfile } from "./profile.mapper";
-import { reviewFlagsOf } from "./review-flags";
+import { flagsStillOpen, reviewFlagsOf } from "./review-flags";
 
-const RESUME_SOURCE = "upload";
+export const RESUME_SOURCE = "upload";
 
 @Injectable()
 export class ProfileService {
@@ -46,7 +46,9 @@ export class ProfileService {
   private async builtProfile(accountId: Id, ingestion: Ingestion): Promise<Profile> {
     const rows = await this.profiles.rowsOf(accountId, ingestion.id);
     const confirmedAt = rows.basicProfile?.confirmed_at ?? null;
-    const flags = confirmedAt ? [] : reviewFlagsOf(await this.ingestions.segmentsOf(accountId, ingestion.id));
+    const flags = confirmedAt
+      ? []
+      : flagsStillOpen(reviewFlagsOf(await this.ingestions.segmentsOf(accountId, ingestion.id)), rows.untouchedEntries, rows.corrections);
 
     return {
       accountId,
@@ -56,6 +58,7 @@ export class ProfileService {
         this.clock.now(),
       ).years,
       reviewFlags: flags,
+      corrections: rows.corrections,
       source: await this.sourceOf(accountId, ingestion),
       confirmedAt: confirmedAt?.toISOString() ?? null,
     };
@@ -95,6 +98,7 @@ const emptyProfile = (accountId: Id): Profile => ({
   certifications: [],
   yearsOfExperience: 0,
   reviewFlags: [],
+  corrections: { basicProfile: false, entryIds: [] },
   source: null,
   confirmedAt: null,
 });

@@ -13,6 +13,7 @@ const profile = {
   languages: [],
   certifications: [],
   yearsOfExperience: 7,
+  corrections: { basicProfile: false, entryIds: [] },
   reviewFlags: [],
   source: null,
   confirmedAt: null,

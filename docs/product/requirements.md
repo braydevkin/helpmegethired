@@ -9,7 +9,7 @@ Derived from `arch/hgh.drawio`. When the diagram and this document disagree, thi
 | FR-01 | Account sign up and sign in with an email and a one-time code sent by email; no passwords. Sign up adds the Account information: name, last name, phone with country code, optional address. |
 | FR-02 | Upload a Resume as a PDF of at most 5 MB and 20 pages. The upload is refused with a reason the Candidate can act on when the file is not a PDF, is too large, has too many pages, is password-protected, is damaged, or is a scan without text. |
 | FR-03 | Removed: LinkedIn is not read (#104). The Profile is built from the Uploaded Resume alone. |
-| FR-04 | Build a candidate profile from the Uploaded Resume: basic profile, experiences, education, projects, skills, languages, certifications. |
+| FR-04 | Build a candidate profile from the Uploaded Resume: basic profile, experiences, education, projects, skills, languages, certifications. The Candidate corrects what the recognition got wrong before confirming it: any part corrected, an entry added, an entry removed, until the Profile is confirmed. |
 | FR-05 | Paste a job description. |
 | FR-06 | AI analysis of the job description compared with the profile, including the strengths and weaknesses for that role. Requires a completed Curation, and reads the Candidate's Statements, never the Profile (ADR-0024). |
 | FR-07 | AI recommendations for the resume (ATS level and resume rebuild). |

@@ -10,6 +10,7 @@ import { createCurationTables } from "./0007-create-curation-tables";
 import { createAccountModelChoices } from "./0008-create-account-model-choices";
 import { createModelKeyTickets } from "./0009-create-model-key-tickets";
 import { createEmbeddingAllowances } from "./0010-create-embedding-allowances";
+import { allowCandidateCorrections } from "./0011-allow-candidate-corrections";
 
 export const migrations: Record<string, Migration> = {
   "0001-enable-vector-and-create-accounts": enableVectorAndCreateAccounts,
@@ -22,4 +23,5 @@ export const migrations: Record<string, Migration> = {
   "0008-create-account-model-choices": createAccountModelChoices,
   "0009-create-model-key-tickets": createModelKeyTickets,
   "0010-create-embedding-allowances": createEmbeddingAllowances,
+  "0011-allow-candidate-corrections": allowCandidateCorrections,
 };

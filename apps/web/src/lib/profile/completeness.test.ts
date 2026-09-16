@@ -22,6 +22,7 @@ const complete: Profile = {
   languages: [{ id: id(), name: "English", level: "Native" }],
   certifications: [],
   yearsOfExperience: 7,
+  corrections: { basicProfile: false, entryIds: [] },
   reviewFlags: [],
   source: null,
   confirmedAt: null,
