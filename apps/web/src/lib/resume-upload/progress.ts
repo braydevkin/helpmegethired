@@ -92,33 +92,28 @@ const HEADER_ROWS = ["Headline", "Summary", "GitHub profile", "LinkedIn profile"
 interface RowRule {
   label: string;
   kind: string;
-  value: (count: number) => string;
 }
 
-const found = () => "Found";
-const counted = (noun: string) => (count: number) => `${count} ${noun}`;
+const FOUND = "Found";
 
 const ROW_RULES: readonly RowRule[] = [
-  ...HEADER_ROWS.map((label) => ({ label, kind: "header", value: found })),
-  { label: "Years of experience", kind: "experience", value: found },
-  { label: "Experience", kind: "experience", value: (count) => `${count} ${count === 1 ? "role" : "roles"}` },
-  { label: "Education", kind: "education", value: found },
-  { label: "Skills", kind: "skills", value: found },
-  { label: "Projects", kind: "project", value: counted("found") },
-  { label: "Certifications", kind: "certifications", value: found },
-  { label: "Languages", kind: "languages", value: found },
+  ...HEADER_ROWS.map((label) => ({ label, kind: "header" })),
+  { label: "Years of experience", kind: "experience" },
+  { label: "Experience", kind: "experience" },
+  { label: "Education", kind: "education" },
+  { label: "Skills", kind: "skills" },
+  { label: "Projects", kind: "project" },
+  { label: "Certifications", kind: "certifications" },
+  { label: "Languages", kind: "languages" },
 ];
 
-// One row per Profile part, its value shown once the Segment of that kind is saved.
+// One row per Profile part, ticked once the Segment of that kind is saved. Each part is one
+// Segment over the whole résumé, so the Progress says which parts are read, never how many entries.
 export function profileDataRowsOf(view: UploadView): ProfileDataRow[] {
   const kinds = view.phase === "tracked" ? (view.resume.progress?.segments.savedKinds ?? []) : [];
   const done = view.phase === "tracked" && view.resume.status === "done";
 
-  return ROW_RULES.map((rule) => {
-    const count = kinds.filter((kind) => kind === rule.kind).length;
-
-    return { label: rule.label, value: count > 0 || done ? rule.value(Math.max(count, 1)) : undefined };
-  });
+  return ROW_RULES.map((rule) => ({ label: rule.label, value: done || kinds.includes(rule.kind) ? FOUND : undefined }));
 }
 
 export const foundCountOf = (rows: readonly ProfileDataRow[]): { found: number; total: number } => ({
