@@ -13,6 +13,7 @@ import {
   ModelKeyTicketSchema,
   PROFILE_ENTRY_CORRECTION_SCHEMAS,
   ProfileListPartSchema,
+  ProfileRecognitionReceiptSchema,
   ProfileSchema,
   ResumeUploadReceiptSchema,
   ResumeUploadSchema,
@@ -22,6 +23,7 @@ import {
   UploadedResumeStatusSchema,
   type CurationActionErrorCode,
   type ModelChoiceErrorCode,
+  type ProfileRecognitionErrorCode,
   type ResumeRefusalCode,
 } from "@helpmegethired/shared";
 import { z, type ZodType } from "zod";
@@ -72,6 +74,7 @@ const COMPONENTS: Record<string, { schema: ZodType; io: "input" | "output" }> = 
   Profile: { schema: ProfileSchema, io: "output" },
   BasicProfile: { schema: BasicProfileSchema, io: "input" },
   ProfileEntryCorrection: { schema: z.union(Object.values(PROFILE_ENTRY_CORRECTION_SCHEMAS)), io: "input" },
+  ProfileRecognitionReceipt: { schema: ProfileRecognitionReceiptSchema, io: "output" },
   ModelChoiceState: { schema: ModelChoiceStateSchema, io: "output" },
   ModelChoiceRequest: { schema: ModelChoiceRequestSchema, io: "input" },
   AccountModelChoice: { schema: AccountModelChoiceSchema, io: "output" },
@@ -90,8 +93,10 @@ const json = (description: string, schema: JsonSchema, headers?: Record<string, 
   content: { [JSON_TYPE]: { schema } },
 });
 
+type ErrorCode = ResumeRefusalCode | ModelChoiceErrorCode | CurationActionErrorCode | ProfileRecognitionErrorCode;
+
 // An error answer is the shared ApiError, narrowed to the codes that route can carry.
-const error = (description: string, codes: readonly (ResumeRefusalCode | ModelChoiceErrorCode | CurationActionErrorCode)[] = []): JsonSchema =>
+const error = (description: string, codes: readonly ErrorCode[] = []): JsonSchema =>
   json(
     description,
     codes.length === 0 ? ref("ApiError") : { allOf: [ref("ApiError"), { type: "object", properties: { code: { type: "string", enum: codes } }, required: ["code"] }] },
@@ -325,6 +330,24 @@ const paths: OpenApiDocument["paths"] = {
         "200": json("The confirmed Profile", ref("Profile")),
         "401": unauthorized,
         "404": error("No Profile has been built for the Account yet"),
+      },
+    },
+  },
+  "/profile/recognition": {
+    post: {
+      tags: ["Profile"],
+      summary: "Read the résumé again with the Candidate's Model",
+      description:
+        "Starts a new Ingestion over the text stored from the Uploaded Resume behind the Profile, read by the Model on the Account's Model Key; the PDF itself is gone. The Uploaded Resume goes back to `processing`, so `GET /resumes/{id}` follows the progress. When it completes, the rows are replaced, the corrections and the confirmation go with them, and a current Curation is superseded; if it fails, the Profile stays as it was.",
+      operationId: "startProfileRecognition",
+      responses: {
+        "202": json("The Uploaded Resume being read again", ref("ProfileRecognitionReceipt")),
+        "401": unauthorized,
+        "404": error("`resume_text_missing` when no Profile has been built or its Uploaded Resume has no stored text", ["resume_text_missing"]),
+        "409": error(
+          "`model_key_missing` when the Account has no Model Key; `ingestion_active` while an upload or an Ingestion of the Account is in flight; `curation_active` while a Curation is queued or running",
+          ["model_key_missing", "ingestion_active", "curation_active"],
+        ),
       },
     },
   },

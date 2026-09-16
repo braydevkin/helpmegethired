@@ -40,6 +40,7 @@ describe("the OpenAPI document", () => {
         "GET /resumes/{id}",
         "GET /profile",
         "POST /profile/confirm",
+        "POST /profile/recognition",
         "PUT /profile/parts/basic-profile",
         "POST /profile/parts/{part}",
         "PUT /profile/parts/{part}/{id}",
@@ -111,6 +112,15 @@ describe("the OpenAPI document", () => {
     const conflict = document.paths["/resumes"]?.post?.responses["409"];
 
     expect(JSON.stringify(responseSchemaOf(conflict ?? {}))).toContain('"enum":["model_key_missing"]');
+  });
+
+  it("describes reading the résumé again, with the Uploaded Resume it answers and every refusal", () => {
+    const start = document.paths["/profile/recognition"]?.post;
+
+    expect(refsIn(responseSchemaOf(start?.responses["202"] ?? {}))).toEqual(["#/components/schemas/ProfileRecognitionReceipt"]);
+    expect(JSON.stringify(responseSchemaOf(start?.responses["404"] ?? {}))).toContain('"enum":["resume_text_missing"]');
+    expect(JSON.stringify(responseSchemaOf(start?.responses["409"] ?? {}))).toContain('"enum":["model_key_missing","ingestion_active","curation_active"]');
+    expect(document.components.schemas.ProfileRecognitionReceipt).toMatchObject({ type: "object", required: ["uploadedResumeId"] });
   });
 
   it("answers 409 only on the Curation actions, and names why a re-run is refused", () => {

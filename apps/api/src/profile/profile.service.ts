@@ -65,7 +65,7 @@ export class ProfileService {
   }
 
   private async sourceOf(accountId: Id, ingestion: Ingestion): Promise<ProfileSource> {
-    const resume = await this.resumes.findByIngestionId(accountId, ingestion.id);
+    const resume = await this.resumes.findReadBy(accountId, ingestion.id);
 
     return {
       kind: ingestion.source,
