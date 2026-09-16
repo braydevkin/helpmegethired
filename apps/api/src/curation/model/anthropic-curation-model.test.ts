@@ -2,7 +2,8 @@ import { AIMessage } from "@langchain/core/messages";
 import { describe, expect, it, vi } from "vitest";
 
 import { ModelKey } from "../../model-choice/model-key";
-import { AnthropicCurationModel, type RawStructuredAnswer, type StructuredCurationModel, type StructuredModelFactory } from "./anthropic-curation-model";
+import { AnthropicCurationModel, type StructuredModelFactory } from "./anthropic-curation-model";
+import type { RawStructuredAnswer, StructuredModel } from "./anthropic-structured-call";
 import type { CurationCall } from "./curation-model";
 import { CurationCallFailedError, ModelKeyRejectedError, ProviderRateLimitedError } from "./curation-model-errors";
 
@@ -28,7 +29,7 @@ const answerOf = (output: unknown, stopReason = "end_turn"): RawStructuredAnswer
 });
 
 function modelAnswering(outcome: () => Promise<RawStructuredAnswer>) {
-  const invoke = vi.fn<StructuredCurationModel["invoke"]>(outcome);
+  const invoke = vi.fn<StructuredModel["invoke"]>(outcome);
   const factory = vi.fn<StructuredModelFactory>(() => ({ invoke }));
 
   return { model: new AnthropicCurationModel(factory), factory, invoke };
