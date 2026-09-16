@@ -1,6 +1,9 @@
+import type { SegmentRecognition } from "@helpmegethired/shared";
+
 import { UploadedResumeRunRepository } from "../../extraction/uploaded-resume-run.repository";
-import { SegmentProcessor } from "../../ingestion/segment-processor";
+import { SegmentProcessor, type SegmentContext } from "../../ingestion/segment-processor";
 import { partitionLabelled, type SectionKind } from "../../parser";
+import { SegmentModelReader } from "../../recognition/segment-model-reader";
 import { UploadedResumeNotFoundError } from "../../resumes/resume-errors";
 import { cleanedLinesOf, type ResumeSegmentInput, type ResumeSegmentKind } from "./resume-segments";
 
@@ -15,13 +18,40 @@ export class ResumeTextMissingError extends Error {
   }
 }
 
-// The read Step every resume kind shares: the stored text, cleaned, sliced by the Segment's
-// ranges, with each labelled paragraph joined into one line.
-export abstract class ResumeSegmentProcessor<Recognized> extends SegmentProcessor<ResumeSegmentInput, ResumeSegmentContent, Recognized> {
-  abstract override readonly kind: ResumeSegmentKind;
+// What every resume kind shares. The read Step: the stored text, cleaned, sliced by the
+// Segment's ranges, with each labelled paragraph joined into one line. The recognize Step: the
+// rules read the kind's lines, the Candidate's Model reads the same lines when the Account holds
+// a Model Key, and the kind's rules verify the Model's reading into the rules' shape.
+export abstract class ResumeSegmentProcessor<Kind extends ResumeSegmentKind, Recognized> extends SegmentProcessor<
+  ResumeSegmentInput,
+  ResumeSegmentContent,
+  Recognized
+> {
+  abstract override readonly kind: Kind;
 
-  constructor(private readonly resumes: UploadedResumeRunRepository) {
+  constructor(
+    private readonly resumes: UploadedResumeRunRepository,
+    private readonly modelReader: SegmentModelReader,
+  ) {
     super();
+  }
+
+  // The lines the kind reads, the rules and the Model alike, so a paragraph that belongs to another
+  // kind is never offered to the Model as this kind's.
+  protected linesOf(content: ResumeSegmentContent): string[] {
+    return content.lines;
+  }
+
+  protected abstract recognizeByRules(lines: string[], context: SegmentContext): Promise<Recognized>;
+
+  protected abstract verify(lines: readonly string[], byRules: Recognized, byModel: SegmentRecognition<Kind>): Recognized;
+
+  async recognize(content: ResumeSegmentContent, context: SegmentContext): Promise<Recognized> {
+    const lines = this.linesOf(content);
+    const byRules = await this.recognizeByRules(lines, context);
+    const byModel = await this.modelReader.read({ accountId: context.accountId, kind: this.kind, lines });
+
+    return byModel === null ? byRules : this.verify(lines, byRules, byModel);
   }
 
   async read(input: ResumeSegmentInput): Promise<ResumeSegmentContent> {
