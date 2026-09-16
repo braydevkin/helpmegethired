@@ -12,7 +12,7 @@ import { formatSize } from "../../../../lib/resume-upload/format";
 import { failureLeadOf, foundCountOf, percentageOf, profileDataRowsOf, stagesOf, type UploadView } from "../../../../lib/resume-upload/progress";
 import { RESUME_MAX_SIZE_MB, rejectionOf } from "../../../../lib/resume-upload/rejection";
 import { sha256Of } from "../../../../lib/resume-upload/sha256";
-import { completeResumeAction, createResumeAction, readResumeAction } from "./actions";
+import { completeResumeAction, createResumeAction, readResumeAction, type ResumeActionFailure } from "./actions";
 import { ModelChoiceBeforeUpload } from "./model-choice-before-upload";
 
 export interface ResumeUploadFlowProps {
@@ -65,6 +65,18 @@ function useResumeUploadFlow(initialResume: UploadedResume | null, initialModelK
 
   const fail = useCallback((message: string) => setState({ phase: "idle", message }), []);
 
+  // The key can be revoked in another tab after this page loaded.
+  const refused = useCallback(
+    ({ code, message }: ResumeActionFailure) => {
+      if (code === "model_key_missing") {
+        setModelKeyStored(false);
+      }
+
+      fail(message);
+    },
+    [fail],
+  );
+
   const upload = useCallback(
     async (file: File) => {
       const rejection = rejectionOf(file);
@@ -87,12 +99,7 @@ function useResumeUploadFlow(initialResume: UploadedResume | null, initialModelK
       }
 
       if (!created.ok) {
-        // The key can be revoked in another tab after this page loaded.
-        if ("code" in created && created.code === "model_key_missing") {
-          setModelKeyStored(false);
-        }
-
-        fail(created.message);
+        refused(created);
 
         return;
       }
@@ -125,7 +132,7 @@ function useResumeUploadFlow(initialResume: UploadedResume | null, initialModelK
         setState(completed.ok ? tracked(completed.value) : { phase: "idle", message: completed.message });
       }
     },
-    [fail],
+    [fail, refused],
   );
 
   const cancel = useCallback(() => {
