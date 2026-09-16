@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { ExperienceSchema } from "./experience.js";
 import { IdSchema, listOf } from "./primitives.js";
+import type { Period } from "./profile-draft.js";
 import { CertificationSchema, EducationSchema, LanguageSchema, SkillSchema } from "./profile-parts.js";
 import { ProjectSchema } from "./project.js";
 
@@ -9,12 +10,18 @@ import { ProjectSchema } from "./project.js";
 export const ProfileListPartSchema = z.enum(["experiences", "education", "projects", "skills", "languages", "certifications"]);
 export type ProfileListPart = z.infer<typeof ProfileListPartSchema>;
 
+// A résumé is kept as it was written, reversed dates included, so only a period the Candidate
+// writes by hand has to end after it starts. Months as YYYY-MM compare as text.
+const endsAfterItStarts = ({ period }: { period: Period | null }): boolean => period?.end == null || period.end >= period.start;
+
+const PERIOD_ORDER = { path: ["period", "end"], message: "The month it ended comes before the month it started." };
+
 // A correction carries the entry without its id: the path names it for a replacement, and a
 // new entry is given one when it is written.
-export const ExperienceCorrectionSchema = ExperienceSchema.omit({ id: true });
+export const ExperienceCorrectionSchema = ExperienceSchema.omit({ id: true }).refine(endsAfterItStarts, PERIOD_ORDER);
 export type ExperienceCorrection = z.infer<typeof ExperienceCorrectionSchema>;
 
-export const EducationCorrectionSchema = EducationSchema.omit({ id: true });
+export const EducationCorrectionSchema = EducationSchema.omit({ id: true }).refine(endsAfterItStarts, PERIOD_ORDER);
 export type EducationCorrection = z.infer<typeof EducationCorrectionSchema>;
 
 export const ProjectCorrectionSchema = ProjectSchema.omit({ id: true });
