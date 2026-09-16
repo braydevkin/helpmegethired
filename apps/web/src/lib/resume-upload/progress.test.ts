@@ -1,7 +1,7 @@
 import type { UploadedResume } from "@helpmegethired/shared";
 import { describe, expect, it } from "vitest";
 
-import { failureLeadOf, foundCountOf, percentageOf, profileDataRowsOf, stagesOf, type UploadView } from "./progress";
+import { failureLeadOf, foundCountOf, MODEL_KEY_MISSING_MESSAGE, percentageOf, profileDataRowsOf, refusalMessageOf, stagesOf, type UploadView } from "./progress";
 
 const resume = (overrides: Partial<UploadedResume>): UploadedResume => ({
   id: "c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f",
@@ -106,5 +106,13 @@ describe("failureLeadOf", () => {
     expect(failureLeadOf("scanned_pdf")).toContain("scan or an image");
     expect(failureLeadOf("too_many_pages")).toContain("more than 20 pages");
     expect(failureLeadOf(null)).toContain("after several tries");
+  });
+});
+
+describe("refusalMessageOf", () => {
+  it("leads a refusal for a missing Model Key to Choose your AI and gives every other code its lead", () => {
+    expect(refusalMessageOf("model_key_missing")).toBe(MODEL_KEY_MISSING_MESSAGE);
+    expect(MODEL_KEY_MISSING_MESSAGE).toContain("Choose your AI");
+    expect(refusalMessageOf("ingestion_active")).toBe(failureLeadOf("ingestion_active"));
   });
 });

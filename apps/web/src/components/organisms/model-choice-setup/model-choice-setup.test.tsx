@@ -14,13 +14,14 @@ const stored: AccountModelChoice = { provider: "anthropic", modelId: "claude-son
 const revoked: AccountModelChoice = { ...stored, keyStored: false };
 const links = { keyConsole: "https://console.provider.test/keys", terms: "https://provider.test/terms" };
 const KEY = "sk-ant-api03-a-key-nobody-should-see-again";
+const next = { href: "/journey/analysis", label: "Continue to the analysis", hint: "The analysis runs on its own, so you can close the tab once it starts." };
 const NO_FIGURES = /[$€£]|\bcosts?\b|\bprice|\bspeed|\bquality|\bdepth|~\s*\d|\d+\s*(?:s|secs?|seconds|mins?|minutes)\b/i;
 
-function renderSetup(initialChoice: AccountModelChoice | null = null) {
+function renderSetup(initialChoice: AccountModelChoice | null = null, nextAction = next) {
   const save = vi.fn<(key: string) => Promise<ModelChoiceResult>>();
   const revoke = vi.fn<() => Promise<ModelChoiceResult>>();
 
-  render(<ModelChoiceSetup entry={entry} initialChoice={initialChoice} links={links} analysisHref="/journey/analysis" save={save} revoke={revoke} />);
+  render(<ModelChoiceSetup entry={entry} initialChoice={initialChoice} links={links} next={nextAction} save={save} revoke={revoke} />);
 
   return { save, revoke };
 }
@@ -118,6 +119,28 @@ describe("ModelChoiceSetup", () => {
 
     expect(await screen.findByRole("alert")).toHaveTextContent("We couldn't revoke your key.");
     expect(screen.getByText("Stored · billed by Anthropic")).toBeInTheDocument();
+  });
+
+  it("leads a saved key to the step it was given, with that step's hint", async () => {
+    const { save } = renderSetup(null, { href: "/journey/resume", label: "Continue to your résumé", hint: "Upload your résumé next." });
+
+    expect(screen.getByRole("button", { name: "Continue to your résumé" })).toBeDisabled();
+
+    save.mockResolvedValue({ ok: true, choice: stored });
+    submitKey(KEY);
+
+    const start = await screen.findByRole("link", { name: "Continue to your résumé" });
+
+    expect(start).toHaveAttribute("href", "/journey/resume");
+    expect(start).toHaveAccessibleDescription("Upload your résumé next.");
+  });
+
+  it("says before the key field that the chosen model reads the résumé under the Candidate's own agreement", () => {
+    renderSetup();
+
+    const sentence = screen.getByText(/its text is read by the model you choose here, under your own agreement with Anthropic/);
+
+    expect(sentence.compareDocumentPosition(keyField()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it("says who bills the Candidate and links to the provider's key console and terms", () => {

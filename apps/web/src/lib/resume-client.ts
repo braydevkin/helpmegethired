@@ -1,10 +1,10 @@
 import {
-  ResumeUploadErrorCodeSchema,
+  ResumeRefusalCodeSchema,
   ResumeUploadReceiptSchema,
   UploadedResumeListSchema,
   UploadedResumeSchema,
+  type ResumeRefusalCode,
   type ResumeUpload,
-  type ResumeUploadErrorCode,
   type ResumeUploadReceipt,
   type UploadedResume,
 } from "@helpmegethired/shared";
@@ -15,7 +15,7 @@ import { apiErrorCodeOf, jsonBodyOf } from "./api-response";
 // A refusal the API explains with one of the shared codes, such as another Ingestion in flight.
 export class ResumeRefusedError extends Error {
   constructor(
-    readonly code: ResumeUploadErrorCode | undefined,
+    readonly code: ResumeRefusalCode | undefined,
     readonly status: number,
   ) {
     super(`The API refused the request with ${status}${code ? ` (${code})` : ""}`);
@@ -74,7 +74,7 @@ export class ResumeClient {
   }
 
   private bodyOf(response: Response): Promise<unknown> {
-    return jsonBodyOf(response, (body) => new ResumeRefusedError(apiErrorCodeOf(body, ResumeUploadErrorCodeSchema), response.status));
+    return jsonBodyOf(response, (body) => new ResumeRefusedError(apiErrorCodeOf(body, ResumeRefusalCodeSchema), response.status));
   }
 }
 

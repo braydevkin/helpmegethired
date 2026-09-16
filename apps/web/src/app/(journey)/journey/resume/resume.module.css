@@ -1,0 +1,15 @@
+.gate {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.gate > :first-child {
+  margin-bottom: 0;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
