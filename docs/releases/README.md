@@ -8,6 +8,6 @@ Use [template.md](template.md). Name the file after the tag: `vX.Y.Z.md`. Write 
 
 | Version | Date | Type | Summary |
 | --- | --- | --- | --- |
-| [v0.3.0](v0.3.0.md) | 2026-09-11 | Release | Profile Curation turns a confirmed Profile into Statements the Candidate reviews, on their own model key. |
+| [v0.3.0](v0.3.0.md) | 2026-09-16 | Release | The Candidate's own model reads the Resume into a Profile they correct, and Profile Curation turns the confirmed Profile into Statements they review. |
 | [v0.2.0](v0.2.0.md) | 2026-09-09 | Release | Passwordless Account, Resume upload and extraction, and the Profile parsed from a Resume. |
 | [v0.1.0](v0.1.0.md) | 2026-09-02 | Release | Foundation of the platform, Account sign up and sign in, and the profile ingestion design. |
