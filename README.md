@@ -16,7 +16,7 @@ AI is a tool here, not a replacement for thinking. Every AI-assisted step in the
 
 A candidate walks through a single, sequential journey:
 
-1. **Sign up**, build a profile from an uploaded resume PDF, and confirm it.
+1. **Sign up**, choose the model and store your own model key, build a profile from an uploaded resume PDF, and confirm it.
 2. **Profile curation** reads the confirmed profile once, on the candidate's own model key, into statements that each show the evidence behind them.
 3. **Paste a job description**, which is analysed against those statements, including the strengths and weaknesses for that role.
 4. **ATS scoring** rates the resume from 0 to 10 for that specific job description.

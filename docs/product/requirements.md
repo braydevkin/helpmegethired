@@ -77,7 +77,7 @@ These constraints are product decisions and must be honoured by any implementati
 
 | ID | Constraint |
 | --- | --- |
-| TC-01 | Reading files: the Uploaded Resume is a PDF whose text is extracted once and kept. In this phase the Profile is recognised from that text by rules with a Confidence per field. LLM extraction is a later step that reads the same stored text, never the PDF again. |
+| TC-01 | Reading files: the Uploaded Resume is a PDF whose text is extracted once and kept. The Candidate's Model reads that stored text and rules verify the reading, grounding every value in the text with a Confidence per field. Reading the résumé again reads the same stored text, never the PDF again. |
 | TC-02 | Removed: LinkedIn is not read (#104). |
 | TC-03 | Profile building runs **by segment** through a queue: each segment is read, recognised, and saved independently. |
 | TC-04 | Profile building is **resumable**: if the process fails, it resumes where it left off. Percentage and progress are visible to the user. |
