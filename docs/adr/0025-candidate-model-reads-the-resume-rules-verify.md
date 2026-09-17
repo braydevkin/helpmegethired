@@ -24,7 +24,7 @@ The PDF is deleted once its text is stored, so the stored text is the only thing
 - **One Segment per Profile part, each reading the whole résumé.** The seven parts are header, experience, education, project, skills, languages and certifications. Each is one Segment of the Ingestion's queue, so recognition stays resumable per Segment (TC-03, TC-04). Each call sends the whole cleaned text, capped at 30,000 characters and cut at a line boundary, with the truncation known.
 - **Every value comes with its quote.** The Model answers the part's shared schema (`SEGMENT_RECOGNITION_SCHEMAS` in `packages/shared`), where every value carries the verbatim text it was read from. The answer is parsed like every model response in `docs/security.md`, and one that does not validate is a failed call.
 - **The rules verify, in pure functions.**
-  - A value is kept only when its quote is in the text, and a text value must be said by its own quote.
+  - A value is kept only when its quote is in the text, compared blind to case and whitespace but not to accents. A text value must also be said by its own quote, compared blind to case, accents and punctuation.
   - When both readings agree, the Confidence is `high`.
   - When only the Model read a value, it is `high` if a rule confirms it (a period, a year, a URL, a known term) and `medium` otherwise.
   - When the readings disagree, the Confidence is `low`, which flags the field for review. The rules' period, year and URL are kept, with the Model's text.
@@ -51,11 +51,14 @@ The PDF is deleted once its text is stored, so the stored text is the only thing
 - Negative: the whole Resume text reaches the Candidate's Provider at the upload, under the Candidate's own agreement with it. That includes the header lines with the name, e-mail and phone, even though they are never saved to the Profile.
 - Negative: one Ingestion is seven model calls over the whole text, on the Candidate's bill.
 - Negative: an entry written past the 30,000th character is left out, because the Model decides which entries exist.
+- Negative: a quote must keep the résumé's accents. A value whose quote the Model wrote without an accent, or with a different one, is discarded, which weighs on résumés written in Portuguese, Spanish or French.
 - Negative: an Ingestion does not pause on a Provider rate limit or a refused key. Each spends an attempt, and a refused key fails the build.
 - Negative: the recognition prompt version (`recognition/2`) is a constant in the code and is not recorded on the Profile rows it produced.
 - Follow-ups:
   - Pause an Ingestion on a rate limit or a refused Model Key, as a Curation pauses with `resume_after`.
   - Check the Model Key again at `POST /resumes/:id/complete`.
+  - Record the recognition prompt version on the Segments it read, so a change in the Profiles built can be traced to the prompt behind it.
+  - Measure how many values are discarded for an accent in their quote on accented résumés, before deciding whether grounding should ignore accents too.
   - Remove `linkedin` from `IngestionSourceSchema`.
   - The rules alone still misread labelled technology groups (#181). That now reaches only a Profile built before this release or by the development stand-in.
   - `docs/product/requirements.md` TC-01 describes this decision, and `docs/architecture.md`, "Recognition verified by the rules", describes how it is built.
