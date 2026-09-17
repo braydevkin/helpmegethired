@@ -9,7 +9,8 @@ import { instructionsFor } from "../curation-prompts";
 import type { CurationCall } from "./curation-model";
 import { CurationCallFailedError, ModelKeyRejectedError, ProviderRateLimitedError } from "./curation-model-errors";
 import type { CurationPrompt, CurationSource } from "./curation-prompt";
-import { FAKE_RETRY_AFTER_SECONDS, FakeCurationModel } from "./fake-curation-model";
+import { FakeCurationModel } from "./fake-curation-model";
+import { FAKE_RETRY_AFTER_SECONDS } from "./fake-key-script";
 
 const experienceSource: CurationSource = {
   kind: "experience",

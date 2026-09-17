@@ -1,5 +1,6 @@
 import { expect, test, type APIRequest, type Locator, type Page } from "@playwright/test";
 
+import { storeModelKey } from "./helpers/curation-api.js";
 import { apiAs, SETTLE_TIMEOUT_MS, uploadCorpusResume } from "./helpers/resume-api.js";
 import { signUpAndReadSessionToken } from "./helpers/sign-in.js";
 
@@ -9,7 +10,10 @@ const MAX_TAB_STOPS = 60;
 async function candidateReviewingTheProfile(page: Page, request: APIRequest): Promise<void> {
   const { token } = await signUpAndReadSessionToken(page);
 
-  await uploadCorpusResume(await apiAs(request, token), RESUME);
+  const api = await apiAs(request, token);
+
+  await storeModelKey(api);
+  await uploadCorpusResume(api, RESUME);
   await page.goto("/journey/profile");
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Ada Lovelace");
 }

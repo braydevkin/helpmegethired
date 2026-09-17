@@ -20,6 +20,7 @@ import { SessionRepository } from "../auth/session.repository";
 import { hashSessionToken } from "../auth/session-token";
 import { DATABASE, type Database } from "../database/database";
 import { IngestionService } from "../ingestion/ingestion.service";
+import { ModelChoiceService } from "../model-choice/model-choice.service";
 import { PROFILE_INGESTION_QUEUE, QUEUE_PREFIX, RESUME_EXTRACTION_QUEUE } from "../queue/queues";
 import { EXTRACTION_JOB_NAME } from "./bullmq-resume-extraction.queue";
 
@@ -30,6 +31,7 @@ describe("resume endpoints", () => {
   let baseUrl: string;
   let accounts: AccountRepository;
   let sessions: SessionRepository;
+  let modelChoices: ModelChoiceService;
   let extractionQueue: Queue;
 
   const request = (method: string, path: string, token?: string, body?: unknown, headers: Record<string, string> = {}) =>
@@ -43,7 +45,7 @@ describe("resume endpoints", () => {
       body: body === undefined ? undefined : JSON.stringify(body),
     });
 
-  const openSession = async (): Promise<{ accountId: string; token: string }> => {
+  const openSessionWithoutModelKey = async (): Promise<{ accountId: string; token: string }> => {
     const account = await accounts.create({ email: `${randomUUID()}@candidate.example` });
     const token = randomUUID();
 
@@ -54,6 +56,14 @@ describe("resume endpoints", () => {
     });
 
     return { accountId: account.id, token };
+  };
+
+  const openSession = async (): Promise<{ accountId: string; token: string }> => {
+    const session = await openSessionWithoutModelKey();
+
+    await modelChoices.save(session.accountId, { provider: "anthropic", modelId: "claude-sonnet-5", key: `sk-ant-api03-candidate-${randomUUID()}` });
+
+    return session;
   };
 
   const uploadOf = (bytes: Buffer, fileName = "ada-lovelace.pdf") => ({
@@ -98,6 +108,7 @@ describe("resume endpoints", () => {
     baseUrl = await app.getUrl();
     accounts = app.get(AccountRepository);
     sessions = app.get(SessionRepository);
+    modelChoices = app.get(ModelChoiceService);
     extractionQueue = app.get<Queue>(RESUME_EXTRACTION_QUEUE);
   });
 
@@ -170,6 +181,29 @@ describe("resume endpoints", () => {
 
     it("answers 401 without a Session", async () => {
       expect((await request("POST", "/resumes", undefined, uploadOf(pdfBytes("x")))).status).toBe(401);
+    });
+
+    it("answers 409 model_key_missing and reserves nothing while the Account has no usable Model Key", async () => {
+      const { accountId, token } = await openSessionWithoutModelKey();
+      const database = app.get<Database>(DATABASE);
+
+      await modelChoices.save(accountId, { provider: "anthropic", modelId: "claude-sonnet-5", key: `sk-ant-api03-candidate-${randomUUID()}` });
+      await modelChoices.revokeKey(accountId);
+
+      const response = await request("POST", "/resumes", token, uploadOf(pdfBytes(randomUUID())));
+
+      expect(response.status).toBe(409);
+      expect(ApiErrorSchema.parse(await response.json())).toMatchObject({ statusCode: 409, error: "Conflict", code: "model_key_missing" });
+      expect(await database.selectFrom("uploaded_resumes").select("id").where("account_id", "=", accountId).execute()).toEqual([]);
+    });
+
+    it("answers 409 model_key_missing to an Account that never chose a Model", async () => {
+      const { token } = await openSessionWithoutModelKey();
+
+      const response = await request("POST", "/resumes", token, uploadOf(pdfBytes(randomUUID())));
+
+      expect(response.status).toBe(409);
+      expect(ApiErrorSchema.parse(await response.json()).code).toBe("model_key_missing");
     });
   });
 

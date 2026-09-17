@@ -1,0 +1,43 @@
+.card {
+  padding: var(--card-padding);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.title {
+  font-size: var(--text-stage-title);
+  line-height: var(--leading-entry-title);
+  font-weight: 800;
+  color: var(--color-ink);
+}
+
+.title:focus {
+  outline: none;
+}
+
+.body,
+.consequences {
+  margin-top: 6px;
+  font-size: var(--text-entry-detail);
+  line-height: var(--leading-entry-detail);
+  color: var(--color-text-secondary);
+}
+
+.consequences {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-left: 1.2em;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.failure {
+  margin: 12px 0 0;
+}

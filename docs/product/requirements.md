@@ -25,9 +25,9 @@ The candidate journey is strictly ordered. Each step becomes available only when
 
 ```
 Sign Up / Sign In
-  └─ Upload Resume PDF
-      └─ Confirm Profile
-          └─ Choose the Model and supply the Model Key
+  └─ Choose the Model and supply the Model Key
+      └─ Upload Resume PDF
+          └─ Confirm Profile
               └─ Profile Curation
                   └─ Profile analysis with the evidence behind it
                       └─ Paste Job Description
@@ -38,6 +38,7 @@ Sign Up / Sign In
                                           └─ Preparation summary with all success rates
 ```
 
+- The Model Key comes before the upload because the Candidate's own Model reads the Resume; an upload is refused while no usable key is stored.
 - Profile Curation starts once the Profile is confirmed and a Model Key is stored, whichever comes last (ADR-0024).
 - Strengths and weaknesses are not a Profile-level step. A weakness is only a fact when something specific is missing for something specific, so they are produced per Job Description by the layer that holds the target.
 

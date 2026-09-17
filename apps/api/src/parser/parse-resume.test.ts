@@ -1,7 +1,7 @@
 import { ProfileDraftSchema } from "@helpmegethired/shared";
 import { describe, expect, it } from "vitest";
 
-import { PARSER_VERSION, parseResume } from "./parse-resume";
+import { PARSER_VERSION, headerOf, parseResume } from "./parse-resume";
 
 const english = [
   "Ada Lovelace",
@@ -52,6 +52,15 @@ describe("parseResume", () => {
     expect(parsed.sections.map((section) => section.kind)).toEqual(["contact", "summary", "experience"]);
     expect(parsed.contact.name?.value).toBe("Ada Lovelace");
     expect(parsed.draft.basicProfile.headline?.value).toBe("Backend engineer");
+  });
+
+  it("reads the header from the top of the resume and its summaries, never from a Project's link below them", () => {
+    const lines = [...english.split("\n"), "", "PROJECTS", "Difference Engine — github.com/ada-lovelace/difference-engine"];
+    const header = headerOf(lines);
+
+    expect(header.contact.name?.value).toBe("Ada Lovelace");
+    expect(header.basicProfile).toEqual({ ...parseResume(english).draft.basicProfile, githubUrl: null });
+    expect(parseResume(lines.join("\n")).draft.basicProfile.githubUrl).not.toBeNull();
   });
 
   it("answers an empty draft for empty text", () => {

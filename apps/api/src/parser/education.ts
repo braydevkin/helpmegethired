@@ -40,7 +40,7 @@ const startsLowercase = (line: string): boolean => /^\p{Ll}/u.test(line.trim());
 // a grade or an exam written in capitals, as "GPA 3.8", is neither.
 const isInstitutionAcronym = (word: string): boolean => ACRONYM.test(word) && !SCORE_ACRONYMS.has(word);
 
-const readsAsInstitution = (part: string): boolean =>
+export const readsAsInstitution = (part: string): boolean =>
   wordsOf(part).some((word) => institutionWords.has(normalise(word)) || isInstitutionAcronym(word));
 
 // An education heading wraps rather than describes: a following line that starts lowercase,

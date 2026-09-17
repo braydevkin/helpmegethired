@@ -15,6 +15,7 @@ import { pollUntil, type PollingPlan } from "../common/poll-until";
 import { lockAccount } from "../database/account-lock";
 import { TransactionRunner } from "../database/transaction-runner";
 import { IngestionRepository } from "../ingestion/ingestion.repository";
+import { ModelChoiceService } from "../model-choice/model-choice.service";
 import { ObjectStorage } from "../storage/object-storage";
 import { ResumeExtractionQueue } from "./resume-extraction-queue";
 import { UploadIncompleteError, UploadInFlightError, UploadedResumeNotFoundError } from "./resume-errors";
@@ -43,9 +44,14 @@ export class UploadedResumeService {
     private readonly ingestions: IngestionRepository,
     private readonly storage: ObjectStorage,
     private readonly extraction: ResumeExtractionQueue,
+    private readonly modelChoices: ModelChoiceService,
   ) {}
 
+  // Every Segment of the Resume is read by the Candidate's own Model, so an Account with no usable
+  // Model Key is refused before anything is written.
   async requestUpload(accountId: Id, upload: ResumeUpload): Promise<UploadRequestOutcome> {
+    await this.modelChoices.usableModelKey(accountId);
+
     const existing = await this.repository.findLiveBySha256(accountId, upload.sha256);
 
     if (existing && existing.status !== "pending") {

@@ -45,7 +45,7 @@ export async function completeIdentity(page: Page, name = "Ada") {
   await page.getByRole("button", { name: "Create my account" }).click();
   await expect(page.getByRole("heading", { level: 1 })).toHaveText(`You're in, ${name}`);
   await page.getByRole("link", { name: "Go to my dashboard" }).click();
-  await expect(page).toHaveURL(/\/journey$/);
+  await expect(page).toHaveURL(/\/journey\/ai$/);
 }
 
 // Signs a new Candidate up through the web app and answers the Session token it keeps in

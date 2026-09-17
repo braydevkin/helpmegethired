@@ -38,6 +38,16 @@ describe("createResumeAction", () => {
 
     expect(await createResumeAction(upload)).toEqual({ ok: false, message: "Your session has expired. Sign in again to continue." });
   });
+
+  it("keeps the code of a refusal for a missing Model Key, with copy that leads to Choose your AI", async () => {
+    vi.mocked(resumeClient.requestUpload).mockRejectedValue(new ResumeRefusedError("model_key_missing", 409));
+
+    expect(await createResumeAction(upload)).toEqual({
+      ok: false,
+      message: "Choose your AI and save your key before you upload: it is what reads your résumé.",
+      code: "model_key_missing",
+    });
+  });
 });
 
 describe("completeResumeAction", () => {
@@ -47,6 +57,7 @@ describe("completeResumeAction", () => {
     expect(await completeResumeAction(id)).toEqual({
       ok: false,
       message: "Your previous résumé is still being read. Wait for it to finish, then try again.",
+      code: "ingestion_active",
     });
   });
 

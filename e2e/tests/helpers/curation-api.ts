@@ -16,6 +16,10 @@ export async function storeModelKey(api: APIRequestContext, key: string = DUMMY_
   expect(saved.ok()).toBe(true);
 }
 
+export async function revokeModelKey(api: APIRequestContext): Promise<void> {
+  expect((await api.delete("/account/model/key")).ok()).toBe(true);
+}
+
 export async function confirmProfile(api: APIRequestContext): Promise<void> {
   expect((await api.post("/profile/confirm")).ok()).toBe(true);
 }

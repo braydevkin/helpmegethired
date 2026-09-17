@@ -1,32 +1,8 @@
-import {
-  AccountInformationSchema,
-  BasicProfileSchema,
-  AccountModelChoiceSchema,
-  AccountSchema,
-  ApiErrorSchema,
-  CuratedStatementSchema,
-  CurationProgressStateSchema,
-  CurationStatementsSchema,
-  HealthStatusSchema,
-  ModelChoiceRequestSchema,
-  ModelChoiceStateSchema,
-  ModelKeyTicketSchema,
-  PROFILE_ENTRY_CORRECTION_SCHEMAS,
-  ProfileListPartSchema,
-  ProfileSchema,
-  ResumeUploadReceiptSchema,
-  ResumeUploadSchema,
-  StatementReviewRequestSchema,
-  UploadedResumeListSchema,
-  UploadedResumeSchema,
-  UploadedResumeStatusSchema,
-  type CurationActionErrorCode,
-  type ModelChoiceErrorCode,
-  type ResumeUploadErrorCode,
-} from "@helpmegethired/shared";
-import { z, type ZodType } from "zod";
+import { ProfileListPartSchema, UploadedResumeStatusSchema } from "@helpmegethired/shared";
+import { z } from "zod";
 
-export type JsonSchema = Record<string, unknown>;
+import { componentSchemas, jsonSchemaOf, ref, type JsonSchema } from "./components";
+import { body, error, json, notFound, unauthorized, validationFailed } from "./responses";
 
 export interface OpenApiDocument {
   openapi: "3.1.0";
@@ -51,57 +27,6 @@ interface Operation {
 
 const SESSION = "session";
 const MODEL_KEY_TICKET = "modelKeyTicket";
-const JSON_TYPE = "application/json";
-
-// Every schema is the shared Zod one turned into JSON Schema: request bodies as the input
-// side (before the parse), answers as the output side, so nothing is described twice.
-const jsonSchemaOf = (schema: ZodType, io: "input" | "output"): JsonSchema =>
-  Object.fromEntries(
-    Object.entries(z.toJSONSchema(schema, { io, target: "draft-2020-12", unrepresentable: "any" })).filter(([key]) => key !== "$schema"),
-  );
-
-const COMPONENTS: Record<string, { schema: ZodType; io: "input" | "output" }> = {
-  HealthStatus: { schema: HealthStatusSchema, io: "output" },
-  Account: { schema: AccountSchema, io: "output" },
-  AccountInformation: { schema: AccountInformationSchema, io: "input" },
-  ApiError: { schema: ApiErrorSchema, io: "output" },
-  ResumeUpload: { schema: ResumeUploadSchema, io: "input" },
-  ResumeUploadReceipt: { schema: ResumeUploadReceiptSchema, io: "output" },
-  UploadedResume: { schema: UploadedResumeSchema, io: "output" },
-  UploadedResumeList: { schema: UploadedResumeListSchema, io: "output" },
-  Profile: { schema: ProfileSchema, io: "output" },
-  BasicProfile: { schema: BasicProfileSchema, io: "input" },
-  ProfileEntryCorrection: { schema: z.union(Object.values(PROFILE_ENTRY_CORRECTION_SCHEMAS)), io: "input" },
-  ModelChoiceState: { schema: ModelChoiceStateSchema, io: "output" },
-  ModelChoiceRequest: { schema: ModelChoiceRequestSchema, io: "input" },
-  AccountModelChoice: { schema: AccountModelChoiceSchema, io: "output" },
-  ModelKeyTicket: { schema: ModelKeyTicketSchema, io: "output" },
-  CurationProgressState: { schema: CurationProgressStateSchema, io: "output" },
-  CurationStatements: { schema: CurationStatementsSchema, io: "output" },
-  CuratedStatement: { schema: CuratedStatementSchema, io: "output" },
-  StatementReviewRequest: { schema: StatementReviewRequestSchema, io: "input" },
-};
-
-const ref = (name: string): JsonSchema => ({ $ref: `#/components/schemas/${name}` });
-
-const json = (description: string, schema: JsonSchema, headers?: Record<string, JsonSchema>): JsonSchema => ({
-  description,
-  ...(headers ? { headers } : {}),
-  content: { [JSON_TYPE]: { schema } },
-});
-
-// An error answer is the shared ApiError, narrowed to the codes that route can carry.
-const error = (description: string, codes: readonly (ResumeUploadErrorCode | ModelChoiceErrorCode | CurationActionErrorCode)[] = []): JsonSchema =>
-  json(
-    description,
-    codes.length === 0 ? ref("ApiError") : { allOf: [ref("ApiError"), { type: "object", properties: { code: { type: "string", enum: codes } }, required: ["code"] }] },
-  );
-
-const unauthorized = error("No valid Session bearer token");
-const notFound = error("The Account has no such record; another Account's id answers the same");
-const validationFailed = error("The body did not pass the shared schema; `issues` names each field");
-
-const body = (name: string): JsonSchema => ({ required: true, content: { [JSON_TYPE]: { schema: ref(name) } } });
 
 const idParameterOf = (description: string): JsonSchema => ({
   name: "id",
@@ -236,7 +161,7 @@ const paths: OpenApiDocument["paths"] = {
       tags: ["Resumes"],
       summary: "Reserve an Uploaded Resume and get the presigned upload",
       description:
-        "Declares the file name, size, and SHA-256. Answers a pending record and a presigned PUT the browser sends the bytes to. The same bytes already uploaded answer the existing record with no upload to perform.",
+        "Declares the file name, size, and SHA-256. Answers a pending record and a presigned PUT the browser sends the bytes to. The same bytes already uploaded answer the existing record with no upload to perform. Refused until the Account stores a Model Key.",
       operationId: "requestUpload",
       requestBody: body("ResumeUpload"),
       responses: {
@@ -244,6 +169,7 @@ const paths: OpenApiDocument["paths"] = {
         "200": json("The existing record for the same bytes; `upload` is null once the file arrived, or a fresh URL while the record is still pending", ref("ResumeUploadReceipt")),
         "400": validationFailed,
         "401": unauthorized,
+        "409": error("`model_key_missing` when the Account has no usable Model Key to read the Resume with; nothing is reserved", ["model_key_missing"]),
       },
     },
     get: {
@@ -324,6 +250,24 @@ const paths: OpenApiDocument["paths"] = {
         "200": json("The confirmed Profile", ref("Profile")),
         "401": unauthorized,
         "404": error("No Profile has been built for the Account yet"),
+      },
+    },
+  },
+  "/profile/recognition": {
+    post: {
+      tags: ["Profile"],
+      summary: "Read the résumé again with the Candidate's Model",
+      description:
+        "Starts a new Ingestion over the text stored from the Uploaded Resume behind the Profile, read by the Model on the Account's Model Key; the PDF itself is gone. The Uploaded Resume goes back to `processing`, so `GET /resumes/{id}` follows the progress. When it completes, the rows are replaced, the corrections and the confirmation go with them, and a current Curation is superseded; if it fails, the Profile stays as it was.",
+      operationId: "startProfileRecognition",
+      responses: {
+        "202": json("The Uploaded Resume being read again", ref("ProfileRecognitionReceipt")),
+        "401": unauthorized,
+        "404": error("`resume_text_missing` when no Profile has been built or its Uploaded Resume has no stored text", ["resume_text_missing"]),
+        "409": error(
+          "`model_key_missing` when the Account has no Model Key; `ingestion_active` while an upload or an Ingestion of the Account is in flight; `curation_active` while a Curation is queued or running",
+          ["model_key_missing", "ingestion_active", "curation_active"],
+        ),
       },
     },
   },
@@ -486,7 +430,7 @@ export const openApiDocument = (): OpenApiDocument => ({
   security: [{ [SESSION]: [] }],
   paths,
   components: {
-    schemas: Object.fromEntries(Object.entries(COMPONENTS).map(([name, { schema, io }]) => [name, jsonSchemaOf(schema, io)])),
+    schemas: componentSchemas(),
     securitySchemes: {
       [SESSION]: {
         type: "http",

@@ -420,7 +420,7 @@
           "Resumes"
         ],
         "summary": "Reserve an Uploaded Resume and get the presigned upload",
-        "description": "Declares the file name, size, and SHA-256. Answers a pending record and a presigned PUT the browser sends the bytes to. The same bytes already uploaded answer the existing record with no upload to perform.",
+        "description": "Declares the file name, size, and SHA-256. Answers a pending record and a presigned PUT the browser sends the bytes to. The same bytes already uploaded answer the existing record with no upload to perform. Refused until the Account stores a Model Key.",
         "operationId": "requestUpload",
         "requestBody": {
           "required": true,
@@ -469,6 +469,34 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`model_key_missing` when the Account has no usable Model Key to read the Resume with; nothing is reserved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "model_key_missing"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
                 }
               }
             }
@@ -761,6 +789,96 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/profile/recognition": {
+      "post": {
+        "tags": [
+          "Profile"
+        ],
+        "summary": "Read the résumé again with the Candidate's Model",
+        "description": "Starts a new Ingestion over the text stored from the Uploaded Resume behind the Profile, read by the Model on the Account's Model Key; the PDF itself is gone. The Uploaded Resume goes back to `processing`, so `GET /resumes/{id}` follows the progress. When it completes, the rows are replaced, the corrections and the confirmation go with them, and a current Curation is superseded; if it fails, the Profile stays as it was.",
+        "operationId": "startProfileRecognition",
+        "responses": {
+          "202": {
+            "description": "The Uploaded Resume being read again",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProfileRecognitionReceipt"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid Session bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "`resume_text_missing` when no Profile has been built or its Uploaded Resume has no stored text",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "resume_text_missing"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "`model_key_missing` when the Account has no Model Key; `ingestion_active` while an upload or an Ingestion of the Account is in flight; `curation_active` while a Curation is queued or running",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "model_key_missing",
+                            "ingestion_active",
+                            "curation_active"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
                 }
               }
             }
@@ -3251,6 +3369,20 @@
             ]
           }
         ]
+      },
+      "ProfileRecognitionReceipt": {
+        "type": "object",
+        "properties": {
+          "uploadedResumeId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "uploadedResumeId"
+        ],
+        "additionalProperties": false
       },
       "ModelChoiceState": {
         "type": "object",

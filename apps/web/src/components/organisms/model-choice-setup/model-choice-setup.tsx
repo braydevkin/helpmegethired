@@ -10,11 +10,17 @@ import styles from "./model-choice-setup.module.css";
 
 export type ModelChoiceResult = { ok: true; choice: AccountModelChoice } | { ok: false; message: string };
 
+export interface NextStepAction {
+  href: string;
+  label: string;
+  hint: string;
+}
+
 export interface ModelChoiceSetupProps {
   entry: ModelCatalogueEntry;
   initialChoice: AccountModelChoice | null;
   links: { keyConsole: string; terms: string };
-  analysisHref: string;
+  next: NextStepAction;
   save: (key: string) => Promise<ModelChoiceResult>;
   revoke: () => Promise<ModelChoiceResult>;
 }
@@ -26,7 +32,7 @@ const summaryRowsOf = (entry: ModelCatalogueEntry, keyStored: boolean): Componen
   { label: "Applies to", value: "Your whole account" },
 ];
 
-export function ModelChoiceSetup({ entry, initialChoice, links, analysisHref, save, revoke }: ModelChoiceSetupProps) {
+export function ModelChoiceSetup({ entry, initialChoice, links, next, save, revoke }: ModelChoiceSetupProps) {
   const [keyStored, setKeyStored] = useState(initialChoice?.keyStored ?? false);
   const id = useId();
   const provider = entry.providerName;
@@ -38,7 +44,7 @@ export function ModelChoiceSetup({ entry, initialChoice, links, analysisHref, sa
           <h2 id={`${id}-provider`} className={styles.title}>
             Provider
           </h2>
-          <p className={styles.lead}>Where your profile text is sent for analysis.</p>
+          <p className={styles.lead}>Where your résumé and profile text are sent to be read.</p>
           <ChoiceCard mark={provider.charAt(0)} name={provider} detail="The only provider available for now." badge="Selected" />
         </section>
 
@@ -55,10 +61,10 @@ export function ModelChoiceSetup({ entry, initialChoice, links, analysisHref, sa
 
       <SetupSummary
         rows={summaryRowsOf(entry, keyStored)}
-        action={{ href: analysisHref, label: "Continue to the analysis" }}
+        action={{ href: next.href, label: next.label }}
         ready={keyStored}
         reason="Add your API key to continue."
-        hint="The analysis runs on its own, so you can close the tab once it starts."
+        hint={next.hint}
       />
     </div>
   );

@@ -2,17 +2,44 @@ import { join } from "node:path";
 
 import { expect, test } from "@playwright/test";
 
+import { DUMMY_MODEL_KEY, storeModelKey } from "./helpers/curation-api.js";
+import { apiAs } from "./helpers/resume-api.js";
 import { signUpAndReadSessionToken } from "./helpers/sign-in.js";
 
 const fixture = join(import.meta.dirname, "../../apps/api/test/fixtures/resumes/corpus/ada-single-column-en.pdf");
 const SETTLE_TIMEOUT_MS = 120_000;
 
-test("a Candidate uploads a résumé, watches the percentage reach 100, and reviews and confirms the Profile", async ({ page }) => {
-  test.setTimeout(SETTLE_TIMEOUT_MS * 2);
+test("a new Account opens on Choose your AI, and the upload step leads there until a key is stored", async ({ page }) => {
+  await signUpAndReadSessionToken(page);
+
+  await page.goto("/journey");
+  await expect(page).toHaveURL(/\/journey\/ai$/);
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Which AI should read your profile?");
+  await expect(page.getByText(/When you upload your résumé, its text is read by the model you choose here/)).toBeVisible();
+
+  await page.goto("/journey/resume");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Choose your AI before you upload");
+  await expect(page.locator("input[type=file]")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Upload your résumé" })).toHaveAttribute("aria-disabled", "true");
+
+  await page.getByRole("link", { name: "Choose your AI" }).click();
+  await expect(page).toHaveURL(/\/journey\/ai$/);
+});
+
+test("a Candidate stores a key, uploads a résumé, watches the percentage reach 100, and reviews and confirms the Profile", async ({ page }) => {
+  test.setTimeout(SETTLE_TIMEOUT_MS * 3);
 
   const { email } = await signUpAndReadSessionToken(page);
 
   await page.goto("/journey");
+  await expect(page).toHaveURL(/\/journey\/ai$/);
+  await page.waitForLoadState("networkidle");
+  await page.getByLabel("Anthropic API key").fill(DUMMY_MODEL_KEY);
+  await page.getByRole("button", { name: "Save key" }).click();
+  await expect(page.getByText("Your Anthropic key is stored")).toBeVisible();
+
+  await page.getByRole("link", { name: "Continue to your résumé" }).click();
+  await expect(page).toHaveURL(/\/journey\/resume$/);
 
   await expect(page.getByRole("heading", { level: 1 })).toHaveText("Upload your résumé");
   await expect(page.getByText("PDF only · up to 5 MB · one file")).toBeVisible();
@@ -40,7 +67,7 @@ test("a Candidate uploads a résumé, watches the percentage reach 100, and revi
 
   await page.getByRole("button", { name: "Confirm profile" }).click();
   await expect(page).toHaveURL(/\/journey\/analysis$/);
-  await expect(page.getByRole("heading", { level: 1 })).toHaveText("Choose your AI to start the analysis");
+  await expect(page.getByRole("heading", { level: 1 })).toHaveText("We know your profile now", { timeout: SETTLE_TIMEOUT_MS });
 
   await page.goto("/journey");
   await expect(page).toHaveURL(/\/journey\/analysis$/);
@@ -51,8 +78,12 @@ test("a Candidate uploads a résumé, watches the percentage reach 100, and revi
   await expect(page.getByRole("link", { name: "Open the analysis" })).toHaveAttribute("href", "/journey/analysis");
 });
 
-test("a PNG is refused in the browser with the designed message", async ({ page }) => {
-  await signUpAndReadSessionToken(page);
+test("a PNG is refused in the browser with the designed message", async ({ page, playwright }) => {
+  const { token } = await signUpAndReadSessionToken(page);
+  const api = await apiAs(playwright.request, token);
+
+  await storeModelKey(api);
+  await api.dispose();
   await page.goto("/journey/resume");
 
   await page.locator("input[type=file]").setInputFiles({ name: "ada.png", mimeType: "image/png", buffer: Buffer.from("png") });

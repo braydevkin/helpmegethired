@@ -52,7 +52,9 @@ export function ApiKeySection({ provider, links, keyStored, onKeyStoredChange, s
       <h2 id={titleId} className={styles.title}>
         Your API key
       </h2>
-      <p className={styles.lead}>{`You use your own key and pay ${provider} directly. We never resell tokens or hold a balance for you.`}</p>
+      <p className={styles.lead}>
+        {`You use your own key and pay ${provider} directly. We never resell tokens or hold a balance for you. When you upload your résumé, its text is read by the model you choose here, under your own agreement with ${provider}.`}
+      </p>
 
       {keyStored && (
         <StoredKey provider={provider} replacing={replacing} onReplaceToggle={() => setReplacing((current) => !current)} revoke={revoke} onRevoked={onKeyStoredChange} />

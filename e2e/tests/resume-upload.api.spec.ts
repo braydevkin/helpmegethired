@@ -2,10 +2,10 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { expect, test } from "@playwright/test";
-import { ProfileSchema } from "@helpmegethired/shared";
+import { ApiErrorSchema, ProfileSchema, UploadedResumeListSchema } from "@helpmegethired/shared";
 
 import { hasStatus, progressOf, progressUntil, statementsOf, storeModelKey } from "./helpers/curation-api.js";
-import { apiAs, apiUrl, corpusPdf, parsed, resumeFixtures, SETTLE_TIMEOUT_MS, settled, upload } from "./helpers/resume-api.js";
+import { apiAs, apiUrl, corpusPdf, parsed, requestUpload, resumeFixtures, SETTLE_TIMEOUT_MS, settled, upload } from "./helpers/resume-api.js";
 import { signUpAndReadSessionToken } from "./helpers/sign-in.js";
 
 const hostilePdf = (name: string) => readFileSync(join(resumeFixtures, "hostile", `${name}.pdf`));
@@ -29,6 +29,16 @@ test.describe("the upload API, from a PDF to a completed Curation", () => {
       expect(profile).toMatchObject({ source: null, experiences: [], reviewFlags: [] });
     });
 
+    await test.step("an upload is refused with model_key_missing and reserves nothing until a Model Key is stored", async () => {
+      const refused = await requestUpload(api, corpusPdf("ada-single-column-en"), "ada-single-column-en.pdf");
+
+      expect(refused.status()).toBe(409);
+      expect(await parsed(refused, ApiErrorSchema)).toMatchObject({ code: "model_key_missing" });
+      expect(await parsed(await api.get("/resumes"), UploadedResumeListSchema)).toEqual([]);
+
+      await storeModelKey(api);
+    });
+
     await test.step("the synthetic resume ends done with a Profile that matches its expected output", async () => {
       const slug = "ada-single-column-en";
       const uploaded = await upload(api, corpusPdf(slug), `${slug}.pdf`);
@@ -50,7 +60,7 @@ test.describe("the upload API, from a PDF to a completed Curation", () => {
       expect(profile.yearsOfExperience).toBeGreaterThan(0);
     });
 
-    await test.step("confirming clears the review flags and is idempotent", async () => {
+    await test.step("confirming clears the review flags, is idempotent, and starts a Curation on the stored key", async () => {
       const confirmed = await parsed(await api.post("/profile/confirm"), ProfileSchema);
       const again = await parsed(await api.post("/profile/confirm"), ProfileSchema);
 
@@ -59,9 +69,7 @@ test.describe("the upload API, from a PDF to a completed Curation", () => {
       expect(again.confirmedAt).toBe(confirmed.confirmedAt);
     });
 
-    await test.step("storing a Model Key starts a Curation that completes against the fake, with Statements that cite the Profile", async () => {
-      await storeModelKey(api);
-
+    await test.step("the Curation completes against the fake, with Statements that cite the Profile", async () => {
       const completed = await progressUntil(api, hasStatus("completed", "failed"));
 
       expect(completed).toMatchObject({ status: "completed", percentage: 100, failureReason: null });
