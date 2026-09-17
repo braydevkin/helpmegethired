@@ -1,4 +1,4 @@
-import type { Confidence, ProfilePart, ReviewFlag } from "@helpmegethired/shared";
+import type { Confidence, ProfileCorrections, ProfilePart, ReviewFlag } from "@helpmegethired/shared";
 
 import type { ZodType } from "zod";
 
@@ -83,3 +83,12 @@ function flagsOfSegment(segment: Segment): ReviewFlag[] {
 // ones recognised at the review bar, and the header's name or e-mail when they differ from
 // the Account.
 export const reviewFlagsOf = (segments: readonly Segment[]): ReviewFlag[] => segments.flatMap(flagsOfSegment);
+
+// The entry a flag names, as the rows of its part name it.
+export const flaggedEntryKey = (part: ProfilePart, entry: string): string => `${part}\u0000${entry}`;
+
+// A flag stops being shown once the Candidate has decided on the entry it names: either they
+// corrected that entry, or they corrected the very field the entry was named by, which leaves
+// no untouched entry under that name.
+export const flagsStillOpen = (flags: readonly ReviewFlag[], untouchedEntries: ReadonlySet<string>, corrections: ProfileCorrections): ReviewFlag[] =>
+  flags.filter((flag) => (flag.entry === null ? !corrections.basicProfile : untouchedEntries.has(flaggedEntryKey(flag.part, flag.entry))));

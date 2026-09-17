@@ -49,6 +49,9 @@ function clauseOf(flag: ReviewFlag): string {
 const listed = (clauses: readonly string[]): string =>
   clauses.length === 1 ? clauses.join("") : `${clauses.slice(0, -1).join(", ")}, and ${clauses.at(-1) ?? ""}`;
 
+// Every flagged field in one sentence, as the Profile's notice and the analysis gate write it.
+export const reviewSummaryOf = (flags: readonly ReviewFlag[]): string => capitalized(listed(flags.map(clauseOf)));
+
 // The notice above the Profile: how many fields were recognized with low confidence, and
 // what each of them is. A Profile with nothing to look at has no notice.
 export function reviewNoticeOf(flags: readonly ReviewFlag[]): ReviewNotice | null {
@@ -58,7 +61,7 @@ export function reviewNoticeOf(flags: readonly ReviewFlag[]): ReviewNotice | nul
 
   const subject = flags.length === 1 ? "1 field needs" : `${flags.length} fields need`;
 
-  return { title: `${subject} your eyes`, detail: `${capitalized(listed(flags.map(clauseOf)))}. ${HIGH_CONFIDENCE}` };
+  return { title: `${subject} your eyes`, detail: `${reviewSummaryOf(flags)}. ${HIGH_CONFIDENCE}` };
 }
 
 // What one entry says in place, so the Candidate reads the flag where the value is.

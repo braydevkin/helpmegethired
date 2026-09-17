@@ -7,23 +7,19 @@ import { Button } from "../../../../components/atoms/button/button";
 import { ScreenHeading } from "../../../../components/molecules/screen-heading/screen-heading";
 import { IngestionProgress } from "../../../../components/organisms/ingestion-progress/ingestion-progress";
 import { UploadDropArea } from "../../../../components/organisms/upload-drop-area/upload-drop-area";
+import { pollDelayMs } from "../../../../lib/poll-delay";
 import { formatSize } from "../../../../lib/resume-upload/format";
-import {
-  failureLeadOf,
-  foundCountOf,
-  percentageOf,
-  pollDelayMs,
-  profileDataRowsOf,
-  stagesOf,
-  type UploadView,
-} from "../../../../lib/resume-upload/progress";
+import { failureLeadOf, foundCountOf, percentageOf, profileDataRowsOf, stagesOf, type UploadView } from "../../../../lib/resume-upload/progress";
 import { RESUME_MAX_SIZE_MB, rejectionOf } from "../../../../lib/resume-upload/rejection";
 import { sha256Of } from "../../../../lib/resume-upload/sha256";
-import { completeResumeAction, createResumeAction, readResumeAction } from "./actions";
+import { completeResumeAction, createResumeAction, readResumeAction, type ResumeActionFailure } from "./actions";
+import { ModelChoiceBeforeUpload } from "./model-choice-before-upload";
 
 export interface ResumeUploadFlowProps {
   initialResume: UploadedResume | null;
+  modelKeyStored: boolean;
   profileHref: string;
+  modelChoiceHref: string;
 }
 
 type FlowState =
@@ -62,11 +58,24 @@ function putBytes(url: string, headers: Record<string, string>, file: File, onPr
   return { request, done };
 }
 
-function useResumeUploadFlow(initialResume: UploadedResume | null) {
+function useResumeUploadFlow(initialResume: UploadedResume | null, initialModelKeyStored: boolean) {
   const [state, setState] = useState<FlowState>(initialResume ? tracked(initialResume) : { phase: "idle" });
+  const [modelKeyStored, setModelKeyStored] = useState(initialModelKeyStored);
   const generation = useRef(0);
 
   const fail = useCallback((message: string) => setState({ phase: "idle", message }), []);
+
+  // The key can be revoked in another tab after this page loaded.
+  const refused = useCallback(
+    ({ code, message }: ResumeActionFailure) => {
+      if (code === "model_key_missing") {
+        setModelKeyStored(false);
+      }
+
+      fail(message);
+    },
+    [fail],
+  );
 
   const upload = useCallback(
     async (file: File) => {
@@ -90,7 +99,7 @@ function useResumeUploadFlow(initialResume: UploadedResume | null) {
       }
 
       if (!created.ok) {
-        fail(created.message);
+        refused(created);
 
         return;
       }
@@ -123,7 +132,7 @@ function useResumeUploadFlow(initialResume: UploadedResume | null) {
         setState(completed.ok ? tracked(completed.value) : { phase: "idle", message: completed.message });
       }
     },
-    [fail],
+    [fail, refused],
   );
 
   const cancel = useCallback(() => {
@@ -177,7 +186,7 @@ function useResumeUploadFlow(initialResume: UploadedResume | null) {
     };
   }, [state]);
 
-  return { state, upload, cancel, startOver };
+  return { state, modelKeyStored, upload, cancel, startOver };
 }
 
 const IDLE_LEAD =
@@ -269,8 +278,12 @@ function ProcessingState({ state, onCancel }: StateViewProps) {
   );
 }
 
-export function ResumeUploadFlow({ initialResume, profileHref }: ResumeUploadFlowProps) {
-  const { state, upload, cancel, startOver } = useResumeUploadFlow(initialResume);
+export function ResumeUploadFlow({ initialResume, modelKeyStored: initialModelKeyStored, profileHref, modelChoiceHref }: ResumeUploadFlowProps) {
+  const { state, modelKeyStored, upload, cancel, startOver } = useResumeUploadFlow(initialResume, initialModelKeyStored);
+
+  if (state.phase === "idle" && !modelKeyStored) {
+    return <ModelChoiceBeforeUpload modelChoiceHref={modelChoiceHref} />;
+  }
 
   if (state.phase === "idle") {
     return (

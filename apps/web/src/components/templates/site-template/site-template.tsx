@@ -11,15 +11,17 @@ export interface SiteTemplateProps {
   signOut: ReactNode;
   heading?: ReactNode;
   sidebar?: ReactNode;
+  wide?: boolean;
   children: ReactNode;
 }
 
 // The journey's frame: the header with the step label and the Candidate's initials over a
-// centred column that rises in. A step that brings a sidebar gets the wider column instead,
-// its heading across the top and a two-column grid below that stacks the sidebar above the
-// main column on a narrow screen.
-export function SiteTemplate({ stepLabel, candidate, signOut, heading, sidebar, children }: SiteTemplateProps) {
+// centred column that rises in. A step that brings a sidebar, or lays out panels of its own,
+// gets the wider column instead; a sidebar also brings the two-column grid below the heading,
+// which stacks the sidebar above the main column on a narrow screen.
+export function SiteTemplate({ stepLabel, candidate, signOut, heading, sidebar, wide = false, children }: SiteTemplateProps) {
   const twoColumn = sidebar !== undefined;
+  const wideColumn = twoColumn || wide;
 
   return (
     <div className={styles.page}>
@@ -37,8 +39,8 @@ export function SiteTemplate({ stepLabel, candidate, signOut, heading, sidebar, 
           {signOut}
         </div>
       </header>
-      <main className={classNames(styles.main, twoColumn && styles.wideMain)}>
-        <div className={classNames(styles.column, twoColumn && styles.wideColumn)}>
+      <main className={classNames(styles.main, wideColumn && styles.wideMain)}>
+        <div className={classNames(styles.column, wideColumn && styles.wideColumn)}>
           {heading}
           {twoColumn ? (
             <div className={styles.grid}>

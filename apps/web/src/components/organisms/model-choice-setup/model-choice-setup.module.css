@@ -1,0 +1,105 @@
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, var(--profile-sidebar-width));
+  gap: var(--profile-grid-gap);
+  align-items: start;
+}
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: var(--profile-grid-gap);
+}
+
+.card {
+  padding: var(--card-padding);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.title {
+  font-size: var(--text-card-label);
+  line-height: var(--leading-control);
+  font-weight: 800;
+  letter-spacing: var(--tracking-eyebrow);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.lead {
+  margin: 8px 0 16px;
+  font-size: var(--text-entry-detail);
+  line-height: var(--leading-entry-detail);
+  color: var(--color-text-secondary);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-field-gap);
+}
+
+.stored {
+  padding: var(--notice-padding);
+  border-radius: var(--radius-tip-card);
+  background: var(--color-brand-tint);
+  font-size: var(--text-entry-detail);
+  line-height: var(--leading-entry-detail);
+  color: var(--color-brand-deep);
+}
+
+.storedTitle {
+  font-weight: 700;
+}
+
+.keyActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 14px 0 10px;
+}
+
+.keyActions > * {
+  flex: 1 1 180px;
+}
+
+.explanation {
+  margin-bottom: var(--space-field-gap);
+  font-size: var(--text-hint);
+  line-height: var(--leading-hint);
+  color: var(--color-text-secondary);
+}
+
+.note {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 16px;
+  padding: var(--notice-padding);
+  border-radius: var(--radius-tip-card);
+  background: var(--color-surface-tint);
+  font-size: var(--text-entry-detail);
+  line-height: var(--leading-entry-detail);
+  color: var(--color-text-label);
+}
+
+.retention {
+  margin-top: 12px;
+  font-size: var(--text-hint);
+  line-height: var(--leading-hint);
+  color: var(--color-text-secondary);
+}
+
+.link {
+  font-weight: 700;
+  color: var(--color-brand);
+}
+
+@media (width <= 899px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

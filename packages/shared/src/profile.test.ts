@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { EMPTY_BASIC_PROFILE } from "./basic-profile.js";
-import { ACCOUNT_ID, profile, without } from "./candidate.fixtures.js";
+import { ACCOUNT_ID, experience, profile, without } from "./candidate.fixtures.js";
 import { ProfileSchema, ReviewFlagSchema } from "./profile.js";
 
 describe("ProfileSchema", () => {
@@ -21,11 +21,18 @@ describe("ProfileSchema", () => {
       certifications: [],
       yearsOfExperience: 0,
       reviewFlags: [],
+      corrections: { basicProfile: false, entryIds: [] },
       source: null,
       confirmedAt: null,
     };
 
     expect(ProfileSchema.safeParse(empty).success).toBe(true);
+  });
+
+  it("accepts a profile the Candidate has corrected", () => {
+    const corrected = { ...profile, corrections: { basicProfile: true, entryIds: [experience.id] } };
+
+    expect(ProfileSchema.safeParse(corrected).success).toBe(true);
   });
 
   it("accepts a confirmed profile with no flags", () => {
@@ -40,6 +47,7 @@ describe("ProfileSchema", () => {
     ["negative years of experience", { ...profile, yearsOfExperience: -1 }],
     ["a flag with an unknown reason", { ...profile, reviewFlags: [{ ...profile.reviewFlags[0], reason: "guess" }] }],
     ["a source without its ingestion", { ...profile, source: without(profile.source!, "ingestionId") }],
+    ["corrections without the Basic Profile", { ...profile, corrections: without(profile.corrections, "basicProfile") }],
   ])("rejects %s", (_label, input) => {
     expect(ProfileSchema.strict().safeParse(input).success).toBe(false);
   });

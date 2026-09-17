@@ -2,6 +2,7 @@ import { ApiErrorSchema } from "@helpmegethired/shared";
 import { describe, expect, it } from "vitest";
 
 import { IngestionAlreadyActiveError } from "../ingestion/ingestion-errors";
+import { ModelKeyNotFoundError } from "../model-choice/model-choice-errors";
 import { apiErrorOf } from "./resume-error.filter";
 import { UploadIncompleteError, UploadInFlightError, UploadedResumeNotFoundError } from "./resume-errors";
 
@@ -13,6 +14,7 @@ describe("apiErrorOf", () => {
     ["a missing object", new UploadIncompleteError(id), 409, "upload_incomplete"],
     ["another upload in flight", new UploadInFlightError(id), 409, "ingestion_active"],
     ["an active Ingestion", new IngestionAlreadyActiveError(id), 409, "ingestion_active"],
+    ["an Account with no Model Key", new ModelKeyNotFoundError(id), 409, "model_key_missing"],
   ])("maps %s to the status and code the page expects", (_label, error, statusCode, code) => {
     const body = apiErrorOf(error);
 

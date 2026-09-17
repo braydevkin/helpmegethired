@@ -24,6 +24,9 @@ x-api-environment: &api-environment
   WEB_ORIGIN: http://localhost:${WEB_PORT:?}
   DATABASE_URL: *database-url
   REDIS_URL: redis://redis:6379
+  MODEL_ADAPTER: ${MODEL_ADAPTER:-}
+  MODEL_KEY_ENCRYPTION_KEY: ${MODEL_KEY_ENCRYPTION_KEY:-}
+  EMBEDDING_API_KEY: ${EMBEDDING_API_KEY:-}
 
 x-api-dependencies: &api-dependencies
   postgres:
@@ -175,6 +178,7 @@ services:
     environment:
       NODE_ENV: development
       API_URL: http://api:3001
+      API_PUBLIC_URL: http://localhost:${API_PORT:?}
       DATABASE_URL: *database-url
       AUTH_SECRET: ${AUTH_SECRET:?}
       AUTH_RESEND_KEY: ${AUTH_RESEND_KEY:-}

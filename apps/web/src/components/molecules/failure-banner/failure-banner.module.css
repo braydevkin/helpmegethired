@@ -1,0 +1,55 @@
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 12px 16px;
+  padding: 18px 20px;
+  border: 1px solid var(--color-error-border);
+  border-radius: var(--radius-card);
+  background: var(--color-error-bg);
+}
+
+.banner::before {
+  content: "!";
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  background: var(--color-error);
+  color: var(--color-surface);
+  font-size: var(--text-hint);
+  font-weight: 800;
+}
+
+.text {
+  flex: 1 1 16rem;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--text-stage-title);
+  line-height: var(--leading-entry-title);
+  font-weight: 800;
+  color: var(--color-error-text);
+}
+
+.subject,
+.reason {
+  margin-top: 4px;
+  font-size: var(--text-entry-detail);
+  line-height: var(--leading-entry-detail);
+  color: var(--color-error-text);
+  overflow-wrap: anywhere;
+}
+
+.subject {
+  font-weight: 700;
+}
+
+.action {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}

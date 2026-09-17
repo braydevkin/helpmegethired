@@ -4,6 +4,7 @@ import { Reflector } from "@nestjs/core";
 import { AuthService } from "./auth.service";
 import type { AuthenticatedRequest } from "./authenticated-request";
 import { IS_PUBLIC } from "./public.decorator";
+import { ROUTE_CREDENTIAL } from "./route-credential.decorator";
 
 const BEARER_SCHEME = "bearer";
 
@@ -30,6 +31,10 @@ export class SessionGuard implements CanActivate {
     const account = token ? await this.authService.authenticate(token) : undefined;
 
     if (!token || !account) {
+      if (this.acceptsRouteCredential(context)) {
+        return true;
+      }
+
       throw new UnauthorizedException("A valid session is required");
     }
 
@@ -41,5 +46,9 @@ export class SessionGuard implements CanActivate {
 
   private isPublic(context: ExecutionContext): boolean {
     return this.reflector.getAllAndOverride<boolean>(IS_PUBLIC, [context.getHandler(), context.getClass()]) === true;
+  }
+
+  private acceptsRouteCredential(context: ExecutionContext): boolean {
+    return this.reflector.getAllAndOverride<boolean>(ROUTE_CREDENTIAL, [context.getHandler(), context.getClass()]) === true;
   }
 }

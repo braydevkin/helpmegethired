@@ -26,6 +26,12 @@ export const ResumeUploadErrorCodeSchema = z.enum([
 
 export type ResumeUploadErrorCode = z.infer<typeof ResumeUploadErrorCodeSchema>;
 
+// What a resume route can refuse with. `model_key_missing` refuses the request before any record
+// exists, so it is never an Uploaded Resume's own error code.
+export const ResumeRefusalCodeSchema = z.enum([...ResumeUploadErrorCodeSchema.options, "model_key_missing"]);
+
+export type ResumeRefusalCode = z.infer<typeof ResumeRefusalCodeSchema>;
+
 export const Sha256Schema = z.string().toLowerCase().regex(SHA256_HEX);
 
 export const ResumeUploadSchema = z.object({

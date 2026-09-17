@@ -1,5 +1,6 @@
 import type { Account } from "./account.js";
 import type { BasicProfile } from "./basic-profile.js";
+import type { CurationMetrics } from "./curation-metrics.js";
 import type { Experience } from "./experience.js";
 import type { Certification, Education, Language, Skill } from "./profile-parts.js";
 import type { Profile, ReviewFlag } from "./profile.js";
@@ -83,6 +84,7 @@ export const profile: Profile = {
   certifications: [certification],
   yearsOfExperience: 5,
   reviewFlags: [reviewFlag],
+  corrections: { basicProfile: false, entryIds: [] },
   source: {
     kind: "upload",
     uploadedResumeId: UPLOADED_RESUME_ID,
@@ -91,6 +93,15 @@ export const profile: Profile = {
     completedAt: "2026-09-02T10:05:00.000Z",
   },
   confirmedAt: null,
+};
+
+export const curationMetrics: CurationMetrics = {
+  careerDuration: { years: 7, months: 2 },
+  durationPerCompany: [
+    { company: "Analytical Engines Ltd", duration: { years: 5, months: 6 } },
+    { company: "Difference Works", duration: { years: 4, months: 9 } },
+  ],
+  counts: { roles: 2, projects: 1, certifications: 1, languages: 2, education: 2 },
 };
 
 export const uploadedResume: UploadedResume = {

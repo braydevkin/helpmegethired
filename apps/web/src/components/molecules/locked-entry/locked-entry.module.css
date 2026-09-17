@@ -1,0 +1,18 @@
+.entry {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  max-width: 20rem;
+}
+
+.button[aria-disabled="true"] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.reason {
+  font-size: var(--text-hint);
+  line-height: var(--leading-hint);
+  color: var(--color-text-secondary);
+}

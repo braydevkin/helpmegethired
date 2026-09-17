@@ -4,6 +4,7 @@ import { BasicProfileSchema } from "./basic-profile.js";
 import { ExperienceSchema } from "./experience.js";
 import { IngestionSourceSchema } from "./ingestion.js";
 import { IdSchema, TextSchema, TimestampSchema, listOf } from "./primitives.js";
+import { ProfileCorrectionsSchema } from "./profile-correction.js";
 import { CertificationSchema, EducationSchema, LanguageSchema, SkillSchema } from "./profile-parts.js";
 import { ProjectSchema } from "./project.js";
 
@@ -35,9 +36,9 @@ export const ProfileSourceSchema = z.object({
 
 export type ProfileSource = z.infer<typeof ProfileSourceSchema>;
 
-// The seven parts as the latest completed Ingestion wrote them, with the years of experience
-// derived on read and the review flags until the Candidate confirms. An Account with no
-// completed Ingestion has an empty Profile and no source.
+// The seven parts as the latest completed Ingestion wrote them and the Candidate corrected
+// them, with the years of experience derived on read and the review flags until the Candidate
+// confirms. An Account with no completed Ingestion has an empty Profile and no source.
 export const ProfileSchema = z.object({
   accountId: IdSchema,
   basicProfile: BasicProfileSchema,
@@ -49,6 +50,7 @@ export const ProfileSchema = z.object({
   certifications: listOf(CertificationSchema),
   yearsOfExperience: z.int().nonnegative(),
   reviewFlags: listOf(ReviewFlagSchema),
+  corrections: ProfileCorrectionsSchema,
   source: ProfileSourceSchema.nullable(),
   confirmedAt: TimestampSchema.nullable(),
 });

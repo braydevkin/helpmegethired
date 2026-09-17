@@ -5,7 +5,7 @@ import { validateDatabaseEnvironment } from "../config/validate-environment";
 import { createDatabase, type Database } from "./database";
 import { migrateDown, migrateToLatest } from "./migrator";
 
-const applicationTables = ["accounts", "sessions", "ingestions", "ingestion_segments", "uploaded_resumes"];
+const applicationTables = ["accounts", "sessions", "ingestions", "ingestion_segments", "uploaded_resumes", "curations", "curation_units", "statements", "model_key_tickets"];
 
 interface ExtensionRow {
   extname: string;

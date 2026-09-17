@@ -1,15 +1,27 @@
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { ProfileUnavailableError, profileClient } from "../../../../lib/profile-client";
+import { ProfileCorrectionRejectedError, ProfileUnavailableError, profileClient } from "../../../../lib/profile-client";
+import { ProfileRecognitionRefusedError, profileRecognitionClient } from "../../../../lib/profile-recognition-client";
 import { readSessionToken } from "../../../../lib/session-cookie";
-import { confirmProfileAction } from "./actions";
+import { confirmProfileAction, correctBasicProfileAction, readResumeAgainAction, removeExperienceAction, saveExperienceAction } from "./actions";
 
 vi.mock("../../../../lib/profile-client", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../../../../lib/profile-client")>()),
-  profileClient: { get: vi.fn(), confirm: vi.fn() },
+  profileClient: { get: vi.fn(), confirm: vi.fn(), correctBasicProfile: vi.fn(), addEntry: vi.fn(), correctEntry: vi.fn(), removeEntry: vi.fn() },
+}));
+vi.mock("../../../../lib/profile-recognition-client", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../../../../lib/profile-recognition-client")>()),
+  profileRecognitionClient: { start: vi.fn() },
 }));
 vi.mock("../../../../lib/session-cookie", () => ({ readSessionToken: vi.fn() }));
 vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
+vi.mock("next/navigation", () => ({
+  redirect: vi.fn(() => {
+    throw new Error("NEXT_REDIRECT");
+  }),
+}));
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -17,11 +29,12 @@ beforeEach(() => {
 });
 
 describe("confirmProfileAction", () => {
-  it("confirms with the Session", async () => {
+  it("confirms with the Session and moves on to the analysis", async () => {
     vi.mocked(profileClient.confirm).mockResolvedValue({} as never);
 
-    expect(await confirmProfileAction()).toEqual({ ok: true });
+    await expect(confirmProfileAction()).rejects.toThrow("NEXT_REDIRECT");
     expect(profileClient.confirm).toHaveBeenCalledWith("session-token");
+    expect(redirect).toHaveBeenCalledWith("/journey/analysis");
   });
 
   it("asks to sign in again without a Session, and never calls the API", async () => {
@@ -29,11 +42,159 @@ describe("confirmProfileAction", () => {
 
     expect(await confirmProfileAction()).toEqual({ ok: false, message: "Your session has expired. Sign in again to confirm your Profile." });
     expect(profileClient.confirm).not.toHaveBeenCalled();
+    expect(redirect).not.toHaveBeenCalled();
   });
 
-  it("says the Profile could not be confirmed when the API refuses", async () => {
+  it("says the Profile could not be confirmed when the API refuses, and stays on the page", async () => {
     vi.mocked(profileClient.confirm).mockRejectedValue(new ProfileUnavailableError(404));
 
     expect(await confirmProfileAction()).toEqual({ ok: false, message: "We couldn't confirm your Profile. Try again in a moment." });
+    expect(redirect).not.toHaveBeenCalled();
+  });
+});
+
+const ENTRY_ID = "2f5c3b7d-0e4a-4f9b-8c6d-3a7b9e2d4f6c";
+
+const formOf = (fields: Record<string, string>): FormData => {
+  const form = new FormData();
+
+  for (const [name, value] of Object.entries(fields)) {
+    form.set(name, value);
+  }
+
+  return form;
+};
+
+const experienceForm = (fields: Record<string, string> = {}) =>
+  formOf({ role: "Staff Backend Engineer", company: "", periodStart: "2022-03", periodEnd: "", description: "", skills: "Node.js", ...fields });
+
+const correctedExperience = { role: "Staff Backend Engineer", company: null, period: { start: "2022-03", end: null }, description: null, skills: ["Node.js"] };
+
+describe("saveExperienceAction", () => {
+  it("corrects the role the form names, and re-renders the step from the API", async () => {
+    vi.mocked(profileClient.correctEntry).mockResolvedValue({} as never);
+
+    expect(await saveExperienceAction(null, experienceForm({ id: ENTRY_ID }))).toEqual({ ok: true });
+    expect(profileClient.correctEntry).toHaveBeenCalledWith("session-token", "experiences", ENTRY_ID, correctedExperience);
+    expect(profileClient.addEntry).not.toHaveBeenCalled();
+    expect(revalidatePath).toHaveBeenCalledWith("/journey", "layout");
+  });
+
+  it("adds a role when the form names none", async () => {
+    vi.mocked(profileClient.addEntry).mockResolvedValue({} as never);
+
+    expect(await saveExperienceAction(null, experienceForm())).toEqual({ ok: true });
+    expect(profileClient.addEntry).toHaveBeenCalledWith("session-token", "experiences", correctedExperience);
+    expect(profileClient.correctEntry).not.toHaveBeenCalled();
+  });
+
+  it("answers the fields a form breaks with, and sends nothing", async () => {
+    expect(await saveExperienceAction(null, experienceForm({ role: "" }))).toEqual({
+      ok: false,
+      message: "Some fields need a change before this can be saved.",
+      issues: { role: "Name the role this experience was for." },
+    });
+    expect(profileClient.addEntry).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("puts the fields the API refused on the form", async () => {
+    vi.mocked(profileClient.addEntry).mockRejectedValue(new ProfileCorrectionRejectedError({ role: "Too small" }));
+
+    expect(await saveExperienceAction(null, experienceForm())).toEqual({
+      ok: false,
+      message: "Some fields need a change before this can be saved.",
+      issues: { role: "Too small" },
+    });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    [409, "Your Profile is confirmed, so it takes no more corrections."],
+    [401, "Your session has expired. Sign in again to continue."],
+    [503, "We couldn't save your correction. Try again in a moment."],
+  ])("answers a %i from the API with its own words", async (status, message) => {
+    vi.mocked(profileClient.addEntry).mockRejectedValue(new ProfileUnavailableError(status));
+
+    expect(await saveExperienceAction(null, experienceForm())).toEqual({ ok: false, message });
+  });
+
+  it("asks to sign in again without a Session, and never calls the API", async () => {
+    vi.mocked(readSessionToken).mockResolvedValue(undefined);
+
+    expect(await saveExperienceAction(null, experienceForm())).toEqual({ ok: false, message: "Your session has expired. Sign in again to continue." });
+    expect(profileClient.addEntry).not.toHaveBeenCalled();
+  });
+});
+
+describe("correctBasicProfileAction", () => {
+  it("sends the four fields and re-renders the step", async () => {
+    vi.mocked(profileClient.correctBasicProfile).mockResolvedValue({} as never);
+
+    const form = formOf({ headline: "Distributed systems engineer", summary: "", linkedinUrl: "", githubUrl: "https://github.com/ada" });
+
+    expect(await correctBasicProfileAction(null, form)).toEqual({ ok: true });
+    expect(profileClient.correctBasicProfile).toHaveBeenCalledWith("session-token", {
+      headline: "Distributed systems engineer",
+      summary: null,
+      linkedinUrl: null,
+      githubUrl: "https://github.com/ada",
+    });
+    expect(revalidatePath).toHaveBeenCalledWith("/journey", "layout");
+  });
+});
+
+describe("removeExperienceAction", () => {
+  it("removes the role and re-renders the step", async () => {
+    vi.mocked(profileClient.removeEntry).mockResolvedValue({} as never);
+
+    expect(await removeExperienceAction(ENTRY_ID)).toEqual({ ok: true });
+    expect(profileClient.removeEntry).toHaveBeenCalledWith("session-token", "experiences", ENTRY_ID);
+    expect(revalidatePath).toHaveBeenCalledWith("/journey", "layout");
+  });
+
+  it("says a confirmed Profile takes no more corrections", async () => {
+    vi.mocked(profileClient.removeEntry).mockRejectedValue(new ProfileUnavailableError(409));
+
+    expect(await removeExperienceAction(ENTRY_ID)).toEqual({ ok: false, message: "Your Profile is confirmed, so it takes no more corrections." });
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+});
+
+describe("readResumeAgainAction", () => {
+  it("starts the reading with the Session and moves to the upload step, where its progress shows", async () => {
+    vi.mocked(profileRecognitionClient.start).mockResolvedValue({ uploadedResumeId: "3f0f3c8e-5d0a-4a9b-9a53-2d4f5e6a7b8c" });
+
+    await expect(readResumeAgainAction()).rejects.toThrow("NEXT_REDIRECT");
+    expect(profileRecognitionClient.start).toHaveBeenCalledWith("session-token");
+    expect(revalidatePath).toHaveBeenCalledWith("/journey", "layout");
+    expect(redirect).toHaveBeenCalledWith("/journey/resume");
+  });
+
+  it("asks to sign in again without a Session, and never calls the API", async () => {
+    vi.mocked(readSessionToken).mockResolvedValue(undefined);
+
+    expect(await readResumeAgainAction()).toEqual({ ok: false, message: "Your session has expired. Sign in again to continue." });
+    expect(profileRecognitionClient.start).not.toHaveBeenCalled();
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    ["model_key_missing", 409, "Your API key isn't stored anymore. Add it again on Choose your AI, then try again."],
+    ["ingestion_active", 409, "Your résumé is already being read. Wait for it to finish, then try again."],
+    ["curation_active", 409, "Your profile analysis is still running. Let it finish or stop it, then try again."],
+    ["resume_text_missing", 404, "We no longer have the text of your résumé. Upload the PDF again instead."],
+  ] as const)("says why in words when the API refuses with %s, and stays on the page", async (code, status, message) => {
+    vi.mocked(profileRecognitionClient.start).mockRejectedValue(new ProfileRecognitionRefusedError(code, status));
+
+    expect(await readResumeAgainAction()).toEqual({ ok: false, message });
+    expect(redirect).not.toHaveBeenCalled();
+  });
+
+  it("says the reading could not start when the API cannot be reached", async () => {
+    vi.mocked(profileRecognitionClient.start).mockRejectedValue(new TypeError("fetch failed"));
+
+    expect(await readResumeAgainAction()).toEqual({ ok: false, message: "We couldn't start reading your résumé again. Try again in a moment." });
+    expect(redirect).not.toHaveBeenCalled();
   });
 });

@@ -2,15 +2,16 @@ import { Injectable } from "@nestjs/common";
 import { EMPTY_BASIC_PROFILE, type Id, type Ingestion, type Profile, type ProfileSource } from "@helpmegethired/shared";
 
 import { Clock } from "../common/clock";
+import { CurationStarter } from "../curation/curation-starter";
 import { IngestionRepository } from "../ingestion/ingestion.repository";
-import { careerYears } from "../parser";
+import { careerDuration } from "../parser";
 import { UploadedResumeRepository } from "../resumes/uploaded-resume.repository";
 import { ProfileNotFoundError } from "./profile-errors";
 import { ProfileRepository, type ProfileRows } from "./profile.repository";
 import { toBasicProfile } from "./profile.mapper";
-import { reviewFlagsOf } from "./review-flags";
+import { flagsStillOpen, reviewFlagsOf } from "./review-flags";
 
-const RESUME_SOURCE = "upload";
+export const RESUME_SOURCE = "upload";
 
 @Injectable()
 export class ProfileService {
@@ -19,6 +20,7 @@ export class ProfileService {
     private readonly ingestions: IngestionRepository,
     private readonly resumes: UploadedResumeRepository,
     private readonly clock: Clock,
+    private readonly curations: CurationStarter,
   ) {}
 
   // An Account with no completed Ingestion has an empty Profile: the page renders it as such.
@@ -28,11 +30,13 @@ export class ProfileService {
     return ingestion ? this.builtProfile(accountId, ingestion) : emptyProfile(accountId);
   }
 
-  // Confirming records the time once and keeps it on a repeat, so the call is idempotent.
+  // Confirming records the time once and keeps it on a repeat, so the call is idempotent. With a
+  // Model Key already stored, it also starts the Curation (ADR-0024).
   async confirm(accountId: Id): Promise<Profile> {
     const ingestion = await this.ingestions.findLatestCompleted(accountId, RESUME_SOURCE);
+    const confirmed = ingestion && (await this.curations.commitAndStart(accountId, (transaction) => this.profiles.confirm(accountId, ingestion.id, transaction)));
 
-    if (!ingestion || !(await this.profiles.confirm(accountId, ingestion.id))) {
+    if (!ingestion || !confirmed) {
       throw new ProfileNotFoundError(accountId);
     }
 
@@ -42,23 +46,26 @@ export class ProfileService {
   private async builtProfile(accountId: Id, ingestion: Ingestion): Promise<Profile> {
     const rows = await this.profiles.rowsOf(accountId, ingestion.id);
     const confirmedAt = rows.basicProfile?.confirmed_at ?? null;
-    const flags = confirmedAt ? [] : reviewFlagsOf(await this.ingestions.segmentsOf(accountId, ingestion.id));
+    const flags = confirmedAt
+      ? []
+      : flagsStillOpen(reviewFlagsOf(await this.ingestions.segmentsOf(accountId, ingestion.id)), rows.untouchedEntries, rows.corrections);
 
     return {
       accountId,
       ...partsOf(rows),
-      yearsOfExperience: careerYears(
+      yearsOfExperience: careerDuration(
         rows.experiences.flatMap((experience) => (experience.period ? [experience.period] : [])),
         this.clock.now(),
-      ),
+      ).years,
       reviewFlags: flags,
+      corrections: rows.corrections,
       source: await this.sourceOf(accountId, ingestion),
       confirmedAt: confirmedAt?.toISOString() ?? null,
     };
   }
 
   private async sourceOf(accountId: Id, ingestion: Ingestion): Promise<ProfileSource> {
-    const resume = await this.resumes.findByIngestionId(accountId, ingestion.id);
+    const resume = await this.resumes.findReadBy(accountId, ingestion.id);
 
     return {
       kind: ingestion.source,
@@ -91,6 +98,7 @@ const emptyProfile = (accountId: Id): Profile => ({
   certifications: [],
   yearsOfExperience: 0,
   reviewFlags: [],
+  corrections: { basicProfile: false, entryIds: [] },
   source: null,
   confirmedAt: null,
 });

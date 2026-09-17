@@ -38,3 +38,11 @@
 .large + * {
   margin-top: -2px;
 }
+
+.heading .warning {
+  color: var(--color-warning);
+}
+
+.heading .error {
+  color: var(--color-error);
+}

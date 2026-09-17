@@ -1,0 +1,41 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: var(--tip-card-padding);
+  border: var(--control-border-width) solid var(--color-brand);
+  border-radius: var(--radius-tip-card);
+  background: var(--color-surface-tint);
+}
+
+.head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.mark {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--color-brand);
+  color: var(--color-surface);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.name {
+  font-size: var(--text-stage-title);
+  line-height: var(--leading-entry-title);
+  font-weight: 700;
+  color: var(--color-ink);
+}
+
+.detail {
+  font-size: var(--text-entry-detail);
+  line-height: var(--leading-entry-detail);
+  color: var(--color-text-secondary);
+}

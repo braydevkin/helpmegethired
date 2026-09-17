@@ -9,10 +9,11 @@ export interface JourneyFrameProps {
   stepLabel: string;
   heading?: ReactNode;
   sidebar?: ReactNode;
+  wide?: boolean;
   children: ReactNode;
 }
 
-export function JourneyFrame({ candidate, stepLabel, heading, sidebar, children }: JourneyFrameProps) {
+export function JourneyFrame({ candidate, stepLabel, heading, sidebar, wide, children }: JourneyFrameProps) {
   return (
     <SiteTemplate
       stepLabel={stepLabel}
@@ -24,6 +25,7 @@ export function JourneyFrame({ candidate, stepLabel, heading, sidebar, children 
       }
       heading={heading}
       sidebar={sidebar}
+      wide={wide}
     >
       {children}
     </SiteTemplate>

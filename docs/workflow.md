@@ -37,24 +37,35 @@ An issue is refined when all of these are true:
 - [ ] Dependencies on other issues are linked.
 - [ ] It fits in a single PR that can be reviewed in one sitting.
 - [ ] Labels: exactly one type (`feature`, `fix`, `architecture`, `docs`, `chore`) and one or more areas (`frontend`, `backend`, `shared`, `infra`, `ai`).
-- [ ] Milestone set to one of: Foundation, Account and Profile, Job Analysis, Learning and Apply, Interview and Summary.
+- [ ] Milestone is set. The milestones that exist today are listed under [Milestones](#milestones).
 
 ## Milestones
 
-A milestone is a slice of the candidate journey that is usable on its own once done. The five milestones exist in the repository; the numbered items below are the capabilities each one groups, in build order.
+A milestone groups the work that makes one part of the product usable on its own. The list is not closed: a milestone is added when the product grows a part that none of these covers. These exist in the repository today:
+
+| Milestone | What it groups |
+| --- | --- |
+| Foundation | Monorepo, shared package, Docker, CI: a contributor can run and test the whole stack with one command |
+| Account and Profile | Sign up and sign in, Resume upload, segment ingestion, and the Profile review page |
+| AI Analysis | Profile Curation: a confirmed Profile turned into traceable Statements that every Job Description analysis reads |
+| Job Analysis | Job Description intake, retrieval, ATS score, Resume Builder |
+| Learning and Apply | Learnings, study plan, apply helper |
+| Interview and Summary | Mock interview, preparation summary with success rates |
+| Security | Cross-cutting: the findings of the security review and the requirements in [security.md](security.md) the features must meet |
+
+The capabilities they group, in build order:
 
 1. **Repository foundation**: Turborepo + pnpm workspace, shared configs, `packages/shared`, Docker Compose with PostgreSQL + pgvector, CI running lint/typecheck/test.
 2. **Account**: sign up / sign in in `apps/api` and `apps/web`.
 3. **Profile ingestion**: PDF upload, segment queue, resumable progress, profile entities.
-4. **LinkedIn reading**: API integration or documented fallback.
-5. **Profile analysis**: RAG over profile, strengths and weaknesses page.
-6. **Job description**: paste, store, embed.
-7. **ATS scoring**: first AI service, score 0–10.
-8. **Resume builder**: triggered when score < 8.
-9. **Learnings and study plan**.
-10. **Apply helper**.
-11. **Mock interview**.
-12. **Preparation summary**.
+4. **Profile Curation**: the confirmed Profile read once, on the Candidate's own Model Key, into Statements with their Evidence, and the analysis page where the Candidate reviews them.
+5. **Job description**: paste, store, embed.
+6. **ATS scoring**: first Job Description layer, score 0–10, with the strengths and weaknesses for that role.
+7. **Resume builder**: triggered when score < 8.
+8. **Learnings and study plan**.
+9. **Apply helper**.
+10. **Mock interview**.
+11. **Preparation summary**.
 
 ## Branching model: Gitflow
 
@@ -81,10 +92,10 @@ feature/         ●───●       ●─●  fix/
 Rules:
 
 - `feature/*` and `fix/*` branch from `develop` and target `develop`.
-- `hotfix/*` branches from `main`, targets `main`, and is merged back into `develop` immediately after (open a second PR `main → develop` or cherry-pick; never leave `develop` behind `main`).
+- `hotfix/*` branches from `main`, targets `main`, and is merged back into `develop` immediately after through a second PR `main → develop`, merged with a merge commit like every PR across the `main` boundary; a cherry-pick would leave `main` outside `develop`'s history, and `develop` never stays behind `main`.
 - A **release** is a PR from `develop` to `main`. It must include a release document (see below). On merge, `main` is tagged `vX.Y.Z`.
 - Nobody commits directly to `main` or `develop`. Both require a PR, a green CI, and a review.
-- **Merge method.** A pull request that crosses the `main` boundary, in either direction, is merged with a **merge commit** (`gh pr merge <n> --merge`). Squash and rebase rewrite the branch into a new commit and drop the second parent, so `main` stays outside `develop`'s history; git then falls back to the last commit the two branches actually share and reports every file of the next release as an add/add conflict, over content that is identical on both sides. Everything else, `feature/*` and `fix/*` into `develop`, is squashed as usual.
+- **Merge method.** A pull request that crosses the `main` boundary, in either direction, is merged with a **merge commit** (`gh pr merge <n> --merge`). Squash and rebase rewrite the branch into a new commit and drop the second parent, so `main` stays outside `develop`'s history; git then falls back to the last commit the two branches actually share and reports every file of the next release as an add/add conflict, over content that is identical on both sides. Branch protection on `develop` and `main` must therefore not require linear history: that setting forbids merge commits and leaves only squash and rebase, which is how #98, #100, #130 and #166 lost their second parent. Everything else, `feature/*` and `fix/*` into `develop`, is squashed as usual.
 - Keep branches short-lived. Rebase on the target branch before opening the PR; no merge commits from the target into the branch.
 - Delete the branch after merge.
 
@@ -99,6 +110,8 @@ Semantic versioning on `main` tags:
 - **MAJOR**: breaking change to the API contract or the candidate journey.
 - **MINOR**: new capability (a release from `develop` that adds features).
 - **PATCH**: fixes only, including hotfixes.
+
+Before 1.0.0, a breaking change bumps MINOR, as v0.2.0 and v0.3.0 did. 1.0.0 marks the first release to a public environment, and from then on a breaking change bumps MAJOR.
 
 ## Pull requests
 
@@ -128,7 +141,7 @@ Every PR to `main` ships a release document. No release document, no merge. Ther
 3. Open the release pull request from `develop` to `main` with the release template (`gh pr create --base main --head develop --template release.md`). Its `Release document` check fails until the document is on `develop`; that is expected at this point.
 4. On a `feature/<issue>-release-vX.Y.Z` branch from `develop`, copy `docs/releases/template.md` to `docs/releases/vX.Y.Z.md` and fill it in: summary, changes grouped by type with issue and PR links, breaking changes, migration steps, rollback plan, and the verification done in the test environment. Reference the release pull request in the document and add the entry to `docs/releases/README.md`. Open a pull request to `develop` that closes the release issue, and merge it.
 5. The release pull request follows the new head of `develop`, so the `Release document` check turns green on its own. Review and merge it with a merge commit, never a squash, for the reason in the branching rules above. Nothing is merged back into `develop`: it already contains everything `main` received.
-6. After merge, tag `main` with `vX.Y.Z` and create a GitHub Release whose notes are the release document.
+6. The merge into `main` triggers the `Release` workflow, which tags the merge commit `vX.Y.Z` and publishes a GitHub Release whose notes are `docs/releases/vX.Y.Z.md`. Nothing to do by hand; check the run finished. It publishes only documents that have no Release yet, so it can be re-run from the Actions tab without publishing anything twice, and it fails, before creating anything, if a document's filename and `**Tag:**` field disagree.
 7. For a hotfix, merge `main` back into `develop` right away.
 
 ## Where documentation lives

@@ -10,6 +10,8 @@ import { IngestionModule } from "./ingestion/ingestion.module";
 import { InterviewModule } from "./interview/interview.module";
 import { JobDescriptionsModule } from "./job-descriptions/job-descriptions.module";
 import { LearningsModule } from "./learnings/learnings.module";
+import { ModelChoiceModule } from "./model-choice/model-choice.module";
+import { ProfileRecognitionModule } from "./profile/profile-recognition.module";
 import { ProfileModule } from "./profile/profile.module";
 import { ResumesModule } from "./resumes/resumes.module";
 import { StorageModule } from "./storage/storage.module";
@@ -22,7 +24,9 @@ import { StorageModule } from "./storage/storage.module";
     HealthModule,
     DocsModule,
     AuthModule,
+    ModelChoiceModule,
     ProfileModule,
+    ProfileRecognitionModule,
     IngestionModule,
     ResumesModule,
     JobDescriptionsModule,

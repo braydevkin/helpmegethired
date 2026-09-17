@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
-import { openApiDocument, type JsonSchema } from "./document";
+import type { JsonSchema } from "./components";
+import { openApiDocument } from "./document";
 import { OPENAPI_FILE, renderedDocument } from "./generate";
 
 const document = openApiDocument();
@@ -23,19 +24,34 @@ const refsIn = (value: unknown): string[] => {
 const responseSchemaOf = (response: JsonSchema): unknown => (response.content as Record<string, { schema: unknown }> | undefined)?.["application/json"]?.schema;
 
 describe("the OpenAPI document", () => {
-  it("describes every resume, Profile, Account, and health route", () => {
+  it("describes every resume, Profile, Curation, Account, Model Choice, and health route", () => {
     expect(operations.map(({ method, path }) => `${method.toUpperCase()} ${path}`).sort()).toEqual(
       [
         "GET /health",
         "GET /auth/account",
         "PATCH /auth/account",
         "POST /auth/sign-out",
+        "GET /account/model",
+        "PUT /account/model",
+        "POST /account/model/key-ticket",
+        "DELETE /account/model/key",
         "POST /resumes",
         "GET /resumes",
         "POST /resumes/{id}/complete",
         "GET /resumes/{id}",
         "GET /profile",
         "POST /profile/confirm",
+        "POST /profile/recognition",
+        "PUT /profile/parts/basic-profile",
+        "POST /profile/parts/{part}",
+        "PUT /profile/parts/{part}/{id}",
+        "DELETE /profile/parts/{part}/{id}",
+        "GET /profile/curation",
+        "GET /profile/curation/statements",
+        "PUT /profile/curation/statements/{id}/review",
+        "POST /profile/curation/cancel",
+        "POST /profile/curation/retry",
+        "POST /profile/curation/rerun",
       ].sort(),
     );
   });
@@ -47,8 +63,30 @@ describe("the OpenAPI document", () => {
       expect(names.map((name) => `#/components/schemas/${name}`)).toContain(reference);
     }
 
-    expect(names).toEqual(expect.arrayContaining(["Account", "ApiError", "ResumeUpload", "ResumeUploadReceipt", "UploadedResume", "Profile"]));
+    expect(names).toEqual(expect.arrayContaining(["Account", "ApiError", "ResumeUpload", "ResumeUploadReceipt", "UploadedResume", "Profile", "CurationProgressState", "CurationStatements", "CuratedStatement", "StatementReviewRequest", "BasicProfile", "ProfileEntryCorrection"]));
     expect(document.components.schemas.Profile).toMatchObject({ type: "object", required: expect.arrayContaining(["accountId", "reviewFlags", "source"]) });
+    expect(document.components.schemas.CurationProgressState).toMatchObject({ type: "object", required: ["progress"] });
+  });
+
+  it("describes the Curation progress poll with its ETag and 304", () => {
+    const poll = document.paths["/profile/curation"]?.get;
+
+    expect(poll?.parameters).toContainEqual(expect.objectContaining({ name: "If-None-Match", in: "header" }));
+    expect(poll?.responses["200"]).toMatchObject({ headers: { ETag: expect.any(Object) } });
+    expect(Object.keys(poll?.responses ?? {})).toEqual(expect.arrayContaining(["200", "304", "401"]));
+    expect(refsIn(responseSchemaOf(poll?.responses["200"] ?? {}))).toEqual(["#/components/schemas/CurationProgressState"]);
+  });
+
+  it("describes the Statement list and its review, and says a review is not carried across a re-run", () => {
+    const list = document.paths["/profile/curation/statements"]?.get;
+    const review = document.paths["/profile/curation/statements/{id}/review"]?.put;
+
+    expect(refsIn(responseSchemaOf(list?.responses["200"] ?? {}))).toEqual(["#/components/schemas/CurationStatements"]);
+    expect(review?.parameters).toContainEqual(expect.objectContaining({ name: "id", in: "path", description: "The Statement id" }));
+    expect(refsIn(review?.requestBody)).toEqual(["#/components/schemas/StatementReviewRequest"]);
+    expect(refsIn(responseSchemaOf(review?.responses["200"] ?? {}))).toEqual(["#/components/schemas/CuratedStatement"]);
+    expect(Object.keys(review?.responses ?? {})).toEqual(expect.arrayContaining(["200", "400", "401", "404"]));
+    expect(document.components.schemas.CurationStatements?.description).toMatch(/not carried to the Statements of a re-run/);
   });
 
   it("gives every operation an id, a summary, and at least one answer, and every error answer the shared ApiError", () => {
@@ -71,13 +109,54 @@ describe("the OpenAPI document", () => {
     expect(JSON.stringify(responseSchemaOf(conflict ?? {}))).toContain('"enum":["upload_incomplete","ingestion_active"]');
   });
 
-  it("requires the Session on every route but health, which declares security optional", () => {
+  it("refuses to reserve an upload for an Account with no Model Key", () => {
+    const conflict = document.paths["/resumes"]?.post?.responses["409"];
+
+    expect(JSON.stringify(responseSchemaOf(conflict ?? {}))).toContain('"enum":["model_key_missing"]');
+  });
+
+  it("describes reading the résumé again, with the Uploaded Resume it answers and every refusal", () => {
+    const start = document.paths["/profile/recognition"]?.post;
+
+    expect(refsIn(responseSchemaOf(start?.responses["202"] ?? {}))).toEqual(["#/components/schemas/ProfileRecognitionReceipt"]);
+    expect(JSON.stringify(responseSchemaOf(start?.responses["404"] ?? {}))).toContain('"enum":["resume_text_missing"]');
+    expect(JSON.stringify(responseSchemaOf(start?.responses["409"] ?? {}))).toContain('"enum":["model_key_missing","ingestion_active","curation_active"]');
+    expect(document.components.schemas.ProfileRecognitionReceipt).toMatchObject({ type: "object", required: ["uploadedResumeId"] });
+  });
+
+  it("answers 409 only on the Curation actions, and names why a re-run is refused", () => {
+    const conflicts = operations.filter(({ operation }) => operation.responses["409"] && operation.tags.includes("Curation")).map(({ path }) => path);
+    const refused = document.paths["/profile/curation/rerun"]?.post?.responses["422"];
+
+    expect(conflicts.sort()).toEqual(["/profile/curation/rerun", "/profile/curation/retry"]);
+    expect(document.paths["/profile/curation/cancel"]?.post?.responses["409"]).toBeUndefined();
+    expect(JSON.stringify(responseSchemaOf(refused ?? {}))).toContain('"enum":["curation_not_ready","curation_unchanged"]');
+  });
+
+  it("requires the Session on every route but health, which declares security optional, and the key route, which also takes a Model Key ticket", () => {
+    const securityOf = (method: string, path: string) => {
+      if (path === "/health") {
+        return [{}];
+      }
+
+      return `${method} ${path}` === "put /account/model" ? [{ session: [] }, { modelKeyTicket: [] }] : [{ session: [] }];
+    };
+
     expect(document.security).toEqual([{ session: [] }]);
     expect(document.components.securitySchemes.session).toMatchObject({ type: "http", scheme: "bearer" });
+    expect(document.components.securitySchemes.modelKeyTicket).toMatchObject({ type: "http", scheme: "bearer" });
 
-    for (const { path, operation } of operations) {
-      expect(operation.security ?? document.security).toEqual(path === "/health" ? [{}] : [{ session: [] }]);
+    for (const { method, path, operation } of operations) {
+      expect(operation.security ?? document.security).toEqual(securityOf(method, path));
     }
+  });
+
+  it("describes the Model Key ticket and the code a refused one answers", () => {
+    const issue = document.paths["/account/model/key-ticket"]?.post;
+    const unauthorized = document.paths["/account/model"]?.put?.responses["401"];
+
+    expect(refsIn(responseSchemaOf(issue?.responses["201"] ?? {}))).toEqual(["#/components/schemas/ModelKeyTicket"]);
+    expect(JSON.stringify(responseSchemaOf(unauthorized ?? {}))).toContain('"enum":["model_key_ticket_invalid"]');
   });
 
   it("bounds every list it describes", () => {

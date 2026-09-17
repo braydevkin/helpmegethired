@@ -1,7 +1,7 @@
 import type { UploadedResume } from "@helpmegethired/shared";
 import { describe, expect, it } from "vitest";
 
-import { failureLeadOf, foundCountOf, percentageOf, pollDelayMs, profileDataRowsOf, stagesOf, type UploadView } from "./progress";
+import { failureLeadOf, foundCountOf, MODEL_KEY_MISSING_MESSAGE, percentageOf, profileDataRowsOf, refusalMessageOf, stagesOf, type UploadView } from "./progress";
 
 const resume = (overrides: Partial<UploadedResume>): UploadedResume => ({
   id: "c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f",
@@ -24,7 +24,7 @@ const progress = (percentage: number, savedKinds: string[]) => ({
   ingestionId: "0f8fad5b-d9cb-469f-a165-70867728950e",
   status: "running" as const,
   percentage,
-  segments: { total: 8, saved: savedKinds.length, savedKinds },
+  segments: { total: 7, saved: savedKinds.length, savedKinds },
 });
 
 describe("percentageOf", () => {
@@ -73,7 +73,7 @@ describe("stagesOf", () => {
 
 describe("profileDataRowsOf", () => {
   it("lists the eleven parts and ticks each as its Segment is saved", () => {
-    const rows = profileDataRowsOf(tracked({ status: "processing", progress: progress(40, ["header", "experience", "experience"]) }));
+    const rows = profileDataRowsOf(tracked({ status: "processing", progress: progress(40, ["header", "experience"]) }));
 
     expect(rows.map((row) => row.label)).toEqual([
       "Headline",
@@ -88,16 +88,24 @@ describe("profileDataRowsOf", () => {
       "Certifications",
       "Languages",
     ]);
-    expect(rows.slice(0, 6).map((row) => row.value)).toEqual(["Found", "Found", "Found", "Found", "Found", "2 roles"]);
+    expect(rows.slice(0, 6).map((row) => row.value)).toEqual(["Found", "Found", "Found", "Found", "Found", "Found"]);
     expect(rows.slice(6).every((row) => row.value === undefined)).toBe(true);
     expect(foundCountOf(rows)).toEqual({ found: 6, total: 11 });
+  });
+
+  it("ticks every row as its part's one Segment is saved, without counting entries", () => {
+    const allKinds = ["header", "experience", "education", "project", "skills", "languages", "certifications"];
+    const rows = profileDataRowsOf(tracked({ status: "processing", progress: progress(95, allKinds) }));
+
+    expect(rows.every((row) => row.value === "Found")).toBe(true);
+    expect(foundCountOf(rows)).toEqual({ found: 11, total: 11 });
   });
 
   it("shows every row found once the record is done", () => {
     const rows = profileDataRowsOf(tracked({ status: "done", progress: progress(100, ["header", "skills"]) }));
 
     expect(foundCountOf(rows)).toEqual({ found: 11, total: 11 });
-    expect(rows.find((row) => row.label === "Projects")?.value).toBe("1 found");
+    expect(rows.find((row) => row.label === "Projects")?.value).toBe("Found");
   });
 });
 
@@ -109,8 +117,10 @@ describe("failureLeadOf", () => {
   });
 });
 
-describe("pollDelayMs", () => {
-  it("doubles from one second and caps at ten", () => {
-    expect([0, 1, 2, 3, 4, 9].map(pollDelayMs)).toEqual([1000, 2000, 4000, 8000, 10000, 10000]);
+describe("refusalMessageOf", () => {
+  it("leads a refusal for a missing Model Key to Choose your AI and gives every other code its lead", () => {
+    expect(refusalMessageOf("model_key_missing")).toBe(MODEL_KEY_MISSING_MESSAGE);
+    expect(MODEL_KEY_MISSING_MESSAGE).toContain("Choose your AI");
+    expect(refusalMessageOf("ingestion_active")).toBe(failureLeadOf("ingestion_active"));
   });
 });

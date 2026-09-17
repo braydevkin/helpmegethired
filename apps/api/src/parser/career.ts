@@ -1,4 +1,4 @@
-import type { Period, YearMonth } from "@helpmegethired/shared";
+import type { Duration, Period, YearMonth } from "@helpmegethired/shared";
 
 interface MonthSpan {
   start: number;
@@ -19,7 +19,7 @@ export const yearMonthOf = (date: Date): YearMonth =>
 // Months covered by the periods with the overlaps counted once: sorted by start, merged when
 // one starts before or right after the previous one ends, then summed, both ends inclusive.
 // An open period ends today, so a held position keeps growing.
-export function careerMonths(periods: readonly Period[], today: Date): number {
+function careerMonths(periods: readonly Period[], today: Date): number {
   const now = indexOf(yearMonthOf(today));
   const spans = periods
     .map((period) => ({ start: indexOf(period.start), end: period.end === null ? now : indexOf(period.end) }))
@@ -40,5 +40,8 @@ export function careerMonths(periods: readonly Period[], today: Date): number {
   return merged.reduce((total, span) => total + span.end - span.start + 1, 0);
 }
 
-export const careerYears = (periods: readonly Period[], today: Date): number =>
-  Math.floor(careerMonths(periods, today) / MONTHS_PER_YEAR);
+export function careerDuration(periods: readonly Period[], today: Date): Duration {
+  const months = careerMonths(periods, today);
+
+  return { years: Math.floor(months / MONTHS_PER_YEAR), months: months % MONTHS_PER_YEAR };
+}

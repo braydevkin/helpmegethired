@@ -1,11 +1,15 @@
 import { Inject, Module, type OnModuleInit } from "@nestjs/common";
 
 import { AuthModule } from "../auth/auth.module";
+import { CurationModule } from "../curation/curation.module";
 import { ExtractionModule } from "../extraction/extraction.module";
 import { IngestionObservers } from "../ingestion/ingestion-observer";
 import { IngestionModule } from "../ingestion/ingestion.module";
 import type { AnySegmentProcessor } from "../ingestion/segment-processor";
 import { SegmentProcessorRegistry } from "../ingestion/segment-processor.registry";
+import { ModelChoiceModule } from "../model-choice/model-choice.module";
+import { RecognitionModelsModule } from "../recognition/recognition-models.module";
+import { SegmentModelReader } from "../recognition/segment-model-reader";
 import { ProfileModule } from "./profile.module";
 import { ResumeIngestionObserver } from "./resume-ingestion.observer";
 import { CertificationsSegmentProcessor } from "./segments/certifications.processor";
@@ -30,8 +34,9 @@ const PROCESSOR_CLASSES = [
 
 // Loaded by the worker only: the API never runs a Segment.
 @Module({
-  imports: [AuthModule, IngestionModule, ExtractionModule, ProfileModule],
+  imports: [AuthModule, IngestionModule, ExtractionModule, ProfileModule, CurationModule, ModelChoiceModule, RecognitionModelsModule],
   providers: [
+    SegmentModelReader,
     ...PROCESSOR_CLASSES,
     ResumeIngestionObserver,
     {

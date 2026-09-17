@@ -1,0 +1,145 @@
+.card {
+  padding: var(--card-padding);
+  border: 1px solid var(--color-card-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.mark {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  margin-top: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+.heading {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  font-size: var(--text-drop-title);
+  line-height: var(--leading-entry-title);
+  font-weight: 800;
+  letter-spacing: var(--tracking-section-heading);
+  color: var(--color-ink);
+}
+
+.lead {
+  margin-top: 4px;
+  font-size: var(--text-entry-detail);
+  line-height: var(--leading-hint);
+  color: var(--color-text-secondary);
+}
+
+.percentage {
+  flex: none;
+  font-size: var(--text-stat-value);
+  line-height: var(--leading-control);
+  font-weight: 800;
+  letter-spacing: var(--tracking-stat-value);
+  color: var(--color-brand);
+}
+
+.bar {
+  margin-top: 20px;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 4px 16px;
+  margin-top: 12px;
+  font-size: var(--text-entry-meta);
+  line-height: var(--leading-entry-title);
+}
+
+.pass {
+  min-width: 0;
+  font-weight: 700;
+  color: var(--color-brand);
+  overflow-wrap: anywhere;
+}
+
+.saved {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.notice {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border: 1px solid var(--color-warning-border);
+  border-radius: var(--radius-control);
+  background: var(--color-warning-bg);
+  color: var(--color-warning-text);
+  font-size: var(--text-entry-detail);
+  line-height: var(--leading-entry-detail);
+  font-weight: 600;
+}
+
+.units {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--color-divider);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footnote {
+  margin-top: 16px;
+  font-size: var(--text-hint);
+  line-height: var(--leading-hint);
+  color: var(--color-text-secondary);
+}
+
+.paused .mark {
+  background: var(--color-warning);
+}
+
+.paused .percentage,
+.paused .pass {
+  color: var(--color-warning);
+}
+
+.failed .mark,
+.cancelled .mark {
+  background: var(--color-error);
+}
+
+.failed .percentage,
+.failed .pass,
+.cancelled .percentage,
+.cancelled .pass {
+  color: var(--color-error-text);
+}
+
+.completed .mark {
+  background: var(--color-brand);
+}
+
+.superseded .mark {
+  background: var(--color-text-disabled);
+}
+
+.superseded .percentage,
+.superseded .pass {
+  color: var(--color-text-secondary);
+}
