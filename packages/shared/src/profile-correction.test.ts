@@ -37,6 +37,22 @@ describe("the entry correction schemas", () => {
     expect(schema.safeParse(entry).success).toBe(false);
   });
 
+  it.each([
+    ["an Experience", ExperienceCorrectionSchema, experience],
+    ["an Education entry", EducationCorrectionSchema, education],
+  ])("refuses %s that ends before it starts, on the month it ended", (_label, schema, entry) => {
+    const result = schema.safeParse({ ...entry, period: { start: "2024-06", end: "2022-03" } });
+
+    expect(result.error?.issues.map((issue) => issue.path.join("."))).toEqual(["period.end"]);
+  });
+
+  it.each([
+    ["one month long", { start: "2022-03", end: "2022-03" }],
+    ["still open", { start: "2022-03", end: null }],
+  ])("takes a period %s", (_label, period) => {
+    expect(ExperienceCorrectionSchema.safeParse({ ...experience, period }).success).toBe(true);
+  });
+
   it("has one schema per part that holds a list of entries", () => {
     expect(Object.keys(PROFILE_ENTRY_CORRECTION_SCHEMAS)).toEqual([...ProfileListPartSchema.options]);
   });
