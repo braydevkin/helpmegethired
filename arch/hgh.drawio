@@ -799,19 +799,19 @@
         <mxCell id="yz9hIvo95nW3mGWeBlkn-30" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-23" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yz9hIvo95nW3mGWeBlkn-29" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-23" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="BullMQ&amp;nbsp;&lt;br&gt;(agents-job)" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-23" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="BullMQ&lt;br&gt;(job-analysis)" vertex="1">
           <mxGeometry height="50" width="120" x="110" y="3250" as="geometry" />
         </mxCell>
         <mxCell id="yz9hIvo95nW3mGWeBlkn-55" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-25" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yz9hIvo95nW3mGWeBlkn-36">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-25" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="Get Profile Data" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-25" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="Get Statements and Facts" vertex="1">
           <mxGeometry height="50" width="120" x="707" y="3380" as="geometry" />
         </mxCell>
         <mxCell id="yz9hIvo95nW3mGWeBlkn-35" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-29" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yz9hIvo95nW3mGWeBlkn-34" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-29" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="Worker&lt;br&gt;(AgentsRunner)" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-29" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="Worker&lt;br&gt;(Job Analysis runner)" vertex="1">
           <mxGeometry height="50" width="120" x="325" y="3250" as="geometry" />
         </mxCell>
         <mxCell id="yz9hIvo95nW3mGWeBlkn-73" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-34" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yz9hIvo95nW3mGWeBlkn-72" value="">
@@ -826,26 +826,16 @@
         <mxCell id="yz9hIvo95nW3mGWeBlkn-34" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="Langchain" vertex="1">
           <mxGeometry height="50" width="120" x="540" y="3250" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-39" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yz9hIvo95nW3mGWeBlkn-38" value="">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-39" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-40" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yz9hIvo95nW3mGWeBlkn-38" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="yz9hIvo95nW3mGWeBlkn-46" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="yz9hIvo95nW3mGWeBlkn-40">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="967" y="3510" />
-              <mxPoint x="767" y="3510" />
-            </Array>
-          </mxGeometry>
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-47" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-36" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" target="yz9hIvo95nW3mGWeBlkn-41">
-          <mxGeometry relative="1" as="geometry">
-            <Array as="points">
-              <mxPoint x="967" y="3510" />
-              <mxPoint x="1157" y="3510" />
-            </Array>
-          </mxGeometry>
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-47" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-38" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yz9hIvo95nW3mGWeBlkn-41">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-36" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="Call Agents" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-36" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="Run the Layers in order" vertex="1">
           <mxGeometry height="50" width="120" x="907" y="3380" as="geometry" />
         </mxCell>
         <mxCell id="yz9hIvo95nW3mGWeBlkn-42" parent="1" style="rounded=1;whiteSpace=wrap;html=1;dashed=1;" value="" vertex="1">
@@ -866,19 +856,19 @@
         <mxCell id="yz9hIvo95nW3mGWeBlkn-50" parent="1" style="rounded=0;whiteSpace=wrap;html=1;dashed=1;fillColor=none;" value="&lt;div&gt;&lt;br/&gt;&lt;/div&gt;" vertex="1">
           <mxGeometry height="110" width="556" x="685" y="3563" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-38" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;fontStyle=1;fontColor=#ffffff;" value="ATS" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-38" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;fontStyle=1;fontColor=#ffffff;" value="2. ATS Score (rules, no Model call)" vertex="1">
           <mxGeometry height="50" width="120" x="907" y="3593" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-40" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;fontStyle=1;fontColor=#ffffff;" value="Content Recommendation" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-40" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;fontStyle=1;fontColor=#ffffff;" value="1. Requirement Match" vertex="1">
           <mxGeometry height="50" width="120" x="707" y="3593" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-41" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;fontStyle=1;fontColor=#ffffff;" value="Resume Recommendations" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-41" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#647687;strokeColor=#314354;fontStyle=1;fontColor=#ffffff;" value="3. Resume Builder (score below 8)" vertex="1">
           <mxGeometry height="50" width="120" x="1097" y="3593" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-59" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="RAG + Profile Data" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-59" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="RAG over Statements + Facts" vertex="1">
           <mxGeometry height="30" width="147" x="787" y="3477" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-60" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="RAG + Profile Data" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-60" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="RAG over Statements + Facts" vertex="1">
           <mxGeometry height="30" width="147" x="987" y="3477" as="geometry" />
         </mxCell>
         <mxCell id="yz9hIvo95nW3mGWeBlkn-80" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-72" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="yz9hIvo95nW3mGWeBlkn-74">
@@ -953,7 +943,7 @@
         <mxCell id="yz9hIvo95nW3mGWeBlkn-48" parent="yz9hIvo95nW3mGWeBlkn-88" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#647687;fontColor=#ffffff;strokeColor=#314354;" value="" vertex="1">
           <mxGeometry height="20" width="20" y="3" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-49" parent="yz9hIvo95nW3mGWeBlkn-88" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="Agents" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-49" parent="yz9hIvo95nW3mGWeBlkn-88" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="Layers" vertex="1">
           <mxGeometry height="30" width="54" x="25" as="geometry" />
         </mxCell>
         <mxCell id="yz9hIvo95nW3mGWeBlkn-92" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-90" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" target="yz9hIvo95nW3mGWeBlkn-34">
@@ -965,13 +955,13 @@
         <mxCell id="yz9hIvo95nW3mGWeBlkn-93" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="Get Context (R Operation)" vertex="1">
           <mxGeometry height="30" width="147" x="680" y="3240" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-94" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="Store Agents Result (W Operation)" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-94" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;fontStyle=1" value="Store each Layer output (W Operation)" vertex="1">
           <mxGeometry height="30" width="147" x="970" y="3240" as="geometry" />
         </mxCell>
         <mxCell id="yz9hIvo95nW3mGWeBlkn-102" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-98" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yz9hIvo95nW3mGWeBlkn-101" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-98" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="Response Validation" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-98" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="Citation check (Statement or Fact)" vertex="1">
           <mxGeometry height="50" width="120" x="685" y="3750" as="geometry" />
         </mxCell>
         <mxCell id="yz9hIvo95nW3mGWeBlkn-104" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-101" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yz9hIvo95nW3mGWeBlkn-103" value="">
@@ -983,13 +973,13 @@
         <mxCell id="yz9hIvo95nW3mGWeBlkn-107" edge="1" parent="1" source="yz9hIvo95nW3mGWeBlkn-103" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;" target="yz9hIvo95nW3mGWeBlkn-106" value="">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-103" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0a30a;strokeColor=#BD7000;fontStyle=1;fontColor=light-dark(#000000,#FFFFFF);" value="&lt;span style=&quot;&quot;&gt;Pgvector embedding&lt;/span&gt;" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-103" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f0a30a;strokeColor=#BD7000;fontStyle=1;fontColor=light-dark(#000000,#FFFFFF);" value="Copy the cited Statements and Facts" vertex="1">
           <mxGeometry height="50" width="120" x="1097" y="3750" as="geometry" />
         </mxCell>
         <mxCell id="yz9hIvo95nW3mGWeBlkn-106" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#1ba1e2;strokeColor=#006EAF;fontStyle=1;fontColor=light-dark(#FFFFFF,#FFFFFF);" value="&lt;span style=&quot;color: rgb(237, 237, 237);&quot;&gt;Completed&lt;/span&gt;" vertex="1">
           <mxGeometry height="50" width="120" x="1097" y="3850" as="geometry" />
         </mxCell>
-        <mxCell id="yz9hIvo95nW3mGWeBlkn-108" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontStyle=1" value="Check to see if any of the agents fail to return a response; the schema validation must support undefined responses" vertex="1">
+        <mxCell id="yz9hIvo95nW3mGWeBlkn-108" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;fontStyle=1" value="Layers run one after another; a failed Layer is retried and the run resumes at the first unfinished Layer" vertex="1">
           <mxGeometry height="90" width="170" x="685" y="3800" as="geometry" />
         </mxCell>
       </root>
