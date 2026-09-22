@@ -33,6 +33,7 @@ Use [template.md](template.md). Number sequentially. Status is one of `Proposed`
 | [0023](0023-candidate-key-for-generation-platform-embeddings.md) | The Candidate's own key for generation on a pinned `claude-sonnet-5`, embeddings on one platform key | Accepted |
 | [0024](0024-profile-curation-before-every-job-description-analysis.md) | Profile Curation turns a confirmed Profile into the Statements every later layer reads | Accepted |
 | [0025](0025-candidate-model-reads-the-resume-rules-verify.md) | The Candidate's Model reads the résumé, and the rules verify every value it read | Accepted |
+| [0026](0026-job-analysis-sequential-layers-rules-score-re-analysis-gate.md) | A Job Analysis runs sequential Layers over Statements and Facts, scores by rules, and gates re-analysis instead of caching | Accepted |
 
 ## Pending decisions
 
