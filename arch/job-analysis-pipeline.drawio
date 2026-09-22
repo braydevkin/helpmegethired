@@ -1,0 +1,352 @@
+<mxfile host="65bd71144e">
+    <diagram id="job-analysis-pipeline" name="Job analysis pipeline">
+        <mxGraphModel dx="2433" dy="534" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2000" pageHeight="2150" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="title" parent="1" style="text;html=1;align=left;verticalAlign=top;fontSize=13;strokeColor=none;fillColor=none;whiteSpace=wrap;" value="&lt;b&gt;Help Me Get Hired · Job Analysis pipeline (FR-05 to FR-07, ADR of #195)&lt;/b&gt;&lt;br&gt;Layers strictly in sequence (TC-06), retrieval over Statements before every Model call (TC-07), one active Job Analysis per Account and none while an Ingestion or a Curation is active (TC-05). Rejected by the ADR: agents, parallel Layers, an exact cache, a lease checked on demand, a Model-judged ATS Score, reading Profile rows." vertex="1">
+                    <mxGeometry height="50" width="1940" x="40" y="10" as="geometry"/>
+                </mxCell>
+                <mxCell id="ctFront" parent="1" style="swimlane;html=1;fontStyle=1;startSize=30;fillColor=#f8cecc;strokeColor=#b85450;" value="Frontend (Next.js, apps/web)" vertex="1">
+                    <mxGeometry height="360" width="380" x="40" y="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="A1" parent="ctFront" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Job Description page (#208), locked until a Curation completes&lt;br&gt;The Candidate pastes a Job Description" vertex="1">
+                    <mxGeometry height="60" width="340" x="20" y="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="A2" parent="ctFront" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Starts a Job Analysis of a Job Description&lt;br&gt;Each refusal is shown with its reason" vertex="1">
+                    <mxGeometry height="60" width="340" x="20" y="125" as="geometry"/>
+                </mxCell>
+                <mxCell id="A3" parent="ctFront" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Job Analysis page (#209) polls the progress with the ETag: the Layers in order with their states, Strengths and Weaknesses opening to their Statement and Evidence, the ATS Score breakdown, the Rebuilt Resume with its citations&lt;br&gt;Cancel, retry, and re-analyse disabled with its reason" vertex="1">
+                    <mxGeometry height="130" width="340" x="20" y="205" as="geometry"/>
+                </mxCell>
+                <mxCell id="ctApi" parent="1" style="swimlane;html=1;fontStyle=1;startSize=30;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="API (NestJS, apps/api) · job-descriptions and analysis modules" vertex="1">
+                    <mxGeometry height="860" width="620" x="480" y="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="B1" parent="ctApi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Paste a Job Description (#199): trimmed, capped at 128KB, titled from its opening line&lt;br&gt;Stored in job_descriptions, never updated; the same text from the same Account answers the same row (unique per Account)" vertex="1">
+                    <mxGeometry height="75" width="580" x="20" y="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="B2" parent="ctApi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Start a Job Analysis (#200)&lt;br&gt;under the Account lock" vertex="1">
+                    <mxGeometry height="50" width="340" x="20" y="145" as="geometry"/>
+                </mxCell>
+                <mxCell id="B3" parent="ctApi" style="rhombus;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Can the Account start?" vertex="1">
+                    <mxGeometry height="90" width="340" x="20" y="215" as="geometry"/>
+                </mxCell>
+                <mxCell id="B4" parent="ctApi" style="rhombus;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Does the re-analysis gate allow it?" vertex="1">
+                    <mxGeometry height="90" width="340" x="20" y="335" as="geometry"/>
+                </mxCell>
+                <mxCell id="B5" parent="ctApi" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fillColor=#f8cecc;strokeColor=#b85450;" value="409, each refusal with its own code and a reason, no row created:&lt;br&gt;· no completed Curation&lt;br&gt;· no usable Model Key&lt;br&gt;· an Ingestion or a Curation queued or running&lt;br&gt;· a Job Analysis queued or running&lt;br&gt;· unchanged since the newest completed Job Analysis" vertex="1">
+                    <mxGeometry height="255" width="210" x="390" y="215" as="geometry"/>
+                </mxCell>
+                <mxCell id="B6" parent="ctApi" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;Re-analysis gate&lt;/b&gt;&lt;br&gt;Allowed when none completed, the newest failed or was cancelled, or since the newest completed one the Curation, a Statement review, the Model Choice, a prompt version or the ATS rule set version changed" vertex="1">
+                    <mxGeometry height="135" width="210" x="390" y="500" as="geometry"/>
+                </mxCell>
+                <mxCell id="B7" parent="ctApi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="One transaction: insert the Job Analysis (queued, recording the Curation, the Model, the prompt versions and the ATS rule set version) and its three Layers (pending)&lt;br&gt;The partial unique index answers a concurrent second start with the active refusal" vertex="1">
+                    <mxGeometry height="115" width="340" x="20" y="500" as="geometry"/>
+                </mxCell>
+                <mxCell id="B8" parent="ctApi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="After commit: add the job, job id = Job Analysis id&lt;br&gt;A failed enqueue leaves it queued for reconciliation; the request still succeeds" vertex="1">
+                    <mxGeometry height="75" width="340" x="20" y="640" as="geometry"/>
+                </mxCell>
+                <mxCell id="B10" parent="ctApi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Job Analysis routes (#205): progress with ETag and 304 · history · cancel at a Layer boundary · retry from the first unfinished Layer, refused for a superseded Curation or a changed Model · whether a re-analysis is allowed, with its refusal code&lt;br&gt;Another Account's Job Analysis answers as not found" vertex="1">
+                    <mxGeometry height="95" width="580" x="20" y="740" as="geometry"/>
+                </mxCell>
+                <mxCell id="ctQueue" parent="1" style="swimlane;html=1;fontStyle=1;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;" value="Redis · BullMQ (ADR-0020)" vertex="1">
+                    <mxGeometry height="365" width="420" x="1180" y="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="C1" parent="ctQueue" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Job Analysis queue&lt;br&gt;one job per Job Analysis, job id = its id" vertex="1">
+                    <mxGeometry height="45" width="380" x="20" y="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="C2" parent="ctQueue" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fillColor=#fff2cc;strokeColor=#d6b656;" value="Native, not hand-written: attempts + exponential backoff · a stalled job is re-delivered · job id dedup&lt;br&gt;Redis is the mechanism; PostgreSQL is the truth" vertex="1">
+                    <mxGeometry height="85" width="380" x="20" y="105" as="geometry"/>
+                </mxCell>
+                <mxCell id="C3" parent="ctQueue" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;b&gt;Reconciliation job&lt;/b&gt; (#202, the existing scheduler)&lt;br&gt;· a stale running Job Analysis goes back to queued while attempts remain, its running Layers back to pending; otherwise failed with attempts_exhausted&lt;br&gt;· an orphan queued one is re-enqueued under its id&lt;br&gt;· a paused one waits for resume_after&lt;br&gt;One conditional write per row; log lines carry ids only" vertex="1">
+                    <mxGeometry height="145" width="380" x="20" y="205" as="geometry"/>
+                </mxCell>
+                <mxCell id="ctWorker" parent="1" style="swimlane;html=1;fontStyle=1;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;" value="Worker (apps/api worker entrypoint) · Job Analysis runner (#201)" vertex="1">
+                    <mxGeometry height="420" width="420" x="1180" y="475" as="geometry"/>
+                </mxCell>
+                <mxCell id="D1" parent="ctWorker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Mark running, attempts + 1 in the same write" vertex="1">
+                    <mxGeometry height="40" width="250" x="150" y="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="D2" parent="ctWorker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="For each Layer in order:&lt;br&gt;Requirement Match → ATS Score → Resume Builder" vertex="1">
+                    <mxGeometry height="60" width="250" x="150" y="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="D5" parent="ctWorker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="No Layer left → Job Analysis completed" vertex="1">
+                    <mxGeometry height="70" width="100" x="20" y="95" as="geometry"/>
+                </mxCell>
+                <mxCell id="D3" parent="ctWorker" style="rhombus;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Re-read the Job Analysis: cancelled, or its Curation no longer current?" vertex="1">
+                    <mxGeometry height="110" width="250" x="150" y="175" as="geometry"/>
+                </mxCell>
+                <mxCell id="D6" parent="ctWorker" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Stop, no error: cancelled, or superseded, keeping its completed Layers" vertex="1">
+                    <mxGeometry height="110" width="100" x="20" y="175" as="geometry"/>
+                </mxCell>
+                <mxCell id="D4" parent="ctWorker" style="rhombus;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Checkpoint: Layer already completed or skipped?" vertex="1">
+                    <mxGeometry height="90" width="230" x="160" y="310" as="geometry"/>
+                </mxCell>
+                <mxCell id="ctAgents" parent="1" style="swimlane;html=1;fontStyle=1;startSize=45;whiteSpace=wrap;fillColor=#f5f5f5;strokeColor=#666666;" value="Layers, strictly in sequence (TC-06) · each reads what the previous one persisted and runs the execution cycle on the right" vertex="1">
+                    <mxGeometry height="760" width="400" x="40" y="1000" as="geometry"/>
+                </mxCell>
+                <mxCell id="F1" parent="ctAgents" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fillColor=#e1d5e7;strokeColor=#9673a6;" value="&lt;b&gt;1. Requirement Match&lt;/b&gt; (#203)&lt;br&gt;The Model reads the Job Description, inside its delimiters, into Requirements { kind, required or preferred, quote }; a quote not in the Job Description is dropped. No Requirement left fails the Job Analysis, no retry&lt;br&gt;Retrieval: the Statements closest to the Requirements, current Curation only, never a rejected one, account_id filtered in SQL before similarity&lt;br&gt;The Model answers Matches, each citing one given Statement or Fact with a reason; anything else is dropped&lt;br&gt;Persists Requirements, Matches, and copies of the cited Statements and Facts; Strengths and Weaknesses follow from the Matches" vertex="1">
+                    <mxGeometry height="210" width="360" x="20" y="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="F2" parent="ctAgents" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fillColor=#e1d5e7;strokeColor=#9673a6;" value="&lt;b&gt;2. ATS Score&lt;/b&gt; (#138)&lt;br&gt;Rules only: no Model call, no retrieval&lt;br&gt;required weighs 2, preferred 1&lt;br&gt;score = round(10 × weight of the Strengths ÷ total weight), half up, an integer from 0 to 10&lt;br&gt;Persists the score, the rule set version and the breakdown per Requirement" vertex="1">
+                    <mxGeometry height="130" width="360" x="20" y="300" as="geometry"/>
+                </mxCell>
+                <mxCell id="F3" parent="ctAgents" style="rhombus;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="score &amp;lt; 8 ?" vertex="1">
+                    <mxGeometry height="70" width="160" x="40" y="455" as="geometry"/>
+                </mxCell>
+                <mxCell id="F5" parent="ctAgents" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Resume Builder skipped&lt;br&gt;the Job Analysis still completes" vertex="1">
+                    <mxGeometry height="60" width="150" x="230" y="460" as="geometry"/>
+                </mxCell>
+                <mxCell id="F4" parent="ctAgents" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fillColor=#e1d5e7;strokeColor=#9673a6;" value="&lt;b&gt;3. Resume Builder&lt;/b&gt; (#204)&lt;br&gt;The Model receives the Requirements, the Matches, the ATS breakdown, the Statements cited and those closest to the Job Description, and the Facts&lt;br&gt;It answers a Rebuilt Resume: summary, Experiences, Projects, Skills, Education, Certifications, Languages&lt;br&gt;Every sentence cites a given Statement or Fact, otherwise it is dropped and counted; a Weakness is never claimed&lt;br&gt;Name, e-mail and phone never reach the Model" vertex="1">
+                    <mxGeometry height="190" width="360" x="20" y="550" as="geometry"/>
+                </mxCell>
+                <mxCell id="ctCycle" parent="1" style="swimlane;html=1;fontStyle=1;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;" value="Layer execution (same for every Layer)" vertex="1">
+                    <mxGeometry height="760" width="1080" x="520" y="1000" as="geometry"/>
+                </mxCell>
+                <mxCell id="E1" parent="ctCycle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Mark the Layer running, then run it on what the Layers before it persisted: retrieval and a Model call for Requirement Match and Resume Builder, rules only for ATS Score" vertex="1">
+                    <mxGeometry height="90" width="360" x="40" y="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="E2" parent="ctCycle" style="rhombus;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Usable output?" vertex="1">
+                    <mxGeometry height="80" width="220" x="110" y="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="E3" parent="ctCycle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Persist the Layer output, status completed, before the next Layer starts" vertex="1">
+                    <mxGeometry height="80" width="320" x="460" y="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="E10" parent="ctCycle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Next Layer (back to the runner)" vertex="1">
+                    <mxGeometry height="80" width="210" x="830" y="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="E2b" parent="ctCycle" style="rhombus;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Provider rate limit?" vertex="1">
+                    <mxGeometry height="80" width="220" x="110" y="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="E4" parent="ctCycle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Paused: the Job Analysis goes back to queued with resume_after and pause_reason; the attempt is kept" vertex="1">
+                    <mxGeometry height="80" width="320" x="460" y="270" as="geometry"/>
+                </mxCell>
+                <mxCell id="E2c" parent="ctCycle" style="rhombus;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Model Key refused, or no Requirement left?" vertex="1">
+                    <mxGeometry height="100" width="220" x="110" y="380" as="geometry"/>
+                </mxCell>
+                <mxCell id="E5" parent="ctCycle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Job Analysis failed, no retry: model_key_rejected, or a reason the Candidate can read when the Job Description has no Requirement" vertex="1">
+                    <mxGeometry height="90" width="320" x="460" y="385" as="geometry"/>
+                </mxCell>
+                <mxCell id="E6" parent="ctCycle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Layer failed (invalid response, timeout, provider error): attempts + 1, failure_reason&lt;br&gt;Throw → BullMQ retries the job, and the runner resumes at this Layer, never from zero" vertex="1">
+                    <mxGeometry height="110" width="360" x="40" y="510" as="geometry"/>
+                </mxCell>
+                <mxCell id="E7" parent="ctCycle" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Attempts exhausted: Job Analysis failed, failure_reason copied from the Layer; the Candidate sees which Layer stopped and why" vertex="1">
+                    <mxGeometry height="100" width="320" x="460" y="515" as="geometry"/>
+                </mxCell>
+                <mxCell id="ctDb" parent="1" style="swimlane;html=1;fontStyle=1;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;" value="PostgreSQL + pgvector (ADR-0012 Kysely, migrations) · columns settle in the technical refinement of #198" vertex="1">
+                    <mxGeometry height="270" width="1560" x="40" y="1810" as="geometry"/>
+                </mxCell>
+                <mxCell id="G1" parent="ctDb" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;b&gt;job_descriptions&lt;/b&gt; (#198)&lt;br&gt;one row per Job Description, owned by an Account: the pasted text, its title&lt;br&gt;&lt;br&gt;never updated · unique per Account on the same text · cascades from the Account" vertex="1">
+                    <mxGeometry height="210" width="290" x="20" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="G2" parent="ctDb" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;b&gt;job_analyses&lt;/b&gt; (#198)&lt;br&gt;its Job Description and the Curation it reads · the Model, the prompt versions and the ATS rule set version · status · attempts · pause and failure reasons · timestamps&lt;br&gt;&lt;br&gt;partial unique index: one queued or running per Account → TC-05" vertex="1">
+                    <mxGeometry height="210" width="290" x="325" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="G3" parent="ctDb" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;b&gt;job_analysis_layers&lt;/b&gt; (#198)&lt;br&gt;one row per Layer, in order: status (pending · running · completed · failed · skipped) · attempts · outcome · output, with the copies of the Statements and Facts it cites&lt;br&gt;&lt;br&gt;keeps a Job Analysis readable after its Curation is replaced" vertex="1">
+                    <mxGeometry height="210" width="290" x="630" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="G4" parent="ctDb" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;b&gt;statements&lt;/b&gt; (Curation, read-only here)&lt;br&gt;the sentence, its Evidence quote, its review, embedding vector(1536)&lt;br&gt;&lt;br&gt;the retrieval index leaves rejected Statements out; every query filters by account_id" vertex="1">
+                    <mxGeometry height="210" width="290" x="935" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="G5" parent="ctDb" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;verticalAlign=top;spacingTop=4;fillColor=#ffe6cc;strokeColor=#d79b00;" value="&lt;b&gt;Facts&lt;/b&gt; (#197, recorded by code when a Curation completes)&lt;br&gt;Years of experience · each Education, Certification, Language and Skill of the confirmed Profile, each with its own id&lt;br&gt;&lt;br&gt;given whole to the Model, no Model call to record them; removed with their Curation" vertex="1">
+                    <mxGeometry height="210" width="290" x="1240" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="ctShared" parent="1" style="swimlane;html=1;fontStyle=1;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;" value="packages/shared (Zod, ADR-0011) · #196" vertex="1">
+                    <mxGeometry height="300" width="300" x="1680" y="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="H1" parent="ctShared" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Job Description: the pasted text with its cap, the list and the one&lt;br&gt;Job Analysis progress: status, Layers in order, failure and pause reasons, re-analysis allowed with its refusal code&lt;br&gt;Requirement Match: the Model's answers and the stored result&lt;br&gt;ATS Score: an integer from 0 to 10, rule set version, breakdown&lt;br&gt;Rebuilt Resume: sentences that each cite a Statement or Fact&lt;br&gt;&lt;br&gt;Each exports its inferred type" vertex="1">
+                    <mxGeometry height="240" width="260" x="20" y="45" as="geometry"/>
+                </mxCell>
+                <mxCell id="N1" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;State machines&lt;/b&gt;&lt;br&gt;Job Analysis: queued → running → completed | failed | cancelled | superseded; running → queued when paused or retried; failed or cancelled → queued on retry&lt;br&gt;Layer: pending → running → completed | failed | skipped" vertex="1">
+                    <mxGeometry height="150" width="300" x="1680" y="410" as="geometry"/>
+                </mxCell>
+                <mxCell id="N2" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;Concurrency&lt;/b&gt;&lt;br&gt;One active Job Analysis per Account: the Account lock and the partial unique index&lt;br&gt;None starts while an Ingestion or a Curation is active&lt;br&gt;An upload or a Curation re-run supersedes a running one at its next Layer boundary" vertex="1">
+                    <mxGeometry height="150" width="300" x="1680" y="580" as="geometry"/>
+                </mxCell>
+                <mxCell id="N3" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;AI pipeline security (#53)&lt;/b&gt;&lt;br&gt;Candidate content only inside delimiters · no tool with a side effect · every retrieval filters account_id · every response parsed by a shared Zod schema · no key in a response, log or error · log lines carry ids, Model, prompt version, tokens, latency and outcome, never content" vertex="1">
+                    <mxGeometry height="190" width="300" x="1680" y="750" as="geometry"/>
+                </mxCell>
+                <mxCell id="N4" parent="1" style="rounded=1;whiteSpace=wrap;html=1;align=left;spacingLeft=6;fillColor=#fff2cc;strokeColor=#d6b656;" value="&lt;b&gt;Settled in the technical refinement&lt;/b&gt;&lt;br&gt;Column names, route paths, refusal codes, the Layer interface, where prompt and rule set versions live&lt;br&gt;#206 describes the result in docs/architecture.md" vertex="1">
+                    <mxGeometry height="130" width="300" x="1680" y="960" as="geometry"/>
+                </mxCell>
+                <mxCell id="ctLegend" parent="1" style="swimlane;html=1;fontStyle=1;startSize=30;fillColor=#f5f5f5;strokeColor=#666666;" value="Legend" vertex="1">
+                    <mxGeometry height="240" width="300" x="1680" y="1110" as="geometry"/>
+                </mxCell>
+                <mxCell id="L1" parent="ctLegend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;strokeColor=#6c8ebf;" value="Process" vertex="1">
+                    <mxGeometry height="30" width="260" x="20" y="40" as="geometry"/>
+                </mxCell>
+                <mxCell id="L2" parent="ctLegend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#d5e8d4;strokeColor=#82b366;" value="Decision" vertex="1">
+                    <mxGeometry height="30" width="260" x="20" y="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="L3" parent="ctLegend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#e1d5e7;strokeColor=#9673a6;" value="Layer" vertex="1">
+                    <mxGeometry height="30" width="260" x="20" y="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="L4" parent="ctLegend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#ffe6cc;strokeColor=#d79b00;" value="Persist / data" vertex="1">
+                    <mxGeometry height="30" width="260" x="20" y="160" as="geometry"/>
+                </mxCell>
+                <mxCell id="L5" parent="ctLegend" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#f8cecc;strokeColor=#b85450;" value="Failure or refusal" vertex="1">
+                    <mxGeometry height="30" width="260" x="20" y="200" as="geometry"/>
+                </mxCell>
+                <mxCell id="eA1B1" edge="1" parent="1" source="A1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="B1" value="paste">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="450" y="155"/>
+                            <mxPoint x="450" y="163"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eA2B2" edge="1" parent="1" source="A2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="B2" value="start">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="455" y="235"/>
+                            <mxPoint x="455" y="250"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eA3B10" edge="1" parent="1" source="A3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" target="B10" value="polls progress (ETag)">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="230" y="867"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eB2B3" edge="1" parent="1" source="B2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="B3">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eB3B4" edge="1" parent="1" source="B3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="B4" value="yes">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eB3B5" edge="1" parent="1" source="B3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.176;" target="B5" value="no">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eB4B5" edge="1" parent="1" source="B4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.647;" target="B5" value="no, unchanged">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eB4B7" edge="1" parent="1" source="B4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="B7" value="yes">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eB7B8" edge="1" parent="1" source="B7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="B8">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eB8C1" edge="1" parent="1" source="B8" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="C1" value="add job">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1140" y="757"/>
+                            <mxPoint x="1140" y="148"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eC1D1" edge="1" parent="1" source="C1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=1;entryY=0.5;" target="D1" value="worker picks the job">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1625" y="148"/>
+                            <mxPoint x="1625" y="540"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eD1D2" edge="1" parent="1" source="D1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="D2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eD2D5" edge="1" parent="1" source="D2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" target="D5">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eD2D3" edge="1" parent="1" source="D2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="D3">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eD3D6" edge="1" parent="1" source="D3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;" target="D6" value="yes">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eD3D4" edge="1" parent="1" source="D3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="D4" value="no">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eD4D2" edge="1" parent="1" source="D4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=1;entryY=0.75;" target="D2" value="yes, skip">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1590" y="830"/>
+                            <mxPoint x="1590" y="620"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eD4E1" edge="1" parent="1" source="D4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="E1" value="no, run it">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1455" y="975"/>
+                            <mxPoint x="740" y="975"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eE1E2" edge="1" parent="1" source="E1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="E2">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eE2E3" edge="1" parent="1" source="E2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="E3" value="yes">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eE2E2b" edge="1" parent="1" source="E2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="E2b" value="no">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eE2bE4" edge="1" parent="1" source="E2b" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="E4" value="yes">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eE2bE2c" edge="1" parent="1" source="E2b" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="E2c" value="no">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eE2cE5" edge="1" parent="1" source="E2c" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="E5" value="yes">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eE2cE6" edge="1" parent="1" source="E2c" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="E6" value="no">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eE6E7" edge="1" parent="1" source="E6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="E7" value="attempts&lt;br&gt;exhausted">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eE3E10" edge="1" parent="1" source="E3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="E10">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eE10D2" edge="1" parent="1" source="E10" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;exitX=1;exitY=0.5;entryX=1;entryY=0.25;" target="D2" value="loop">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="1625" y="1200"/>
+                            <mxPoint x="1625" y="590"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eE6C1" edge="1" parent="1" source="E6" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="C1" value="throw → BullMQ retry (backoff)">
+                    <mxGeometry x="-0.9" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="740" y="1650"/>
+                            <mxPoint x="1650" y="1650"/>
+                            <mxPoint x="1650" y="70"/>
+                            <mxPoint x="1390" y="70"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eF1F2" edge="1" parent="1" source="F1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;" target="F2" value="Requirements, Matches">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eF2F3" edge="1" parent="1" source="F2" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.2778;exitY=1;entryX=0.5;entryY=0;" target="F3">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eF3F4" edge="1" parent="1" source="F3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.2778;entryY=0;" target="F4" value="yes">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eF3F5" edge="1" parent="1" source="F3" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="F5" value="no">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="eB7G2" edge="1" parent="1" source="B7" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;jumpStyle=arc;jumpSize=8;exitX=0;exitY=0.75;entryX=0.5;entryY=0;" target="G2" value="insert">
+                    <mxGeometry x="0.9" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="465" y="666"/>
+                            <mxPoint x="465" y="1785"/>
+                            <mxPoint x="510" y="1785"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="eCycleDb" edge="1" parent="1" source="ctCycle" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;dashed=1;exitX=0.5;exitY=1;entryX=0.6538;entryY=0;" target="ctDb" value="reads statements and Facts (account_id first) · writes job_analysis_layers">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>
