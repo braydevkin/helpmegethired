@@ -83,7 +83,7 @@ A credential the Candidate earned: name, issuer, year.
 _Avoid_: License, badge, course
 
 **Years of experience**:
-The length of the Candidate's career, derived from the periods of the Experiences with overlapping periods counted once. Never stored, never typed by the Candidate.
+The length of the Candidate's career, derived from the periods of the Experiences with overlapping periods counted once. Never typed by the Candidate: it is counted, and recorded as a Fact when a Curation completes.
 _Avoid_: Seniority, career length, total experience
 
 **Confidence**:
@@ -120,7 +120,7 @@ _Avoid_: Chunk, task, pass (in code)
 
 **Statement**:
 A self-contained sentence about the Candidate produced by a Curation Unit, which reads correctly with nothing around it. What is embedded and retrieved.
-_Avoid_: Chunk, insight, finding, fact
+_Avoid_: Chunk, insight, finding
 
 **Evidence**:
 The pointer a Statement carries back to the Experience, Project, or span of extracted text it was drawn from. A Statement whose Evidence does not resolve is never saved.
@@ -130,7 +130,45 @@ _Avoid_: Citation, source, reference
 The Candidate's judgement on one Statement: accepted, rejected, or not yet reviewed. A rejected Statement is never retrieved for a Job Description.
 _Avoid_: Feedback, rating, vote
 
+**Fact**:
+Something about the Candidate counted from the confirmed Profile, not written by the Model, and recorded when a Curation completes: the Years of experience, and each Education, Certification, Language, and Skill. Belongs to its Curation. Unlike a Statement it has no Evidence, because the Profile itself is where it comes from.
+_Avoid_: Metric, attribute, data point
+
+### Job analysis
+
+**Job Analysis**:
+One analysis of one Job Description against the Candidate's current Curation, made of three Layers in order. At most one active per Account, and none while an Ingestion or a Curation is active. Keeps what it cited, so it still reads correctly after the Curation it read is replaced. Analysing the same Job Description again is possible only when something it read has changed.
+_Avoid_: Analysis run, run, report, assessment
+
+**Layer**:
+One step of a Job Analysis, in this order: Requirement Match, ATS Score, Resume Builder. A Layer starts only when the one before it has completed, and a Job Analysis that stopped continues at its first unfinished Layer. The order is fixed; nothing chooses what runs next.
+_Avoid_: Agent, tool, stage, Step (a Step belongs to a Segment)
+
+**Requirement**:
+Something a Job Description asks for, either required or preferred, together with the words of the Job Description that ask for it. A Requirement whose words are not in the Job Description does not exist.
+_Avoid_: Criterion, keyword, qualification
+
+**Match**:
+The link between one Requirement and the one Statement or Fact that supports it, with the reason. Carries no number. A rejected Statement never supports a Match.
+_Avoid_: Hit, similarity, score
+
+**Strength**:
+A Requirement of a Job Analysis that has at least one Match.
+_Avoid_: Advantage, pro
+
+**Weakness**:
+A Requirement of a Job Analysis that has no Match. A fact about one Job Description, never about the Candidate in general.
+_Avoid_: Gap, missing skill, con
+
+**ATS Score**:
+A whole number from 0 to 10 saying how much of a Job Description the Strengths cover, a required Requirement counting twice a preferred one. Counted by a versioned rule set, never judged by the Model. It measures coverage, not how an employer's system reads a file. Below 8, the Resume Builder writes a Rebuilt Resume.
+_Avoid_: ATS level, rating, fit, match percentage
+
 ### Documents
+
+**Job Description**:
+The text of one position the Candidate is preparing for, pasted by them. Belongs to one Account, is kept as pasted and never edited, and the same text pasted again by the same Account is the same Job Description.
+_Avoid_: Job posting, vacancy, JD, job
 
 **Resume**:
 A document. Either the PDF a Candidate uploads, or a rebuilt document targeted at one Job Description. An input to or output of the Profile, never the Profile itself.
@@ -141,5 +179,5 @@ A Resume whose source is the PDF the Candidate uploaded. The raw input to profil
 _Avoid_: Upload, file, attachment
 
 **Rebuilt Resume**:
-A Resume whose source is the Resume Builder, written for one Job Description when the ATS score is below 8.
+A Resume whose source is the Resume Builder, written for one Job Description when its ATS Score is below 8. Every sentence rests on a Statement or a Fact it names, and a Weakness is never claimed. Rebuilding does not change the ATS Score.
 _Avoid_: Generated resume, optimised CV

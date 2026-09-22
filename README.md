@@ -18,9 +18,9 @@ A candidate walks through a single, sequential journey:
 
 1. **Sign up**, choose the model and store your own model key, build a profile from an uploaded resume PDF, and confirm it.
 2. **Profile curation** reads the confirmed profile once, on the candidate's own model key, into statements that each show the evidence behind them.
-3. **Paste a job description**, which is analysed against those statements, including the strengths and weaknesses for that role.
-4. **ATS scoring** rates the resume from 0 to 10 for that specific job description.
-5. **Resume recommendations** rebuild the resume when the ATS score is below 8, based on the candidate's experiences, projects, and profile.
+3. **Paste a job description**, kept as pasted, and a job analysis matches each of its requirements to those statements, giving the strengths and weaknesses for that role.
+4. **ATS scoring** counts, from 0 to 10, how much of that specific job description the strengths cover, by versioned rules rather than the model's judgement.
+5. **Resume rebuilding** writes a resume for that job description when the ATS score is below 8, with every sentence resting on a statement or a fact about the candidate.
 6. **Study recommendations** derive what to learn from previous applications and turn it into a structured study plan.
 7. **Apply helper** assembles a cover letter, the updated resume, and the study plan for that application.
 8. **AI mock interview** for the target role.
@@ -90,6 +90,7 @@ To run the apps natively against your own tooling instead, see the local setup i
 | [Wiki: Design: Profile](https://github.com/braydevkin/helpmegethired/wiki/Design-Profile) | The Profile review page design: cards, copy, tokens, components by stage, and open points |
 | [Wiki: Design: Choose your AI](https://github.com/braydevkin/helpmegethired/wiki/Design-Choose-your-AI) | The provider and key step design: the pinned model, the key field, the summary, the phase one scope, and what is deliberately absent |
 | [Wiki: Design: AI Analysis](https://github.com/braydevkin/helpmegethired/wiki/Design-AI-Analysis) | The analysis page design: the gate, running, failed, and completed states, the progress component, Statement cards with Evidence, and the curation lane |
+| [Wiki: Design: Job Analysis](https://github.com/braydevkin/helpmegethired/wiki/Design-Job-Analysis) | How a Job Analysis works for the Candidate: the Layers, what the ATS Score measures, the start refusals, the states, and the Job Description lane; the screens follow in #207 |
 | [Wiki: Guide: Walk the upload API](https://github.com/braydevkin/helpmegethired/wiki/Guide-Walk-the-upload-API) | Take a PDF to a confirmed Profile by hand in Swagger UI, one screenshot per step; the Playwright API scenario is its automated twin |
 | [apps/api/openapi/openapi.json](apps/api/openapi/openapi.json) | The OpenAPI document generated from the shared schemas; Swagger UI serves it at `/docs` in development |
 | [docs/releases/](docs/releases/README.md) | Release notes, one document per production release |
