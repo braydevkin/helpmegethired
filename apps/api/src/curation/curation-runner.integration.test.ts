@@ -108,7 +108,7 @@ describe("the Curation runner", () => {
   }
 
   // A confirmed Profile with a stored Model Key, which is what leaves a queued Curation (#112).
-  async function queuedCuration({ experiences = 2, projects = 1, description = descriptionOf } = {}): Promise<Curated> {
+  async function queuedCuration({ experiences = 2, projects = 1, education = 0, description = descriptionOf } = {}): Promise<Curated> {
     const { id: accountId } = await database.insertInto("accounts").values({ email: `${randomUUID()}@candidate.example` }).returning("id").executeTakeFirstOrThrow();
     const { id: ingestionId } = await database
       .insertInto("ingestions")
@@ -135,6 +135,10 @@ describe("the Curation runner", () => {
       await database.insertInto("projects").values({ ...rowOf(index), name: `Bastion ${index}`, description: `Rotates short-lived credentials ${index}.`, skills: "[]" }).execute();
     }
 
+    for (let index = 0; index < education; index += 1) {
+      await database.insertInto("education").values({ ...rowOf(index), institution: "University of Cambridge", degree: "MSc", field_of_study: "Computer Science" }).execute();
+    }
+
     const modelKey = `sk-ant-api03-candidate-${randomUUID()}`;
 
     await choices.save(accountId, { provider: "anthropic", modelId: "claude-sonnet-5", key: modelKey });
@@ -148,11 +152,13 @@ describe("the Curation runner", () => {
   const curationOf = (id: Id) => database.selectFrom("curations").selectAll().where("id", "=", id).executeTakeFirstOrThrow();
   const unitsOf = (id: Id) => database.selectFrom("curation_units").selectAll().where("curation_id", "=", id).orderBy("position").execute();
   const statementsOf = (id: Id) => database.selectFrom("statements").selectAll().where("curation_id", "=", id).orderBy("created_at").orderBy("id").execute();
+  const factsOf = (id: Id) => database.selectFrom("facts").selectAll().where("curation_id", "=", id).orderBy("position").execute();
   const calledKinds = () => model.calls.map((call) => (call.prompt.notes ? "synthesis" : call.prompt.sources.length > 1 ? "cross_cutting" : call.prompt.sources[0]?.kind));
 
-  it("curates every unit, the synthesis unit last, into Statements whose Evidence resolves, then completes", async () => {
-    const { curationId, ingestionId, modelKey } = await queuedCuration();
+  it("curates every unit, the synthesis unit last, into Statements whose Evidence resolves, then completes with its Facts", async () => {
+    const { curationId, ingestionId, modelKey } = await queuedCuration({ education: 1 });
     const experiences = await database.selectFrom("experiences").select(["id", "description"]).where("source_ingestion_id", "=", ingestionId).execute();
+    const education = await database.selectFrom("education").select("id").where("source_ingestion_id", "=", ingestionId).executeTakeFirstOrThrow();
 
     await runner.run(curationId);
 
@@ -182,6 +188,11 @@ describe("the Curation runner", () => {
         }
       }
     }
+
+    expect(await factsOf(curationId)).toMatchObject([
+      { kind: "years_of_experience", text: "Years of experience: 2 years", source_id: null },
+      { kind: "education", text: "Education: MSc in Computer Science, University of Cambridge", source_id: education.id },
+    ]);
   });
 
   it("fails only the unit whose answer fails the schema, then resumes at it without redoing a saved one", async () => {

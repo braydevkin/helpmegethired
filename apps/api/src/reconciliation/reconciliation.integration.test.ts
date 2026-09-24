@@ -54,7 +54,7 @@ const POLL_INTERVAL_MS = 100;
 const MINUTE_MS = 60_000;
 const STALE_MS = 10 * MINUTE_MS;
 const RETRY_AFTER_SECONDS = 120;
-const CURATION_ACTION_LINE = /^reconciliation action=(?:reset|fail|re-enqueue) curation=[\da-f-]{36}$/;
+const CURATION_ACTION_LINE = /^reconciliation action=(?:reset|fail|re-enqueue|record-facts) curation=[\da-f-]{36}$/;
 
 // Rate-limits the first call made with one Candidate's key, so the other Curations the worker
 // picks up from earlier tests run as usual.
@@ -489,6 +489,23 @@ describe("reconciliation", () => {
 
     await until(async () => ["completed", "failed"].includes((await curationRowOf(curationId)).status));
     expect(await curationRowOf(curationId)).toMatchObject({ status: "completed", attempts: 2 });
+  });
+
+  it("records the Facts of a Curation completed before they existed, once", { timeout: SETTLE_TIMEOUT_MS }, async () => {
+    const { accountId, curationId } = await curatedAccount();
+    consumers.push(await build([WorkerModule]));
+    await until(async () => ["completed", "failed"].includes((await curationRowOf(curationId)).status));
+    expect(await curationRowOf(curationId)).toMatchObject({ status: "completed" });
+    await database.deleteFrom("facts").where("curation_id", "=", curationId).execute();
+
+    const first = await job.run();
+    const second = await job.run();
+
+    expect(first.curationFactsRecorded).toBeGreaterThanOrEqual(1);
+    expect(second.curationFactsRecorded).toBe(0);
+    expect(await database.selectFrom("facts").selectAll().where("curation_id", "=", curationId).execute()).toMatchObject([
+      { account_id: accountId, kind: "years_of_experience", source_id: null, position: 0 },
+    ]);
   });
 
   it("fails a killed Curation with no attempt left, which frees the Account for a new one", async () => {
