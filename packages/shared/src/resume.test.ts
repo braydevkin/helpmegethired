@@ -48,7 +48,8 @@ describe("ResumeSchema", () => {
     ["an upload without its checksum", without(uploadedResume, "sha256")],
     ["an upload whose progress lacks the segments", { ...uploadedResume, progress: { ingestionId: uploadedResume.id, status: "running", percentage: 40 } }],
     ["a rebuild without a job description", without(rebuiltResume, "jobDescriptionId")],
-    ["a rebuild with empty content", { ...rebuiltResume, content: "" }],
+    ["a rebuild with no section", { ...rebuiltResume, content: { ...rebuiltResume.content, sections: [] } }],
+    ["a rebuild with plain text as content", { ...rebuiltResume, content: "# Ada Lovelace" }],
     ["a rebuild carrying upload fields", { ...rebuiltResume, source: "upload" }],
   ])("rejects %s", (_label, input) => {
     expect(ResumeSchema.safeParse(input).success).toBe(false);

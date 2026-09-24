@@ -8,6 +8,11 @@ import {
   CurationProgressStateSchema,
   CurationStatementsSchema,
   HealthStatusSchema,
+  JobAnalysisHistorySchema,
+  JobAnalysisProgressStateSchema,
+  JobDescriptionOverviewListSchema,
+  JobDescriptionOverviewSchema,
+  JobDescriptionPasteSchema,
   ModelChoiceRequestSchema,
   ModelChoiceStateSchema,
   ModelKeyTicketSchema,
@@ -52,6 +57,11 @@ const COMPONENTS: Record<string, { schema: ZodType; io: "input" | "output" }> = 
   CurationStatements: { schema: CurationStatementsSchema, io: "output" },
   CuratedStatement: { schema: CuratedStatementSchema, io: "output" },
   StatementReviewRequest: { schema: StatementReviewRequestSchema, io: "input" },
+  JobDescriptionPaste: { schema: JobDescriptionPasteSchema, io: "input" },
+  JobDescriptionOverview: { schema: JobDescriptionOverviewSchema, io: "output" },
+  JobDescriptionOverviewList: { schema: JobDescriptionOverviewListSchema, io: "output" },
+  JobAnalysisProgressState: { schema: JobAnalysisProgressStateSchema, io: "output" },
+  JobAnalysisHistory: { schema: JobAnalysisHistorySchema, io: "output" },
 };
 
 export const componentSchemas = (): Record<string, JsonSchema> =>

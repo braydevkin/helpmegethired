@@ -68,6 +68,14 @@ describe("the OpenAPI document", () => {
     expect(document.components.schemas.CurationProgressState).toMatchObject({ type: "object", required: ["progress"] });
   });
 
+  it("carries the Job Description and Job Analysis schemas ahead of their routes", () => {
+    const names = Object.keys(document.components.schemas);
+
+    expect(names).toEqual(expect.arrayContaining(["JobDescriptionPaste", "JobDescriptionOverview", "JobDescriptionOverviewList", "JobAnalysisProgressState", "JobAnalysisHistory"]));
+    expect(document.components.schemas.JobDescriptionPaste).toMatchObject({ type: "object", required: ["text"], properties: { text: { type: "string", maxLength: 20_000 } } });
+    expect(document.components.schemas.JobAnalysisProgressState).toMatchObject({ type: "object", required: ["progress"] });
+  });
+
   it("describes the Curation progress poll with its ETag and 304", () => {
     const poll = document.paths["/profile/curation"]?.get;
 
