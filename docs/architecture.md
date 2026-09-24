@@ -524,6 +524,14 @@ Every route is Candidate-owned, and the schemas live in `packages/shared` (`Cura
 
 Only `cancel`, `retry`, and `rerun` ever answer `409`, and only while a Curation is already `queued` or `running`. The percentage counts saved units only, so a fresh process answers the same number.
 
+### Job Descriptions (FR-05)
+
+A Job Description is the text of one position, pasted by the Candidate and kept per Account exactly as pasted, never edited (CONTEXT.md). The `job-descriptions` module holds the routes and their persistence; a Job Analysis of it is the `job-analysis` module's work (ADR-0026).
+
+- **Paste.** `POST /job-descriptions` validates the body with the shared `JobDescriptionPasteSchema` (trimmed, 1 to 20,000 characters; a longer text answers `400` with `job_description_too_long`) and refuses with `422` `curation_not_completed` while the Account has no completed Curation, since a Job Analysis reads Statements and Facts (ADR-0024). The same text pasted again by the same Account is the same Job Description: the row is inserted with `on conflict do nothing` against the unique index on `(account_id, md5(text))`, and the row already kept is read back, so the answer is `201` for a new one and `200` for the one already kept. The log line names ids only, never the text.
+- **Read.** `GET /job-descriptions` lists the Account's Job Descriptions newest first and `GET /job-descriptions/{id}` answers one; both answer the shared `JobDescriptionOverview`: the text and where its newest Job Analysis stands (id, status, its ATS Score once the ATS Score Layer completed, and its times), or `newestAnalysis: null` until one was started. The newest Job Analysis is joined laterally per Job Description, and the score is read from the `ats_score` Layer's persisted output. Every query filters by `account_id` first, so another Account's id answers `404` exactly like one that does not exist.
+- **Never deleted, never edited.** A Job Description goes only with its Account (the cascade in `0013`), because every Job Analysis of it is read long after it ran (ADR-0026).
+
 ### AI pipeline (TC-06, TC-07)
 
 LangChain orchestrates tool calls. Each tool wraps a NestJS service (the business logic). The pipeline starts with [Profile Curation](#profile-curation-tc-04-tc-05-tc-06), which runs once per confirmed Profile and is the only layer that reads the Profile; every layer after it runs for one Job Description and reads Statements:
