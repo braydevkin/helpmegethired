@@ -1,10 +1,10 @@
-import type { CurationActionErrorCode, ModelChoiceErrorCode, ProfileRecognitionErrorCode, ResumeRefusalCode } from "@helpmegethired/shared";
+import type { CurationActionErrorCode, JobDescriptionErrorCode, ModelChoiceErrorCode, ProfileRecognitionErrorCode, ResumeRefusalCode } from "@helpmegethired/shared";
 
 import { ref, type JsonSchema } from "./components";
 
 const JSON_TYPE = "application/json";
 
-type ErrorCode = ResumeRefusalCode | ModelChoiceErrorCode | CurationActionErrorCode | ProfileRecognitionErrorCode;
+type ErrorCode = ResumeRefusalCode | ModelChoiceErrorCode | CurationActionErrorCode | ProfileRecognitionErrorCode | JobDescriptionErrorCode;
 
 export const json = (description: string, schema: JsonSchema, headers?: Record<string, JsonSchema>): JsonSchema => ({
   description,

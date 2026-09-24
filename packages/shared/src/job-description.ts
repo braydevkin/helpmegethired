@@ -23,6 +23,7 @@ export const JobDescriptionSchema = z.object({
 
 export type JobDescription = z.infer<typeof JobDescriptionSchema>;
 
-// A paste is refused while the Account has nothing a Job Analysis could read (ADR-0024).
-export const JobDescriptionErrorCodeSchema = z.enum(["job_description_not_found", "curation_not_completed"]);
+// A paste is refused while the Account has nothing a Job Analysis could read (ADR-0024), or when
+// the text is over the cap; a read of another Account's Job Description answers not found.
+export const JobDescriptionErrorCodeSchema = z.enum(["job_description_not_found", "job_description_too_long", "curation_not_completed"]);
 export type JobDescriptionErrorCode = z.infer<typeof JobDescriptionErrorCodeSchema>;

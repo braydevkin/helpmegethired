@@ -54,6 +54,7 @@ const correctionResponses = {
   "409": error("The Profile is confirmed and takes no more corrections"),
 };
 const statementIdParameter = idParameterOf("The Statement id");
+const jobDescriptionIdParameter = idParameterOf("The Job Description id");
 
 const ifNoneMatchParameter: JsonSchema = {
   name: "If-None-Match",
@@ -408,6 +409,45 @@ const paths: OpenApiDocument["paths"] = {
       },
     },
   },
+  "/job-descriptions": {
+    post: {
+      tags: ["Job Descriptions"],
+      summary: "Paste a Job Description",
+      description:
+        "Keeps the pasted text for the Account, as pasted and never edited, capped at 20,000 characters. The same text pasted again by the same Account answers the Job Description already kept with `200`; different text is a new one with `201`. Refused while the Account has no completed Curation, since a Job Analysis reads Statements (ADR-0024).",
+      operationId: "pasteJobDescription",
+      requestBody: body("JobDescriptionPaste"),
+      responses: {
+        "200": json("The Job Description this text was already kept as", ref("JobDescriptionOverview")),
+        "201": json("The Job Description kept", ref("JobDescriptionOverview")),
+        "400": error("The body did not pass the shared schema; a text over the cap carries its code", ["job_description_too_long"]),
+        "401": unauthorized,
+        "422": error("The Account has no completed Curation yet", ["curation_not_completed"]),
+      },
+    },
+    get: {
+      tags: ["Job Descriptions"],
+      summary: "The Account's Job Descriptions",
+      description: "Newest first, each with where its newest Job Analysis stands: its status and, once counted, its ATS Score; `newestAnalysis: null` until one was started.",
+      operationId: "listJobDescriptions",
+      responses: { "200": json("The Job Descriptions", ref("JobDescriptionOverviewList")), "401": unauthorized },
+    },
+  },
+  "/job-descriptions/{id}": {
+    get: {
+      tags: ["Job Descriptions"],
+      summary: "One Job Description",
+      description: "The text as pasted and where its newest Job Analysis stands. Another Account's id answers exactly like one that does not exist.",
+      operationId: "getJobDescription",
+      parameters: [jobDescriptionIdParameter],
+      responses: {
+        "200": json("The Job Description", ref("JobDescriptionOverview")),
+        "400": validationFailed,
+        "401": unauthorized,
+        "404": error("The Account has no such Job Description; another Account's id answers the same", ["job_description_not_found"]),
+      },
+    },
+  },
 };
 
 export const openApiDocument = (): OpenApiDocument => ({
@@ -426,6 +466,7 @@ export const openApiDocument = (): OpenApiDocument => ({
     { name: "Resumes", description: "Uploaded Resumes: the presigned upload, its completion, and the record's status" },
     { name: "Profile", description: "The Profile the Ingestion built and its confirmation" },
     { name: "Curation", description: "Profile Curation: the Statements built from the confirmed Profile, and their progress" },
+    { name: "Job Descriptions", description: "The pasted text one Job Analysis is made against; kept per Account, never edited" },
   ],
   security: [{ [SESSION]: [] }],
   paths,

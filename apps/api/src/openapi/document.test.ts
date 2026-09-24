@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import type { JsonSchema } from "./components";
 import { openApiDocument } from "./document";
 import { OPENAPI_FILE, renderedDocument } from "./generate";
+import { body } from "./responses";
 
 const document = openApiDocument();
 const operations = Object.entries(document.paths).flatMap(([path, methods]) => Object.entries(methods).map(([method, operation]) => ({ path, method, operation })));
@@ -24,7 +25,7 @@ const refsIn = (value: unknown): string[] => {
 const responseSchemaOf = (response: JsonSchema): unknown => (response.content as Record<string, { schema: unknown }> | undefined)?.["application/json"]?.schema;
 
 describe("the OpenAPI document", () => {
-  it("describes every resume, Profile, Curation, Account, Model Choice, and health route", () => {
+  it("describes every resume, Profile, Curation, Job Description, Account, Model Choice, and health route", () => {
     expect(operations.map(({ method, path }) => `${method.toUpperCase()} ${path}`).sort()).toEqual(
       [
         "GET /health",
@@ -52,6 +53,9 @@ describe("the OpenAPI document", () => {
         "POST /profile/curation/cancel",
         "POST /profile/curation/retry",
         "POST /profile/curation/rerun",
+        "POST /job-descriptions",
+        "GET /job-descriptions",
+        "GET /job-descriptions/{id}",
       ].sort(),
     );
   });
@@ -66,6 +70,16 @@ describe("the OpenAPI document", () => {
     expect(names).toEqual(expect.arrayContaining(["Account", "ApiError", "ResumeUpload", "ResumeUploadReceipt", "UploadedResume", "Profile", "CurationProgressState", "CurationStatements", "CuratedStatement", "StatementReviewRequest", "BasicProfile", "ProfileEntryCorrection"]));
     expect(document.components.schemas.Profile).toMatchObject({ type: "object", required: expect.arrayContaining(["accountId", "reviewFlags", "source"]) });
     expect(document.components.schemas.CurationProgressState).toMatchObject({ type: "object", required: ["progress"] });
+  });
+
+  it("describes the Job Description paste with both answers and every refusal", () => {
+    const paste = document.paths["/job-descriptions"]?.post;
+
+    expect(paste?.requestBody).toEqual(body("JobDescriptionPaste"));
+    expect(Object.keys(paste?.responses ?? {}).sort()).toEqual(["200", "201", "400", "401", "422"]);
+    expect(JSON.stringify(paste?.responses["422"])).toContain("curation_not_completed");
+    expect(JSON.stringify(paste?.responses["400"])).toContain("job_description_too_long");
+    expect(JSON.stringify(document.paths["/job-descriptions/{id}"]?.get?.responses["404"])).toContain("job_description_not_found");
   });
 
   it("carries the Job Description and Job Analysis schemas ahead of their routes", () => {

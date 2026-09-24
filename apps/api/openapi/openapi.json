@@ -35,6 +35,10 @@
     {
       "name": "Curation",
       "description": "Profile Curation: the Statements built from the confirmed Profile, and their progress"
+    },
+    {
+      "name": "Job Descriptions",
+      "description": "The pasted text one Job Analysis is made against; kept per Account, never edited"
     }
   ],
   "security": [
@@ -1654,6 +1658,227 @@
                           "enum": [
                             "curation_not_ready",
                             "curation_unchanged"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/job-descriptions": {
+      "post": {
+        "tags": [
+          "Job Descriptions"
+        ],
+        "summary": "Paste a Job Description",
+        "description": "Keeps the pasted text for the Account, as pasted and never edited, capped at 20,000 characters. The same text pasted again by the same Account answers the Job Description already kept with `200`; different text is a new one with `201`. Refused while the Account has no completed Curation, since a Job Analysis reads Statements (ADR-0024).",
+        "operationId": "pasteJobDescription",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/JobDescriptionPaste"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The Job Description this text was already kept as",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDescriptionOverview"
+                }
+              }
+            }
+          },
+          "201": {
+            "description": "The Job Description kept",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDescriptionOverview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The body did not pass the shared schema; a text over the cap carries its code",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "job_description_too_long"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid Session bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "The Account has no completed Curation yet",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "curation_not_completed"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "code"
+                      ]
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Job Descriptions"
+        ],
+        "summary": "The Account's Job Descriptions",
+        "description": "Newest first, each with where its newest Job Analysis stands: its status and, once counted, its ATS Score; `newestAnalysis: null` until one was started.",
+        "operationId": "listJobDescriptions",
+        "responses": {
+          "200": {
+            "description": "The Job Descriptions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDescriptionOverviewList"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid Session bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/job-descriptions/{id}": {
+      "get": {
+        "tags": [
+          "Job Descriptions"
+        ],
+        "summary": "One Job Description",
+        "description": "The text as pasted and where its newest Job Analysis stands. Another Account's id answers exactly like one that does not exist.",
+        "operationId": "getJobDescription",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "The Job Description id",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The Job Description",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JobDescriptionOverview"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The body did not pass the shared schema; `issues` names each field",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid Session bearer token",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "The Account has no such Job Description; another Account's id answers the same",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ApiError"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string",
+                          "enum": [
+                            "job_description_not_found"
                           ]
                         }
                       },
