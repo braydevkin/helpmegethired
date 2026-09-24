@@ -3,8 +3,10 @@ import type { BasicProfile } from "./basic-profile.js";
 import type { CurationMetrics } from "./curation-metrics.js";
 import type { Experience } from "./experience.js";
 import type { Certification, Education, Language, Skill } from "./profile-parts.js";
+import type { Fact } from "./fact.js";
 import type { Profile, ReviewFlag } from "./profile.js";
 import type { Project } from "./project.js";
+import type { CitedStatement, Requirement } from "./requirement-match.js";
 import type { RebuiltResume, UploadedResume } from "./resume.js";
 
 export function without<T extends object, K extends keyof T>(value: T, key: K): Omit<T, K> {
@@ -119,11 +121,43 @@ export const uploadedResume: UploadedResume = {
   progress: null,
 };
 
+export const STATEMENT_ID = "8a7b6c5d-4e3f-4a2b-9c1d-0e9f8a7b6c5d";
+export const FACT_ID = "7b8c9d0e-1f2a-4b3c-8d4e-5f6a7b8c9d0e";
+export const REQUIREMENT_ID = "6c7d8e9f-0a1b-4c2d-9e3f-4a5b6c7d8e9f";
+
+export const citedStatement: CitedStatement = {
+  id: STATEMENT_ID,
+  text: "Leads the ingestion platform at Analytical Engines Ltd.",
+  evidenceQuotes: ["Leads the ingestion platform."],
+};
+
+export const educationFact: Fact = {
+  id: FACT_ID,
+  kind: "education",
+  text: "MSc in Computer Science, University of Cambridge (2014-2016)",
+  sourceId: education.id,
+};
+
+export const requirement: Requirement = {
+  id: REQUIREMENT_ID,
+  kind: "required",
+  text: "Experience running an ingestion platform",
+  quote: "You have run a data ingestion platform in production.",
+};
+
 export const rebuiltResume: RebuiltResume = {
   id: "d2e3f4a5-b6c7-4d8e-9f0a-1b2c3d4e5f6a",
   accountId: ACCOUNT_ID,
   createdAt: "2026-09-02T11:00:00.000Z",
   source: "rebuild",
   jobDescriptionId: JOB_DESCRIPTION_ID,
-  content: "# Ada Lovelace\n\nSenior Software Engineer...",
+  content: {
+    sections: [
+      { kind: "summary", title: "Summary", sentences: [{ text: "Runs the ingestion platform of Analytical Engines Ltd.", sources: [{ statementId: STATEMENT_ID, factId: null }] }] },
+      { kind: "education", title: "Education", sentences: [{ text: "MSc in Computer Science, University of Cambridge.", sources: [{ statementId: null, factId: FACT_ID }] }] },
+    ],
+    citedStatements: [citedStatement],
+    citedFacts: [educationFact],
+    droppedSentences: 0,
+  },
 };

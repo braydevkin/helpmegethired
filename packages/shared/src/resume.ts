@@ -2,6 +2,7 @@ import { z } from "zod";
 
 import { IngestionProgressSchema } from "./ingestion.js";
 import { IdSchema, TextSchema, TimestampSchema } from "./primitives.js";
+import { RebuiltResumeContentSchema } from "./rebuilt-resume.js";
 import { PDF_CONTENT_TYPE, ResumeUploadErrorCodeSchema, Sha256Schema } from "./resume-upload.js";
 
 const ResumeIdentity = {
@@ -26,11 +27,13 @@ export const UploadedResumeSchema = z.object({
   progress: IngestionProgressSchema.nullable(),
 });
 
+// Written by the Resume Builder for one Job Description when its ATS Score is below the rebuild
+// threshold; the content carries the copies its sentences cite (ADR-0026).
 export const RebuiltResumeSchema = z.object({
   ...ResumeIdentity,
   source: z.literal("rebuild"),
   jobDescriptionId: IdSchema,
-  content: TextSchema,
+  content: RebuiltResumeContentSchema,
 });
 
 export const ResumeSchema = z.discriminatedUnion("source", [
