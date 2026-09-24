@@ -5,7 +5,21 @@ import { validateDatabaseEnvironment } from "../config/validate-environment";
 import { createDatabase, type Database } from "./database";
 import { migrateDown, migrateToLatest } from "./migrator";
 
-const applicationTables = ["accounts", "sessions", "ingestions", "ingestion_segments", "uploaded_resumes", "curations", "curation_units", "statements", "model_key_tickets"];
+const applicationTables = [
+  "accounts",
+  "sessions",
+  "ingestions",
+  "ingestion_segments",
+  "uploaded_resumes",
+  "curations",
+  "curation_units",
+  "statements",
+  "facts",
+  "model_key_tickets",
+  "job_descriptions",
+  "job_analyses",
+  "job_analysis_layers",
+];
 
 interface ExtensionRow {
   extname: string;

@@ -9,6 +9,12 @@ import type {
   FactKind,
   IngestionSource,
   IngestionStatus,
+  JobAnalysisFailureReason,
+  JobAnalysisPauseReason,
+  JobAnalysisStatus,
+  LayerFailureReason,
+  LayerKind,
+  LayerStatus,
   ModelId,
   Provider,
   ResumeUploadErrorCode,
@@ -256,6 +262,59 @@ export interface FactsTable {
 export type FactRow = Selectable<FactsTable>;
 export type NewFactRow = Insertable<FactsTable>;
 
+export interface JobDescriptionsTable {
+  id: Generated<string>;
+  account_id: string;
+  text: string;
+  created_at: Generated<Date>;
+}
+
+export type JobDescriptionRow = Selectable<JobDescriptionsTable>;
+export type NewJobDescriptionRow = Insertable<JobDescriptionsTable>;
+
+export interface JobAnalysesTable {
+  id: Generated<string>;
+  account_id: string;
+  job_description_id: string;
+  curation_id: string;
+  status: Generated<JobAnalysisStatus>;
+  attempts: Generated<number>;
+  max_attempts: number;
+  model_id: string;
+  requirement_match_prompt_version: string;
+  resume_builder_prompt_version: string;
+  ats_rule_set_version: string;
+  failure_reason: JobAnalysisFailureReason | null;
+  failed_layer: LayerKind | null;
+  pause_reason: JobAnalysisPauseReason | null;
+  resume_after: Date | null;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+  started_at: Date | null;
+  completed_at: Date | null;
+}
+
+export type JobAnalysisRow = Selectable<JobAnalysesTable>;
+export type NewJobAnalysisRow = Insertable<JobAnalysesTable>;
+
+export interface JobAnalysisLayersTable {
+  id: Generated<string>;
+  job_analysis_id: string;
+  kind: LayerKind;
+  position: number;
+  status: Generated<LayerStatus>;
+  attempts: Generated<number>;
+  failure_reason: LayerFailureReason | null;
+  output: JsonColumn | null;
+  created_at: Generated<Date>;
+  updated_at: Generated<Date>;
+  started_at: Date | null;
+  completed_at: Date | null;
+}
+
+export type JobAnalysisLayerRow = Selectable<JobAnalysisLayersTable>;
+export type NewJobAnalysisLayerRow = Insertable<JobAnalysisLayersTable>;
+
 export interface AccountModelChoicesTable {
   account_id: string;
   provider: Provider;
@@ -305,6 +364,9 @@ export interface DatabaseSchema {
   curation_units: CurationUnitsTable;
   statements: StatementsTable;
   facts: FactsTable;
+  job_descriptions: JobDescriptionsTable;
+  job_analyses: JobAnalysesTable;
+  job_analysis_layers: JobAnalysisLayersTable;
   account_model_choices: AccountModelChoicesTable;
   model_key_tickets: ModelKeyTicketsTable;
   embedding_usage: EmbeddingUsageTable;

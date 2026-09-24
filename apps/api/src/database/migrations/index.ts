@@ -12,6 +12,7 @@ import { createModelKeyTickets } from "./0009-create-model-key-tickets";
 import { createEmbeddingAllowances } from "./0010-create-embedding-allowances";
 import { allowCandidateCorrections } from "./0011-allow-candidate-corrections";
 import { createFacts } from "./0012-create-facts";
+import { createJobAnalysisTables } from "./0013-create-job-analysis-tables";
 
 export const migrations: Record<string, Migration> = {
   "0001-enable-vector-and-create-accounts": enableVectorAndCreateAccounts,
@@ -26,4 +27,5 @@ export const migrations: Record<string, Migration> = {
   "0010-create-embedding-allowances": createEmbeddingAllowances,
   "0011-allow-candidate-corrections": allowCandidateCorrections,
   "0012-create-facts": createFacts,
+  "0013-create-job-analysis-tables": createJobAnalysisTables,
 };
