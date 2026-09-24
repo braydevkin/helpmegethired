@@ -9,6 +9,7 @@ import { CurationProgressService } from "./curation-progress.service";
 import { CurationQueue } from "./curation-queue";
 import { CurationRunRepository } from "./curation-run.repository";
 import { CurationStarter } from "./curation-starter";
+import { FactRepository } from "./fact.repository";
 import { CurationController } from "./curation.controller";
 import { CurationRepository } from "./curation.repository";
 import { RerunGate } from "./rerun-gate";
@@ -25,6 +26,7 @@ import { StatementRepository } from "./statement.repository";
     CurationRunRepository,
     CurationStarter,
     StatementRepository,
+    FactRepository,
     CurationProgressRepository,
     CurationProgressService,
     CurationActions,
@@ -34,6 +36,6 @@ import { StatementRepository } from "./statement.repository";
     StatementReviewRepository,
     StatementReviewService,
   ],
-  exports: [CurationRepository, CurationRunRepository, CurationStarter, StatementRepository, CurationQueue],
+  exports: [CurationRepository, CurationRunRepository, CurationStarter, StatementRepository, FactRepository, CurationQueue],
 })
 export class CurationModule {}

@@ -14,6 +14,7 @@ import { sql } from "kysely";
 
 import { DATABASE, type Database } from "../database/database";
 import type { CurationRow, CurationUnitRow } from "../database/database.schema";
+import type { FactSources, NewFact } from "./facts-of";
 import type { CuratedExperience, CuratedProject } from "./unit-input";
 import { toVectorLiteral } from "./vector";
 
@@ -38,12 +39,9 @@ export interface CurationRun {
   maxAttempts: number;
 }
 
-export interface CuratedProfile {
+export interface CuratedProfile extends FactSources {
   experiences: (CuratedExperience & { period: Period | null })[];
   projects: CuratedProject[];
-  certifications: Id[];
-  languages: Id[];
-  education: Id[];
   uploadedResume: { id: Id; text: string } | undefined;
 }
 
@@ -174,11 +172,11 @@ export class CurationRunRepository {
     return this.database.selectFrom("statements").select(["id", "text"]).where("curation_id", "=", curationId).orderBy("id").execute();
   }
 
-  // Every vector and `completed` are one transaction, written only while the Curation still runs:
-  // a Curation is never half indexed, and the queue never finishes a job whose row says running.
-  // The completed one becomes current, so every other Curation of the Account, the one a re-run
-  // replaces included, is superseded with its Statements in the same transaction.
-  completeWithEmbeddings(id: Id, vectors: readonly { statementId: Id; embedding: readonly number[] }[]): Promise<boolean> {
+  // Every vector, the Facts, and `completed` are one transaction, written only while the Curation
+  // still runs: a Curation is never half indexed, and the queue never finishes a job whose row
+  // says running. The completed one becomes current, so every other Curation of the Account, the
+  // one a re-run replaces included, is superseded with its Statements in the same transaction.
+  completeWithEmbeddings(id: Id, vectors: readonly { statementId: Id; embedding: readonly number[] }[], facts: readonly NewFact[]): Promise<boolean> {
     return this.database.transaction().execute(async (transaction) => {
       const owner = await transaction.selectFrom("curations").select("account_id").where("id", "=", id).executeTakeFirst();
 
@@ -201,6 +199,7 @@ export class CurationRunRepository {
           .execute();
       }
 
+      await this.recordFacts(id, owner.account_id, facts, transaction);
       await transaction
         .updateTable("curations")
         .set({ status: "completed", failure_reason: null, completed_at: sql<Date>`now()`, ...updatedNow })
@@ -210,6 +209,47 @@ export class CurationRunRepository {
 
       return true;
     });
+  }
+
+  // A Curation completed before Facts existed gets them once, from the same Profile, without a
+  // re-run. Every Curation records at least its years of experience, so one with no Fact never
+  // had them; the row is locked so two reconciliation runs cannot both write.
+  findCompletedWithoutFacts(): Promise<CurationRun[]> {
+    return this.database
+      .selectFrom("curations")
+      .selectAll()
+      .where("status", "=", "completed")
+      .where(({ not, exists, selectFrom }) => not(exists(selectFrom("facts").select("id").whereRef("facts.curation_id", "=", "curations.id"))))
+      .orderBy("completed_at")
+      .execute()
+      .then((rows) => rows.map(toRun));
+  }
+
+  backfillFacts(id: Id, facts: readonly NewFact[]): Promise<boolean> {
+    return this.database.transaction().execute(async (transaction) => {
+      const current = await transaction.selectFrom("curations").select(["status", "account_id"]).where("id", "=", id).forUpdate().executeTakeFirst();
+      const recorded = await transaction.selectFrom("facts").select("id").where("curation_id", "=", id).executeTakeFirst();
+
+      if (current?.status !== "completed" || recorded) {
+        return false;
+      }
+
+      await this.recordFacts(id, current.account_id, facts, transaction);
+
+      return true;
+    });
+  }
+
+  // Replaced, never doubled, so a completion that writes them again leaves one set.
+  private async recordFacts(curationId: Id, accountId: Id, facts: readonly NewFact[], transaction: Database): Promise<void> {
+    await transaction.deleteFrom("facts").where("curation_id", "=", curationId).execute();
+
+    if (facts.length > 0) {
+      await transaction
+        .insertInto("facts")
+        .values(facts.map(({ kind, text, sourceId }, position) => ({ curation_id: curationId, account_id: accountId, kind, text, source_id: sourceId, position })))
+        .execute();
+    }
   }
 
   // In id order, the order the resume observer and a Candidate's cancel, retry, or re-run take
@@ -236,14 +276,10 @@ export class CurationRunRepository {
       .execute();
 
     if (superseded.length > 0) {
-      await transaction
-        .deleteFrom("statements")
-        .where(
-          "curation_id",
-          "in",
-          superseded.map((row) => row.id),
-        )
-        .execute();
+      const ids = superseded.map((row) => row.id);
+
+      await transaction.deleteFrom("statements").where("curation_id", "in", ids).execute();
+      await transaction.deleteFrom("facts").where("curation_id", "in", ids).execute();
     }
   }
 
@@ -330,10 +366,34 @@ export class CurationRunRepository {
       .where("source_ingestion_id", "=", sourceIngestionId)
       .orderBy(PROFILE_ORDER)
       .execute();
-    const idsOf = async (table: "certifications" | "languages" | "education") =>
-      (
-        await this.database.selectFrom(table).select("id").where("account_id", "=", accountId).where("source_ingestion_id", "=", sourceIngestionId).execute()
-      ).map((row) => row.id);
+    const education = await this.database
+      .selectFrom("education")
+      .select(["id", "institution", "degree", "field_of_study", "period_start", "period_end"])
+      .where("account_id", "=", accountId)
+      .where("source_ingestion_id", "=", sourceIngestionId)
+      .orderBy(PROFILE_ORDER)
+      .execute();
+    const certifications = await this.database
+      .selectFrom("certifications")
+      .select(["id", "name", "issuer", "year"])
+      .where("account_id", "=", accountId)
+      .where("source_ingestion_id", "=", sourceIngestionId)
+      .orderBy(PROFILE_ORDER)
+      .execute();
+    const languages = await this.database
+      .selectFrom("languages")
+      .select(["id", "name", "level"])
+      .where("account_id", "=", accountId)
+      .where("source_ingestion_id", "=", sourceIngestionId)
+      .orderBy(PROFILE_ORDER)
+      .execute();
+    const skills = await this.database
+      .selectFrom("skills")
+      .select(["id", "name", "category"])
+      .where("account_id", "=", accountId)
+      .where("source_ingestion_id", "=", sourceIngestionId)
+      .orderBy(PROFILE_ORDER)
+      .execute();
     const resume = await this.database
       .selectFrom("uploaded_resumes")
       .select(["id", "raw_text"])
@@ -347,9 +407,16 @@ export class CurationRunRepository {
         period: period_start === null ? null : { start: period_start, end: period_end },
       })),
       projects,
-      certifications: await idsOf("certifications"),
-      languages: await idsOf("languages"),
-      education: await idsOf("education"),
+      education: education.map(({ id, institution, degree, field_of_study, period_start, period_end }) => ({
+        id,
+        institution,
+        degree,
+        fieldOfStudy: field_of_study,
+        period: period_start === null ? null : { start: period_start, end: period_end },
+      })),
+      certifications,
+      languages,
+      skills,
       uploadedResume: resume?.raw_text ? { id: resume.id, text: resume.raw_text } : undefined,
     };
   }

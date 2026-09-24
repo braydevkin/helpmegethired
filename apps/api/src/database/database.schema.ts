@@ -6,6 +6,7 @@ import type {
   CurationUnitFailureReason,
   CurationUnitKind,
   CurationUnitStatus,
+  FactKind,
   IngestionSource,
   IngestionStatus,
   ModelId,
@@ -241,6 +242,20 @@ export interface StatementsTable {
 export type StatementRow = Selectable<StatementsTable>;
 export type NewStatementRow = Insertable<StatementsTable>;
 
+export interface FactsTable {
+  id: Generated<string>;
+  curation_id: string;
+  account_id: string;
+  kind: FactKind;
+  text: string;
+  source_id: string | null;
+  position: number;
+  created_at: Generated<Date>;
+}
+
+export type FactRow = Selectable<FactsTable>;
+export type NewFactRow = Insertable<FactsTable>;
+
 export interface AccountModelChoicesTable {
   account_id: string;
   provider: Provider;
@@ -289,6 +304,7 @@ export interface DatabaseSchema {
   curations: CurationsTable;
   curation_units: CurationUnitsTable;
   statements: StatementsTable;
+  facts: FactsTable;
   account_model_choices: AccountModelChoicesTable;
   model_key_tickets: ModelKeyTicketsTable;
   embedding_usage: EmbeddingUsageTable;

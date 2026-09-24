@@ -4,6 +4,7 @@ import type { Id } from "@helpmegethired/shared";
 import { Clock } from "../common/clock";
 import { CurationQueue } from "../curation/curation-queue";
 import { CurationRunRepository } from "../curation/curation-run.repository";
+import { factsOf } from "../curation/facts-of";
 import { UploadedResumeRunRepository, type ExtractionRecord } from "../extraction/uploaded-resume-run.repository";
 import { IngestionQueue } from "../ingestion/ingestion-queue";
 import { IngestionRunRepository } from "../ingestion/ingestion-run.repository";
@@ -23,6 +24,7 @@ export interface ReconciliationReport {
   curationsReEnqueued: number;
   curationsReset: number;
   curationsFailed: number;
+  curationFactsRecorded: number;
   objectsDeleted: number;
 }
 
@@ -43,6 +45,7 @@ const emptyReport = (): ReconciliationReport => ({
   curationsReEnqueued: 0,
   curationsReset: 0,
   curationsFailed: 0,
+  curationFactsRecorded: 0,
   objectsDeleted: 0,
 });
 
@@ -76,6 +79,7 @@ export class ReconciliationJob {
     await this.settleStaleIngestions(now, report);
     await this.settleStaleCurations(now, report);
     await this.reEnqueueDueCurations(now, report);
+    await this.recordMissingFacts(report);
     await this.sweepBucket(now, report);
 
     this.logger.log(`reconciliation run ${describe(report)}`);
@@ -202,6 +206,21 @@ export class ReconciliationJob {
           await this.curationQueue.enqueue({ curationId: curation.id, maxAttempts: curation.max_attempts });
           this.act("re-enqueue", "curation", curation.id);
           report.curationsReEnqueued += 1;
+        }
+      });
+    }
+  }
+
+  // A Curation completed before Facts existed (#197) gets them once, by code from the Profile it
+  // read, at no cost to the Candidate; the next run finds nothing left to record.
+  private async recordMissingFacts(report: ReconciliationReport): Promise<void> {
+    for (const run of await this.curations.findCompletedWithoutFacts()) {
+      await this.guarded("curation", run.id, async () => {
+        const facts = factsOf(await this.curations.profileOf(run), this.clock.now());
+
+        if (await this.curations.backfillFacts(run.id, facts)) {
+          this.act("record-facts", "curation", run.id);
+          report.curationFactsRecorded += 1;
         }
       });
     }

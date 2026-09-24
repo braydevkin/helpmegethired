@@ -10,6 +10,7 @@ import { ModelChoiceService } from "../model-choice/model-choice.service";
 import type { UsableModelKey } from "../model-choice/model-key";
 import { CurationAttemptFailedError, CurationNotFoundError } from "./curation-errors";
 import { curationMetricsOf } from "./curation-metrics";
+import { factsOf } from "./facts-of";
 import { instructionsFor } from "./curation-prompts";
 import { CurationRunRepository, type CuratedProfile, type CurationRun, type NewStatement } from "./curation-run.repository";
 import { CURATION_RUNNER_SETTINGS, type CurationRunnerSettings } from "./curation-runner-settings";
@@ -34,7 +35,7 @@ interface RunContext {
   run: CurationRun;
   key: UsableModelKey;
   profile: CuratedProfile;
-  facts: CurationMetrics;
+  metrics: CurationMetrics;
   texts: CitableTexts;
   notes?: readonly string[];
 }
@@ -94,7 +95,7 @@ export class CurationRunner {
     const context = await this.contextOf(run);
 
     if (context) {
-      await this.settle(run, verdictOf(await this.runPending(context)));
+      await this.settle(context, verdictOf(await this.runPending(context)));
     }
   }
 
@@ -107,7 +108,7 @@ export class CurationRunner {
 
     const profile = await this.runs.profileOf(run);
 
-    return { run, key, profile, facts: curationMetricsOf(profile, this.clock.now()), texts: citableTextsOf(profile) };
+    return { run, key, profile, metrics: curationMetricsOf(profile, this.clock.now()), texts: citableTextsOf(profile) };
   }
 
   // Every unit not yet saved, three at a time, then the synthesis unit alone once every other one
@@ -129,7 +130,9 @@ export class CurationRunner {
     return outcomes;
   }
 
-  private async settle(run: CurationRun, verdict: Verdict): Promise<void> {
+  private async settle(context: RunContext, verdict: Verdict): Promise<void> {
+    const { run } = context;
+
     switch (verdict.kind) {
       case "paused": {
         const resumeAfter = new Date(this.clock.now().getTime() + (verdict.retryAfterSeconds ?? DEFAULT_PAUSE_SECONDS) * 1000);
@@ -158,14 +161,15 @@ export class CurationRunner {
       case "stopped":
         return this.stopped(run);
       default:
-        return this.complete(run);
+        return this.complete(context);
     }
   }
 
   // Embedding waits until every unit is saved, so no query ever meets half a Candidate (#114). A
   // failure, or an answer missing a vector, fails the attempt with nothing indexed, and the queue
-  // retries it with its backoff. A Curation that wrote no Statement completes without a call.
-  private async complete(run: CurationRun): Promise<void> {
+  // retries it with its backoff. A Curation that wrote no Statement completes without a call. The
+  // Facts are recorded by code in the same transaction, from the Profile the units read.
+  private async complete({ run, profile }: RunContext): Promise<void> {
     const statements = await this.runs.statementsToEmbed(run.id);
 
     if (!(await this.reservedFor(run, statements))) {
@@ -199,6 +203,7 @@ export class CurationRunner {
     const completed = await this.runs.completeWithEmbeddings(
       run.id,
       statements.map((statement, index) => ({ statementId: statement.id, embedding: vectors[index] as number[] })),
+      factsOf(profile, this.clock.now()),
     );
 
     this.logger.log(`curation ${completed ? "completed" : "stopped"} curation=${run.id} statements=${statements.length}`);
@@ -276,7 +281,7 @@ export class CurationRunner {
 
     try {
       answer = await this.model.generate({
-        prompt: { version: CURATION_PROMPT_VERSION, instructions: instructionsFor(unit.kind), facts: context.facts, sources: input.sources, notes: context.notes },
+        prompt: { version: CURATION_PROMPT_VERSION, instructions: instructionsFor(unit.kind), facts: context.metrics, sources: input.sources, notes: context.notes },
         modelId: context.run.modelId,
         modelKey: context.key.key,
       });

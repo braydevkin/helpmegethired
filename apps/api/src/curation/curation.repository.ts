@@ -195,9 +195,15 @@ export class CurationRepository {
       .returning("id")
       .execute();
 
+    const ids = superseded.map((row) => row.id);
+
     await transaction.deleteFrom("statements").where("account_id", "=", accountId).where("source_ingestion_id", "!=", keptIngestionId).execute();
 
-    return superseded.map((row) => row.id);
+    if (ids.length > 0) {
+      await transaction.deleteFrom("facts").where("curation_id", "in", ids).execute();
+    }
+
+    return ids;
   }
 
   async create(accountId: Id, curation: NewCuration, database: Database = this.database): Promise<Curation> {
