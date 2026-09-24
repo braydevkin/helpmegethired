@@ -17,9 +17,12 @@ x-storage-environment: &storage-environment
   S3_REGION: ${S3_REGION:?}
   PRESIGN_EXPIRES_SECONDS: ${PRESIGN_EXPIRES_SECONDS:?}
 
+# The dev services compile the API in watch mode inside a 1 GB container, and the program needs
+# more heap than V8 picks for itself there (#217).
 x-api-environment: &api-environment
   <<: *storage-environment
   NODE_ENV: development
+  NODE_OPTIONS: --max-old-space-size=768
   PORT: 3001
   WEB_ORIGIN: http://localhost:${WEB_PORT:?}
   DATABASE_URL: *database-url
